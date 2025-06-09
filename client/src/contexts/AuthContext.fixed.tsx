@@ -379,7 +379,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   return (
     <AuthContext.Provider value={contextValue}>
-      {isInitialized ? children : <div>Loading authentication...</div>}
+      {isInitialized ? children : <div>Loading...</div>}
     </AuthContext.Provider>
   )
 }
