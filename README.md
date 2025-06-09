@@ -1,4 +1,4 @@
-# Hulugizetiena Fitness Application
+# Meri Ethiopian Fitness Application
 
 A comprehensive fitness and nutrition management application built with React, TypeScript, and Supabase.
 
