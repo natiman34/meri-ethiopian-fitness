@@ -1,0 +1,26 @@
+
+    {
+        "compilerOptions": {
+          "lib": [
+            "esnext",
+            "deno.ns",
+            "deno.window"
+          ],
+          "types": [
+            "https://deno.land/x/fresh@1.6.0/server.ts"
+          ],
+          "jsx": "react-jsx",
+          "jsxImportSource": "react"
+        },
+        "imports": {
+          "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2",
+          "deno/http/server.ts": "https://deno.land/std@0.168.0/http/server.ts",
+          "react": "https://esm.sh/react@18.2.0",
+          "react-dom": "https://esm.sh/react-dom@18.2.0"
+        },
+        "lint": {
+          "rules": {
+            "tags": ["recommended"]
+          }
+        }
+      }
