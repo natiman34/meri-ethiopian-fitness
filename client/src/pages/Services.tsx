@@ -11,21 +11,23 @@ import FitnessPlanDetail from "./services/FitnessPlanDetail"
 import NutritionPlanDetail from "./services/NutritionPlanDetail"
 import EducationalContentDetail from "./services/EducationalContentDetail"
 import MotivationalContentDetail from "./services/MotivationalContentDetail"
+import FitnessAndNutritionPlans from "./services/FitnessAndNutritionPlans"
+import ExerciseLibrary from "./services/ExerciseLibrary"
 
 const ServicesOverview: React.FC = () => {
   // Using mock data for demonstration
   const mockServices = [
     {
-      title: "Fitness Plans",
-      description: "Customized workout routines for all levels and goals.",
-      icon: "💪",
-      link: "fitness-plans",
+      title: "Fitness and Nutrition Plans",
+      description: "Comprehensive workout and meal plans for all levels and goals.",
+      icon: "💪🥗",
+      link: "fitness-and-nutrition-plans",
     },
     {
-      title: "Nutrition Plans",
-      description: "Personalized meal plans to fuel your body and achieve your health goals.",
-      icon: "🥗",
-      link: "nutrition-plans",
+      title: "Exercise Library",
+      description: "Browse our comprehensive collection of exercises with GIF demonstrations and detailed instructions.",
+      icon: "🏋️",
+      link: "exercise-library",
     },
     {
       title: "Educational Content",
@@ -51,7 +53,7 @@ const ServicesOverview: React.FC = () => {
           Explore our comprehensive range of services designed to help you achieve your fitness and wellness goals.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
           {mockServices.map((service, index) => (
             <Card key={index} className="transform transition duration-300 hover:scale-105">
               <div className="flex items-center justify-center h-16 w-16 rounded-full bg-green-100 text-green-600 text-3xl mb-6">
@@ -78,17 +80,18 @@ const ServicesOverview: React.FC = () => {
 }
 
 const Services: React.FC = () => {
+  console.log("Services component rendering. Current path:", window.location.pathname);
   return (
     <Routes>
       <Route path="/" element={<ServicesOverview />} />
-      <Route path="fitness-plans" element={<FitnessPlans />} />
-      <Route path="fitness-plans/:id" element={<FitnessPlanDetail />} />
-      <Route path="nutrition-plans" element={<NutritionPlans />} />
-      <Route path="nutrition-plans/:id" element={<NutritionPlanDetail />} />
+      <Route path="fitness-and-nutrition-plans" element={<FitnessAndNutritionPlans />} />
+      <Route path="exercise-library" element={<ExerciseLibrary />} />
       <Route path="educational-content" element={<EducationalContent />} />
       <Route path="educational-content/:id" element={<EducationalContentDetail />} />
       <Route path="motivational-content" element={<MotivationalContent />} />
       <Route path="motivational-content/:id" element={<MotivationalContentDetail />} />
+      <Route path="fitness-plans/:id" element={<FitnessPlanDetail />} />
+      <Route path="nutrition-plans/:id" element={<NutritionPlanDetail />} />
     </Routes>
   )
 }

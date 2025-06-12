@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import exercise UI styles */
+@import './components/exercise-ui.css';
+
 :root {
   --primary: #4caf50;
   --primary-dark: #388e3c;

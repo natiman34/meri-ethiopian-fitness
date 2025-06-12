@@ -239,7 +239,7 @@ const Profile: React.FC = () => {
   }, [fetchActivities]) // Depend on fetchActivities (memoized)
 
   return (
-    <div className="pt-24 pb-16">
+    <div className="pb-16">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">My Profile</h1>

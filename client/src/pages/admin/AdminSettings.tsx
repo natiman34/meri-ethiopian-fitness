@@ -84,7 +84,7 @@ const AdminSettings = () => {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-gray-900 mb-6">Settings</h2>
+      <h2 className="text-xl font-bold text-gray-900 mb-6"></h2>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Settings Navigation - Only Password */}

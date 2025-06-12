@@ -83,7 +83,8 @@ const FitnessPlans: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const fetchedPlans = await FitnessPlanService.getFitnessPlans('published');
+        // const fetchedPlans = await FitnessPlanService.getFitnessPlans('published');
+        const fetchedPlans = await FitnessPlanService.getFitnessPlans(); // Fetch all plans
         setFitnessPlans(fetchedPlans);
       } catch (err) {
         console.error("Failed to fetch fitness plans:", err);
@@ -97,7 +98,7 @@ const FitnessPlans: React.FC = () => {
 
   // Filter plans by allowed categories and selected filters
   const filteredPlans = fitnessPlans.filter(plan =>
-    allowedCategories.includes(plan.category) &&
+    // allowedCategories.includes(plan.category) && // Temporarily commented out
     (selectedCategory === 'all' || plan.category === selectedCategory) &&
     (selectedLevel === 'all' || plan.level === selectedLevel)
   );

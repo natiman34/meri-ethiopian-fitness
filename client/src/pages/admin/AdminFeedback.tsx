@@ -65,7 +65,7 @@ const AdminFeedback = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-gray-900">User Feedback</h2>
+        <h2 className="text-xl font-bold text-gray-900"></h2>
       </div>
 
       {error && (

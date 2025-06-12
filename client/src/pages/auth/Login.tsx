@@ -55,14 +55,9 @@ const Login: React.FC = () => {
         console.log("Role:", user?.role)
         console.log("Is admin:", user?.role?.startsWith("admin_"))
         
-        // Redirect based on role
-        if (user?.role?.startsWith("admin_")) {
-          console.log("Redirecting to admin dashboard")
-          navigate("/admin")
-        } else {
-          console.log("Redirecting to regular profile")
-          navigate("/profile")
-        }
+        // Redirect to home page for all users
+        console.log("Redirecting to home page")
+        navigate("/")
         
         setIsLoading(false)
       }, 1000) // Short delay to allow auth state to update
@@ -190,9 +185,9 @@ const Login: React.FC = () => {
                 </div>
 
                 <div className="text-sm">
-                  <a href="#" className="font-medium text-green-600 hover:text-green-500">
-                    
-                  </a>
+                  <Link to="/reset-password" className="font-medium text-green-600 hover:text-green-500">
+                    Forgot your password?
+                  </Link>
                 </div>
               </div>
 

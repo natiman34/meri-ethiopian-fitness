@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useState, useContext, useEffect, useCallback, ReactNode } from "react"
+import React, { createContext, useState, useContext, useEffect, useCallback, ReactNode, useMemo } from "react"
 import { supabase } from "../lib/supabase"
 import { Session, User as SupabaseUser, AuthError } from "@supabase/supabase-js"
 
@@ -27,6 +27,7 @@ interface AuthContextType {
   isSuperAdmin: boolean
   isContentManager: boolean
   isLoading: boolean
+  authError: Error | null
   login: (email: string, password: string) => Promise<void>
   register: (name: string, email: string, password: string) => Promise<"success" | "confirm_email" | "existing_user">
   logout: () => Promise<void>
@@ -123,9 +124,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           name: existingProfile.full_name || "",
           email: existingProfile.email || sessionUser.email || "", // Prioritize DB email, fallback to session
           role: (existingProfile.role || sessionUser.user_metadata?.role || "user") as UserRole,
-          height: existingProfile.height, // Include height
-          weight: existingProfile.weight, // Include weight
-          bmi: existingProfile.bmi,       // Include bmi
+          height: existingProfile.height || null, // Include height
+          weight: existingProfile.weight || null, // Include weight
+          bmi: existingProfile.bmi || null,       // Include bmi
         }
       }
 
@@ -142,6 +143,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { data: insertedProfile, error: insertError } = await supabase
         .from("user_profiles")
         .insert([newProfile])
+        .select("id, full_name, email, role, height, weight, bmi") // Ensure height, weight, bmi are selected on insert
         .single(); // Use single() here as well to get the inserted row
 
       if (insertError) {
@@ -151,7 +153,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.warn("ensureProfile: Insert conflict (profile likely already exists), attempting to fetch profile again after insert failure.")
           const { data: profileAfterConflict, error: selectAfterConflictError } = await supabase
             .from("user_profiles")
-            .select("id, full_name, email, role")
+            .select("id, full_name, email, role, height, weight, bmi") // Ensure height, weight, bmi are selected after conflict
             .eq("id", userId)
             .single();
           
@@ -162,9 +164,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               name: profileAfterConflict.full_name || "",
               email: profileAfterConflict.email || sessionUser.email || "",
               role: (profileAfterConflict.role || sessionUser.user_metadata?.role || "user") as UserRole,
-              height: profileAfterConflict.height, // Include height
-              weight: profileAfterConflict.weight, // Include weight
-              bmi: profileAfterConflict.bmi,       // Include bmi
+              height: profileAfterConflict.height || null, // Include height
+              weight: profileAfterConflict.weight || null, // Include weight
+              bmi: profileAfterConflict.bmi || null,       // Include bmi
             }
           } else {
              console.error("ensureProfile: Failed to fetch profile after insert conflict:", selectAfterConflictError)
@@ -185,16 +187,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           name: insertedProfile.full_name || "",
           email: insertedProfile.email || sessionUser.email || "",
           role: (insertedProfile.role || sessionUser.user_metadata?.role || "user") as UserRole,
-          height: insertedProfile.height, // Include height
-          weight: insertedProfile.weight, // Include weight
-          bmi: insertedProfile.bmi,       // Include bmi
+          height: insertedProfile.height || null, // Include height
+          weight: insertedProfile.weight || null, // Include weight
+          bmi: insertedProfile.bmi || null,       // Include bmi
         }
       } else {
         // This case should ideally not be reached if insert is successful with single(), but as a fallback:
          console.warn("ensureProfile: Insert seemed successful, but no data returned. Attempting to fetch profile after insert.");
           const { data: profileAfterInsert, error: selectAfterInsertError } = await supabase
             .from("user_profiles")
-            .select("id, full_name, email, role")
+            .select("id, full_name, email, role, height, weight, bmi") // Ensure height, weight, bmi are selected after insert
             .eq("id", userId)
             .single();
           
@@ -205,9 +207,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               name: profileAfterInsert.full_name || "",
               email: profileAfterInsert.email || sessionUser.email || "",
               role: (profileAfterInsert.role || sessionUser.user_metadata?.role || "user") as UserRole,
-              height: profileAfterInsert.height, // Include height
-              weight: profileAfterInsert.weight, // Include weight
-              bmi: profileAfterInsert.bmi,       // Include bmi
+              height: profileAfterInsert.height || null, // Include height
+              weight: profileAfterInsert.weight || null, // Include weight
+              bmi: profileAfterInsert.bmi || null,       // Include bmi
             }
           } else {
              console.error("ensureProfile: Failed to fetch profile after insert:", selectAfterInsertError)
@@ -470,11 +472,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Reset password function
   const resetPassword = useCallback(async (email: string): Promise<void> => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email)
-      if (error) throw error
+      console.log("Starting password reset for email:", email);
+      
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/set-new-password`,
+        captchaToken: undefined // Disable captcha for now, can be enabled later
+      });
+
+      if (error) {
+        console.error("Supabase password reset error:", error);
+        
+        // Provide specific error messages based on Supabase error codes
+        switch (error.message) {
+          case "User not found":
+            throw new Error("No account found with this email address. Please check your email or create a new account.");
+          case "Too many requests":
+            throw new Error("Too many password reset attempts. Please wait a few minutes before trying again.");
+          case "Email rate limit exceeded":
+            throw new Error("Too many password reset emails sent. Please wait before requesting another.");
+          default:
+            throw error;
+        }
+      }
+
+      console.log("Password reset email sent successfully:", data);
+      
+      // The email has been sent successfully
+      // Supabase will automatically send the email with the reset link
+      
     } catch (error) {
-      console.error("Password reset error:", error)
-      throw error
+      console.error("Password reset error:", error);
+      throw error;
     }
   }, [])
 
@@ -513,7 +541,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (updates.name !== undefined) profileUpdates.full_name = updates.name; // Map name to full_name
       if (updates.role !== undefined) profileUpdates.role = updates.role;
-      if (updates.email !== undefined && (authError === null || (authError instanceof Error && !(authError as any).status) )) { 
+      if (updates.email !== undefined) { 
          profileUpdates.email = updates.email; 
       }
       // Add height, weight, and bmi to updates if provided
@@ -579,6 +607,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isSuperAdmin,
     isContentManager,
     isLoading: isLoading || isProfileLoading, // Combine loading states
+    authError,
     login,
     register,
     logout,

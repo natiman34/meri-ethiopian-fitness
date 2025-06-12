@@ -18,11 +18,7 @@ const About: React.FC = () => {
             health science.
           </p>
 
-          <h2 className="text-2xl font-semibold text-gray-800 mt-12 mb-4">Our Team</h2>
-          <p className="text-gray-700 mb-6">
-            Our team consists of certified Ethiopian nutritionists, fitness experts, and health professionals who
-            understand the unique health challenges and dietary preferences of Ethiopians.
-          </p>
+          
 
           <h2 className="text-2xl font-semibold text-gray-800 mt-12 mb-4">Our Approach</h2>
           <p className="text-gray-700 mb-6">

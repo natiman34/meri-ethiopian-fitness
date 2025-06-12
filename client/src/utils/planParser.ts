@@ -1,38 +1,47 @@
-import { FitnessPlan, DaySchedule, Exercise, FitnessCategory, FitnessLevel } from "../models/FitnessPlan";
+import { FitnessPlan } from "../types/content";
+import { FitnessPlan as IFitnessPlan, DaySchedule, Exercise, FitnessCategory, FitnessLevel, ExerciseSet } from "../types/content";
+import { FitnessPlan as FitnessPlanModel } from "../models/FitnessPlan";
 
-export function parseFitnessPlanText(rawText: string): FitnessPlan[] {
-  const plans: FitnessPlan[] = [];
-  const sections = rawText.split(/________________________________________\\r\\n/);
+export function parseFitnessPlanText(rawText: string): FitnessPlanModel[] {
+  const plans: FitnessPlanModel[] = [];
+  const sections = rawText.split(/________________________________________\r\n/);
 
-  let currentPlan: Partial<FitnessPlan> = {};
+  let currentPlan: Partial<IFitnessPlan> = {};
   let currentDay: Partial<DaySchedule> = {};
   let inWorkoutSection = false;
 
   for (const section of sections) {
-    const lines = section.split(/\\r\\n|\\n/).map(line => line.trim()).filter(line => line.length > 0);
+    const lines = section.split(/\r\n|\n/).map(line => line.trim()).filter(line => line.length > 0);
 
-    const planTitleMatch = lines[0]?.match(/🏋️‍♂️\\s*(.*?)\\s*Workout Plan/);
+    const planTitleMatch = lines[0]?.match(/🏋️‍♂️\s*(.*?)\s*Workout Plan/);
     if (planTitleMatch) {
       if (Object.keys(currentPlan).length > 0) {
         // Push the previous plan if it exists
         if (currentPlan.title && currentPlan.category && currentPlan.level && currentPlan.schedule) {
-          plans.push(currentPlan as FitnessPlan);
+          plans.push(new FitnessPlanModel(currentPlan as IFitnessPlan));
         }
       }
       currentPlan = {
         title: planTitleMatch[1],
         description: "", // Will be filled later
-        category: "" as FitnessCategory, // Will be determined
-        level: "" as FitnessLevel, // Will be determined
-        duration: 0, // Will be determined
-        weekly_workouts: 0, // Will be determined
-        difficulty: 1, // Default difficulty
+        category: "strength",
+        level: "beginner",
+        duration: 0,
+        weekly_workouts: 0,
+        difficulty: 1,
         prerequisites: [],
         equipment: [],
         goals: [],
         schedule: [],
         status: "published",
-        image_url: ""
+        image_url: "",
+        tags: [],
+        featured: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        muscleGroups: [],
+        equipmentRequired: [],
+        intensity: 'low',
       };
       inWorkoutSection = true;
       continue;
@@ -48,24 +57,24 @@ export function parseFitnessPlanText(rawText: string): FitnessPlan[] {
       if (line.startsWith("•\tFocus:")) {
         currentPlan.description = line.replace("•\tFocus:", "").trim();
       } else if (line.startsWith("•\tDuration:")) {
-        const durationMatch = line.match(/(\\d+)\\s*days\\/week/);
+        const durationMatch = line.match(/(\d+)\s*days\/week/);
         if (durationMatch) {
           currentPlan.weekly_workouts = parseInt(durationMatch[1], 10);
         }
-        const totalDurationMatch = lines.find(l => l.includes("Duration:") && !l.includes("days/week"))?.match(/Duration:\\s*(\\d+)\\s*days/);
+        const totalDurationMatch = lines.find(l => l.includes("Duration:") && !l.includes("days/week"))?.match(/Duration:\s*(\d+)\s*days/);
         if (totalDurationMatch) {
             currentPlan.duration = parseInt(totalDurationMatch[1], 10);
         } else {
             // Assign a default or infer if needed. Assuming 4 weeks for now if not specified.
             currentPlan.duration = 4; // Default to 4 weeks if not specified
         }
-      } else if (line.startsWith("•\tCardio:") && currentPlan.category === "") {
+      } else if (line.startsWith("•\tCardio:") && currentPlan.category === undefined) {
         if (currentPlan.title?.includes("Weight Gain")) {
           currentPlan.category = "weight-gain";
         } else if (currentPlan.title?.includes("Weight Loss")) {
           currentPlan.category = "weight-loss";
         }
-      } else if (line.startsWith("•\tRest Days:") && currentPlan.level === "") {
+      } else if (line.startsWith("•\tRest Days:") && currentPlan.level === undefined) {
         if (currentPlan.title?.includes("Beginner")) {
           currentPlan.level = "beginner";
         } else if (currentPlan.title?.includes("Intermediate")) {
@@ -81,36 +90,58 @@ export function parseFitnessPlanText(rawText: string): FitnessPlan[] {
         if (currentDay.day !== undefined) {
           currentPlan.schedule?.push(currentDay as DaySchedule);
         }
-        const dayMatch = line.match(/Day (\\d+):\\s*(.*)/);
+        const dayMatch = line.match(/Day (\d+):\s*(.*)/);
         if (dayMatch) {
           currentDay = {
             day: parseInt(dayMatch[1], 10),
             restDay: dayMatch[2].includes("Rest") || dayMatch[2].includes("Recovery"),
-            exercises: []
+            exercises: [],
+            totalEstimatedTime: 0,
+            focusAreas: [],
           };
         }
       } else if (line.startsWith("•\t") && !currentDay.restDay) {
         const exerciseLine = line.substring(2).trim();
-        const exerciseMatch = exerciseLine.match(/(.*?)\\s*–\\s*(\\d+x\\d+(?:-\\d+)?(?:\\s*sec|\\s*min)?(?:\\s*each leg)?)/);
+        const exerciseMatch = exerciseLine.match(/(.*?)\s*–\s*(\d+x\d+(?:-\d+)?(?:\s*sec|\s*min)?(?:\s*each leg)?)/);
         if (exerciseMatch) {
           const name = exerciseMatch[1].trim();
           const setsRepsDuration = exerciseMatch[2].trim();
-          let sets: number | undefined;
-          let reps: number | undefined;
+          let sets: ExerciseSet[] = [];
           let duration: string | undefined;
 
           if (setsRepsDuration.includes("x")) {
             const [s, r] = setsRepsDuration.split("x");
-            sets = parseInt(s, 10);
+            const numSets = parseInt(s, 10);
+            let numReps = parseInt(r.replace("each leg", "").trim(), 10);
             if (r.includes("sec") || r.includes("min")) {
               duration = r;
-            } else {
-              reps = parseInt(r.replace("each leg", "").trim(), 10);
+              numReps = 0;
+            }
+            for (let j = 1; j <= numSets; j++) {
+              sets.push({
+                setNumber: j,
+                setType: 'working',
+                reps: numReps,
+                restTime: 60,
+                duration: duration,
+              });
             }
           } else if (setsRepsDuration.includes("sec") || setsRepsDuration.includes("min")) {
             duration = setsRepsDuration;
+            sets.push({
+              setNumber: 1,
+              setType: 'working',
+              reps: 0,
+              restTime: 60,
+              duration: duration,
+            });
           } else {
-              reps = parseInt(setsRepsDuration, 10);
+              sets.push({
+                setNumber: 1,
+                setType: 'working',
+                reps: parseInt(setsRepsDuration, 10),
+                restTime: 60,
+              });
           }
           
           let description = "";
@@ -122,24 +153,50 @@ export function parseFitnessPlanText(rawText: string): FitnessPlan[] {
           description = description.trim();
 
           currentDay.exercises?.push({
-            id: \`\${currentPlan.title?.toLowerCase().replace(/\\s/g, \'-\')}-\${currentDay.day}-e\${currentDay.exercises.length + 1}\`,
+            id: `${currentPlan.title?.toLowerCase().replace(/\s/g, '-')}-${currentDay.day}-e${currentDay.exercises.length + 1}`,
             name: name,
             description: description,
+            image: '',
+            gifUrl: '',
+            videoUrl: undefined,
+            steps: [],
             sets: sets,
-            reps: reps,
-            duration: duration,
-            targetMuscles: [], // This is hard to extract programmatically, will leave empty for now
-            difficulty: "intermediate", // Default, can be refined
-            steps: [] // Hard to extract, leave empty for now
+            equipment: [],
+            targetMuscles: [],
+            secondaryMuscles: [],
+            difficulty: "intermediate",
+            category: "strength",
+            instructions: [],
+            tips: [],
+            commonMistakes: [],
+            variations: [],
+            estimatedTime: 0,
+            caloriesBurn: undefined,
+            muscleGroup: "full-body",
           });
         } else if (line.includes("Cardio:") || line.includes("Core Focus:")) {
             const cardioDetails = line.replace("•\tCardio:", "").replace("•\tCore Focus:", "").trim();
             currentDay.exercises?.push({
-                id: \`\${currentPlan.title?.toLowerCase().replace(/\\s/g, \'-\')}-\${currentDay.day}-cardio\${currentDay.exercises.length + 1}\`,
+                id: `${currentPlan.title?.toLowerCase().replace(/\s/g, '-')}-${currentDay.day}-cardio${currentDay.exercises.length + 1}`,
                 name: line.includes("Cardio:") ? "Cardio" : "Core Workout",
                 description: cardioDetails,
+                image: '',
+                gifUrl: '',
+                videoUrl: undefined,
+                steps: [],
+                sets: [],
+                equipment: [],
+                targetMuscles: [],
+                secondaryMuscles: [],
                 difficulty: "intermediate",
-                steps: []
+                category: line.includes("Cardio:") ? "cardio" : "strength",
+                instructions: [],
+                tips: [],
+                commonMistakes: [],
+                variations: [],
+                estimatedTime: 0,
+                caloriesBurn: undefined,
+                muscleGroup: "full-body",
             });
         }
       }
@@ -149,7 +206,7 @@ export function parseFitnessPlanText(rawText: string): FitnessPlan[] {
   // Push the last plan
   if (Object.keys(currentPlan).length > 0) {
     if (currentPlan.title && currentPlan.category && currentPlan.level && currentPlan.schedule) {
-      plans.push(currentPlan as FitnessPlan);
+      plans.push(new FitnessPlanModel(currentPlan as IFitnessPlan));
     }
   }
 

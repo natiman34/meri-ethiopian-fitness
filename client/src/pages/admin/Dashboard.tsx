@@ -72,7 +72,7 @@ const Dashboard = () => {
   }
 
   const sidebar = (
-    <div className="w-64 h-full bg-gray-800 text-white flex flex-col">
+    <div className="w-64 h-full bg-gray-800 text-white flex flex-col hidden md:flex">
       {/* Sidebar Header */}
       <div className="p-4 border-b border-gray-700">
         <Link to="/admin" className="flex items-center">
@@ -80,7 +80,7 @@ const Dashboard = () => {
             <span className="text-red-500">መሪ</span>
             <span className="text-yellow-500">Ethiopian</span>
             <span className="text-green-500">Fitness</span>
-            <span className="ml-2 text-white">Admin</span>
+            <span className="ml-2 text-white"></span>
           </div>
         </Link>
       </div>
@@ -241,10 +241,31 @@ const Dashboard = () => {
     </div>
   )
 
+  const getTitleForPath = (path: string) => {
+    switch (path) {
+      case "/admin/users":
+        return "Users Management"
+      case "/admin/fitness":
+        return "Fitness Plans"
+      case "/admin/nutrition":
+        return "Nutrition Plans"
+      case "/admin/content":
+        return "Content Management"
+      case "/admin/feedback":
+        return "User Feedback"
+      case "/admin/settings":
+        return "Settings"
+      case "/admin/profile":
+        return "Profile"
+      default:
+        return "Dashboard"
+    }
+  }
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar for desktop */}
-      <div className="hidden md:block">{sidebar}</div>
+      {sidebar}
 
       {/* Mobile sidebar */}
       {sidebarOpen && (
@@ -255,7 +276,7 @@ const Dashboard = () => {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden md:ml-64">
         {/* Top Bar */}
         <header className="bg-white shadow-sm z-10">
           <div className="px-4 sm:px-6 py-4 flex justify-between items-center">
@@ -293,8 +314,8 @@ const Dashboard = () => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto bg-gray-100">
-          <div className="p-6">
+        <main className="flex-1 p-4 md:p-6 bg-gray-100 overflow-y-auto pt-16">
+          <div className="">
             <Routes>
               <Route 
                 path="/" 

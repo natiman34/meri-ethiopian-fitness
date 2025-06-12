@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Search, Edit, Trash2, Plus, Filter, X } from "lucide-react"
 import Button from "../../components/ui/Button"
-import { NutritionPlan, DietType, PlanStatus, Meal, NutritionalInfo } from '../../types/database'
+import { NutritionPlan, Meal, NutritionCategory, NutritionInfo, CalorieRange, DayMeal } from '../../types/content'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { Dialog } from '@headlessui/react'
@@ -26,13 +26,17 @@ const AdminNutrition = () => {
   const [editingPlan, setEditingPlan] = useState<NutritionPlan | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [newPlan, setNewPlan] = useState<Partial<NutritionPlan>>({
-    name: '',
+    title: '',
     description: '',
-    duration: '',
-    meal_plan: { meals: [] },
-    calories: 0,
-    diet_type: 'traditional',
-    status: 'draft'
+    duration: 0,
+    category: 'maintenance',
+    calorieRange: { min: 0, max: 0 },
+    meals: [],
+    status: 'draft',
+    tags: [],
+    featured: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   })
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({})
   const itemsPerPage = 10
@@ -73,9 +77,9 @@ const AdminNutrition = () => {
 
   // Filter nutrition plans based on search term, diet type, and status
   const filteredPlans = nutritionPlans.filter((plan) => {
-    const matchesSearch = plan.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = plan.title.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory =
-      selectedCategory === "all" || plan.diet_type === selectedCategory
+      selectedCategory === "all" || plan.category === selectedCategory
     const matchesStatus = selectedStatus === "all" || plan.status === selectedStatus
     return matchesSearch && matchesCategory && matchesStatus
   })
@@ -90,17 +94,21 @@ const AdminNutrition = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const planToInsert = {
-        ...newPlan,
-        nutritionist_id: user?.id,
-        // Ensure meal_plan structure is correct if empty
-        meal_plan: newPlan.meal_plan || { meals: [] },
-        calories: newPlan.calories || 0 // Ensure calories is a number
+      const planToInsert: Omit<NutritionPlan, 'id'> = {
+        ...newPlan as NutritionPlan,
+        user_id: user?.id,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        meals: newPlan.meals || [],
+        calorieRange: newPlan.calorieRange || {min: 0, max: 0},
+        status: newPlan.status || 'draft',
+        tags: newPlan.tags || [],
+        featured: newPlan.featured || false,
       };
 
       const { data, error } = await supabase
         .from('nutrition_plans')
-        .insert([planToInsert as any]) // Cast to any to bypass TS issue with Partial
+        .insert([planToInsert])
         .select()
         .single();
 
@@ -109,13 +117,17 @@ const AdminNutrition = () => {
         setNutritionPlans([data, ...nutritionPlans]);
         setIsCreateModalOpen(false);
         setNewPlan({
-          name: '',
+          title: '',
           description: '',
-          duration: '',
-          meal_plan: { meals: [] },
-          calories: 0,
-          diet_type: 'traditional',
-          status: 'draft'
+          duration: 0,
+          category: 'maintenance',
+          calorieRange: { min: 0, max: 0 },
+          meals: [],
+          status: 'draft',
+          tags: [],
+          featured: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         });
       }
     } catch (error) {
@@ -128,11 +140,11 @@ const AdminNutrition = () => {
 
   const validateForm = (plan: Partial<NutritionPlan>) => {
     const errors: {[key: string]: string} = {};
-    if (!plan.name?.trim()) errors.name = 'Name is required';
+    if (!plan.title?.trim()) errors.title = 'Title is required';
     if (!plan.description?.trim()) errors.description = 'Description is required';
-    if (!plan.duration?.trim()) errors.duration = 'Duration is required';
-    if (!plan.diet_type) errors.diet_type = 'Diet type is required';
-    // Calories can be 0, so no required validation for it directly
+    if (plan.duration === undefined || plan.duration <= 0) errors.duration = 'Duration is required and must be a positive number';
+    if (!plan.category) errors.category = 'Category is required';
+    if (!plan.calorieRange || plan.calorieRange.min === undefined || plan.calorieRange.max === undefined) errors.calorieRange = 'Calorie range is required';
     return errors;
   };
 
@@ -188,17 +200,27 @@ const AdminNutrition = () => {
   // Handlers for nested meal_plan
   const handleAddMeal = (planType: 'new' | 'edit') => {
     const newMeal: Meal = {
+      id: `meal-${Date.now()}`,
       name: '',
+      description: '',
+      image: '',
+      isEthiopian: false,
       ingredients: [],
       preparation: '',
-      nutritionalInfo: { calories: 0, protein: 0, carbs: 0, fat: 0 }
+      nutritionalInfo: { calories: 0, protein: 0, carbs: 0, fat: 0 },
     };
     if (planType === 'new') {
-      setNewPlan(prev => ({ ...prev, meal_plan: { meals: [...(prev.meal_plan?.meals || []), newMeal] } }));
+      setNewPlan(prev => ({
+        ...prev,
+        meals: [...(prev.meals || []), newMeal],
+        calorieRange: prev.calorieRange || {min: 0, max: 0},
+        createdAt: prev.createdAt || new Date().toISOString(),
+        updatedAt: prev.updatedAt || new Date().toISOString(),
+      }));
     } else if (planType === 'edit' && editingPlan) {
       setEditingPlan(prev => ({
         ...(prev as NutritionPlan),
-        meal_plan: { meals: [...((prev as NutritionPlan).meal_plan?.meals || []), newMeal] }
+        meals: [...((prev as NutritionPlan).meals || []), newMeal]
       }));
     }
   };
@@ -207,12 +229,12 @@ const AdminNutrition = () => {
     if (planType === 'new') {
       setNewPlan(prev => ({
         ...prev,
-        meal_plan: { meals: (prev.meal_plan?.meals || []).filter((_, i) => i !== mealIndex) }
+        meals: (prev.meals || []).filter((_, i) => i !== mealIndex)
       }));
     } else if (planType === 'edit' && editingPlan) {
       setEditingPlan(prev => ({
         ...(prev as NutritionPlan),
-        meal_plan: { meals: ((prev as NutritionPlan).meal_plan?.meals || []).filter((_, i) => i !== mealIndex) }
+        meals: ((prev as NutritionPlan).meals || []).filter((_, i) => i !== mealIndex)
       }));
     }
   };
@@ -221,33 +243,39 @@ const AdminNutrition = () => {
     if (planType === 'new') {
       setNewPlan(prev => ({
         ...prev,
-        meal_plan: { meals: (prev.meal_plan?.meals || []).map((meal, i) => i === mealIndex ? { ...meal, [field]: value } : meal) }
+        meals: (prev.meals || []).map((meal, i) => i === mealIndex ? { ...meal, [field]: value } : meal),
+        calorieRange: prev.calorieRange || {min: 0, max: 0},
+        createdAt: prev.createdAt || new Date().toISOString(),
+        updatedAt: prev.updatedAt || new Date().toISOString(),
       }));
     } else if (planType === 'edit' && editingPlan) {
       setEditingPlan(prev => ({
         ...(prev as NutritionPlan),
-        meal_plan: { meals: ((prev as NutritionPlan).meal_plan?.meals || []).map((meal, i) => i === mealIndex ? { ...meal, [field]: value } : meal) }
+        meals: ((prev as NutritionPlan).meals || []).map((meal, i) => i === mealIndex ? { ...meal, [field]: value } : meal)
       }));
     }
   };
 
-  const handleNutritionalInfoChange = (planType: 'new' | 'edit', mealIndex: number, field: keyof NutritionalInfo, value: number) => {
+  const handleNutritionalInfoChange = (planType: 'new' | 'edit', mealIndex: number, field: keyof NutritionInfo, value: number) => {
     if (planType === 'new') {
       setNewPlan(prev => ({
         ...prev,
-        meal_plan: {
-          meals: (prev.meal_plan?.meals || []).map((meal, i) =>
+        meals: {
+          meals: (prev.meals || []).map((meal, i) =>
             i === mealIndex
               ? { ...meal, nutritionalInfo: { ...(meal.nutritionalInfo || {}), [field]: value } }
               : meal
-          )
+          ),
+          calorieRange: prev.calorieRange || {min: 0, max: 0},
+          createdAt: prev.createdAt || new Date().toISOString(),
+          updatedAt: prev.updatedAt || new Date().toISOString(),
         }
       }));
     } else if (planType === 'edit' && editingPlan) {
       setEditingPlan(prev => ({
         ...(prev as NutritionPlan),
-        meal_plan: {
-          meals: ((prev as NutritionPlan).meal_plan?.meals || []).map((meal, i) =>
+        meals: {
+          meals: ((prev as NutritionPlan).meals || []).map((meal, i) =>
             i === mealIndex
               ? { ...meal, nutritionalInfo: { ...(meal.nutritionalInfo || {}), [field]: value } }
               : meal
@@ -261,24 +289,20 @@ const AdminNutrition = () => {
     if (planType === 'new') {
       setNewPlan(prev => ({
         ...prev,
-        meal_plan: {
-          meals: (prev.meal_plan?.meals || []).map((meal, i) =>
+        meals: (prev.meals || []).map((meal, i) =>
             i === mealIndex
               ? { ...meal, ingredients: meal.ingredients.map((ing, j) => j === ingredientIndex ? value : ing) }
               : meal
           )
-        }
       }));
     } else if (planType === 'edit' && editingPlan) {
       setEditingPlan(prev => ({
         ...(prev as NutritionPlan),
-        meal_plan: {
-          meals: ((prev as NutritionPlan).meal_plan?.meals || []).map((meal, i) =>
+        meals: (prev.meals || []).map((meal, i) =>
             i === mealIndex
               ? { ...meal, ingredients: meal.ingredients.map((ing, j) => j === ingredientIndex ? value : ing) }
               : meal
           )
-        }
       }));
     }
   };
@@ -287,24 +311,20 @@ const AdminNutrition = () => {
     if (planType === 'new') {
       setNewPlan(prev => ({
         ...prev,
-        meal_plan: {
-          meals: (prev.meal_plan?.meals || []).map((meal, i) =>
+        meals: (prev.meals || []).map((meal, i) =>
             i === mealIndex
               ? { ...meal, ingredients: [...meal.ingredients, ''] }
               : meal
           )
-        }
       }));
     } else if (planType === 'edit' && editingPlan) {
       setEditingPlan(prev => ({
         ...(prev as NutritionPlan),
-        meal_plan: {
-          meals: ((prev as NutritionPlan).meal_plan?.meals || []).map((meal, i) =>
+        meals: (prev.meals || []).map((meal, i) =>
             i === mealIndex
               ? { ...meal, ingredients: [...meal.ingredients, ''] }
               : meal
           )
-        }
       }));
     }
   };
@@ -313,24 +333,20 @@ const AdminNutrition = () => {
     if (planType === 'new') {
       setNewPlan(prev => ({
         ...prev,
-        meal_plan: {
-          meals: (prev.meal_plan?.meals || []).map((meal, i) =>
+        meals: (prev.meals || []).map((meal, i) =>
             i === mealIndex
               ? { ...meal, ingredients: meal.ingredients.filter((_, j) => j !== ingredientIndex) }
               : meal
           )
-        }
       }));
     } else if (planType === 'edit' && editingPlan) {
       setEditingPlan(prev => ({
         ...(prev as NutritionPlan),
-        meal_plan: {
-          meals: ((prev as NutritionPlan).meal_plan?.meals || []).map((meal, i) =>
+        meals: (prev.meals || []).map((meal, i) =>
             i === mealIndex
               ? { ...meal, ingredients: meal.ingredients.filter((_, j) => j !== ingredientIndex) }
               : meal
           )
-        }
       }));
     }
   };
@@ -388,14 +404,14 @@ const AdminNutrition = () => {
             }} className="mt-4 space-y-4">
               {/* Plan Details */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <label className="block text-sm font-medium text-gray-700">Title</label>
                 <input
                   type="text"
-                  value={newPlan.name || ''}
-                  onChange={(e) => setNewPlan({ ...newPlan, name: e.target.value })}
+                  value={newPlan.title || ''}
+                  onChange={(e) => setNewPlan({ ...newPlan, title: e.target.value })}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                 />
-                {formErrors.name && <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>}
+                {formErrors.title && <p className="mt-1 text-sm text-red-600">{formErrors.title}</p>}
               </div>
 
               <div>
@@ -411,27 +427,27 @@ const AdminNutrition = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Diet Type</label>
+                  <label className="block text-sm font-medium text-gray-700">Category</label>
                   <select
-                    value={newPlan.diet_type}
-                    onChange={(e) => setNewPlan({ ...newPlan, diet_type: e.target.value as DietType })}
+                    value={newPlan.category}
+                    onChange={(e) => setNewPlan({ ...newPlan, category: e.target.value as NutritionCategory })}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                   >
-                    <option value="traditional">Traditional</option>
-                    <option value="high-protein">High Protein</option>
-                    <option value="vegetarian">Vegetarian</option>
-                    <option value="balanced">Balanced</option>
-                    <option value="high-energy">High Energy</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="weight-loss">Weight Loss</option>
+                    <option value="weight-gain">Weight Gain</option>
+                    <option value="performance">Performance</option>
+                    <option value="health">Health</option>
                   </select>
-                  {formErrors.diet_type && <p className="mt-1 text-sm text-red-600">{formErrors.diet_type}</p>}
+                  {formErrors.category && <p className="mt-1 text-sm text-red-600">{formErrors.category}</p>}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Duration</label>
                   <input
-                    type="text"
-                    value={newPlan.duration || ''}
-                    onChange={(e) => setNewPlan({ ...newPlan, duration: e.target.value })}
+                    type="number"
+                    value={newPlan.duration || 0}
+                    onChange={(e) => setNewPlan({ ...newPlan, duration: parseInt(e.target.value) || 0 })}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                   />
                   {formErrors.duration && <p className="mt-1 text-sm text-red-600">{formErrors.duration}</p>}
@@ -439,20 +455,34 @@ const AdminNutrition = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Calories</label>
+                <label className="block text-sm font-medium text-gray-700">Calorie Range</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Min Calories</label>
                 <input
                   type="number"
-                  value={newPlan.calories || 0}
-                  onChange={(e) => setNewPlan({ ...newPlan, calories: parseInt(e.target.value) || 0 })}
+                      value={newPlan.calorieRange?.min || 0}
+                      onChange={(e) => setNewPlan({ ...newPlan, calorieRange: { ...newPlan.calorieRange, min: parseInt(e.target.value) || 0 } })}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                 />
-                {formErrors.calories && <p className="mt-1 text-sm text-red-600">{formErrors.calories}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Max Calories</label>
+                    <input
+                      type="number"
+                      value={newPlan.calorieRange?.max || 0}
+                      onChange={(e) => setNewPlan({ ...newPlan, calorieRange: { ...newPlan.calorieRange, max: parseInt(e.target.value) || 0 } })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                    />
+                  </div>
+                </div>
+                {formErrors.calorieRange && <p className="mt-1 text-sm text-red-600">{formErrors.calorieRange}</p>}
               </div>
 
               {/* Meal Plan Section */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium leading-6 text-gray-900">Meal Plan</h3>
-                {(newPlan.meal_plan?.meals || []).map((meal, mealIndex) => (
+                {(newPlan.meals || []).map((meal, mealIndex) => (
                   <div key={mealIndex} className="border rounded-md p-4 space-y-3 bg-gray-50">
                     <div className="flex justify-between items-center">
                       <h4 className="text-md font-medium">Meal {mealIndex + 1}</h4>
@@ -596,14 +626,14 @@ const AdminNutrition = () => {
                 handleEditPlan(editingPlan);
               }} className="mt-4 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
+                  <label className="block text-sm font-medium text-gray-700">Title</label>
                   <input
                     type="text"
-                    value={editingPlan.name}
-                    onChange={(e) => setEditingPlan({ ...editingPlan, name: e.target.value })}
+                    value={editingPlan.title}
+                    onChange={(e) => setEditingPlan({ ...editingPlan, title: e.target.value })}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                   />
-                  {formErrors.name && <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>}
+                  {formErrors.title && <p className="mt-1 text-sm text-red-600">{formErrors.title}</p>}
                 </div>
 
                 <div>
@@ -619,26 +649,26 @@ const AdminNutrition = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Diet Type</label>
+                    <label className="block text-sm font-medium text-gray-700">Category</label>
                     <select
-                      value={editingPlan.diet_type}
-                      onChange={(e) => setEditingPlan({ ...editingPlan, diet_type: e.target.value as DietType })}
+                      value={editingPlan.category}
+                      onChange={(e) => setEditingPlan({ ...editingPlan, category: e.target.value as NutritionCategory })}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                     >
-                      <option value="traditional">Traditional</option>
-                      <option value="high-protein">High Protein</option>
-                      <option value="vegetarian">Vegetarian</option>
-                      <option value="balanced">Balanced</option>
-                      <option value="high-energy">High Energy</option>
+                      <option value="maintenance">Maintenance</option>
+                      <option value="weight-loss">Weight Loss</option>
+                      <option value="weight-gain">Weight Gain</option>
+                      <option value="performance">Performance</option>
+                      <option value="health">Health</option>
                     </select>
-                    {formErrors.diet_type && <p className="mt-1 text-sm text-red-600">{formErrors.diet_type}</p>}
+                    {formErrors.category && <p className="mt-1 text-sm text-red-600">{formErrors.category}</p>}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Status</label>
                     <select
                       value={editingPlan.status}
-                      onChange={(e) => setEditingPlan({ ...editingPlan, status: e.target.value as PlanStatus })}
+                      onChange={(e) => setEditingPlan({ ...editingPlan, status: e.target.value as NutritionStatus })}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                     >
                       <option value="draft">Draft</option>
@@ -652,30 +682,44 @@ const AdminNutrition = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Duration</label>
                     <input
-                      type="text"
+                      type="number"
                       value={editingPlan.duration}
-                      onChange={(e) => setEditingPlan({ ...editingPlan, duration: e.target.value })}
+                      onChange={(e) => setEditingPlan({ ...editingPlan, duration: parseInt(e.target.value) || 0 })}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                     />
                     {formErrors.duration && <p className="mt-1 text-sm text-red-600">{formErrors.duration}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Calories</label>
+                    <label className="block text-sm font-medium text-gray-700">Calorie Range</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Min Calories</label>
                     <input
                       type="number"
-                      value={editingPlan.calories}
-                      onChange={(e) => setEditingPlan({ ...editingPlan, calories: parseInt(e.target.value) || 0 })}
+                          value={editingPlan.calorieRange?.min || 0}
+                          onChange={(e) => setEditingPlan({ ...editingPlan, calorieRange: { ...editingPlan.calorieRange, min: parseInt(e.target.value) || 0 } })}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                     />
-                    {formErrors.calories && <p className="mt-1 text-sm text-red-600">{formErrors.calories}</p>}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Max Calories</label>
+                        <input
+                          type="number"
+                          value={editingPlan.calorieRange?.max || 0}
+                          onChange={(e) => setEditingPlan({ ...editingPlan, calorieRange: { ...editingPlan.calorieRange, max: parseInt(e.target.value) || 0 } })}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                        />
+                      </div>
+                    </div>
+                    {formErrors.calorieRange && <p className="mt-1 text-sm text-red-600">{formErrors.calorieRange}</p>}
                   </div>
                 </div>
 
                  {/* Meal Plan Section (Edit) */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium leading-6 text-gray-900">Meal Plan</h3>
-                {(editingPlan.meal_plan?.meals || []).map((meal, mealIndex) => (
+                {(editingPlan.meals || []).map((meal, mealIndex) => (
                   <div key={mealIndex} className="border rounded-md p-4 space-y-3 bg-gray-50">
                     <div className="flex justify-between items-center">
                       <h4 className="text-md font-medium">Meal {mealIndex + 1}</h4>
@@ -808,13 +852,17 @@ const AdminNutrition = () => {
         <Button className="flex items-center" onClick={() => {
           setIsCreateModalOpen(true);
           setNewPlan({
-            name: '',
+            title: '',
             description: '',
-            duration: '',
-            meal_plan: { meals: [] },
-            calories: 0,
-            diet_type: 'traditional',
-            status: 'draft'
+            duration: 0,
+            category: 'maintenance',
+            calorieRange: { min: 0, max: 0 },
+            meals: [],
+            status: 'draft',
+            tags: [],
+            featured: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
           }); // Reset form when opening create modal
           setFormErrors({});
         }}>
@@ -850,11 +898,11 @@ const AdminNutrition = () => {
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
                 <option value="all">All Categories</option>
-                <option value="traditional">Traditional</option>
-                <option value="high-protein">High Protein</option>
-                <option value="vegetarian">Vegetarian</option>
-                <option value="balanced">Balanced</option>
-                <option value="high-energy">High Energy</option>
+                <option value="maintenance">Maintenance</option>
+                <option value="weight-loss">Weight Loss</option>
+                <option value="weight-gain">Weight Gain</option>
+                <option value="performance">Performance</option>
+                <option value="health">Health</option>
               </select>
             </div>
 
@@ -887,13 +935,13 @@ const AdminNutrition = () => {
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Name
+                  Title
                 </th>
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Diet Type
+                  Category
                 </th>
                 <th
                   scope="col"
@@ -925,32 +973,30 @@ const AdminNutrition = () => {
               {filteredPlans.map((plan) => (
                 <tr key={plan.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{plan.name}</div>
+                    <div className="text-sm font-medium text-gray-900">{plan.title}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        plan.diet_type === "traditional"
+                        plan.category === "maintenance"
                           ? "bg-blue-100 text-blue-800"
-                          : plan.diet_type === "high-protein"
+                          : plan.category === "weight-loss"
                             ? "bg-green-100 text-green-800"
-                            : plan.diet_type === "vegetarian"
+                            : plan.category === "weight-gain"
                               ? "bg-purple-100 text-purple-800"
-                            : plan.diet_type === "balanced"
+                            : plan.category === "performance"
                               ? "bg-yellow-100 text-yellow-800"
-                              : plan.diet_type === "high-energy"
-                                ? "bg-red-100 text-red-800"
                                 : "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {plan.diet_type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                      {plan.category.charAt(0).toUpperCase() + plan.category.slice(1)}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {plan.duration}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(plan.created_at).toLocaleDateString()}
+                    {new Date(plan.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span

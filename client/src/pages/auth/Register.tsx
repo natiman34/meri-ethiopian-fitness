@@ -6,6 +6,12 @@ import { useNavigate, Link } from "react-router-dom"
 import { Card } from "../../components/Card" 
 
 import { supabase } from "../../lib/supabase"
+import {
+  validateRegistrationData,
+  hashPassword,
+  generateSalt,
+  registrationRateLimiter
+} from "../../utils/security";
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -37,16 +43,17 @@ const Register: React.FC = () => {
     setSuccessMessage("");
     setIsLoading(true);
 
-    // Validate password length
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
+    // Rate limiting (by email)
+    if (!registrationRateLimiter.isAllowed(formData.email)) {
+      setError("Too many registration attempts. Please try again later.");
       setIsLoading(false);
       return;
     }
 
-    // Validate password match
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+    // Validate and sanitize registration data
+    const { isValid, errors, sanitizedData } = validateRegistrationData(formData);
+    if (!isValid) {
+      setError(Object.values(errors).join(". "));
       setIsLoading(false);
       return;
     }
@@ -56,8 +63,16 @@ const Register: React.FC = () => {
         throw new Error("Authentication service not available");
       }
 
-      console.log("Submitting registration form using context");
-      const result = await register(formData.name, formData.email, formData.password);
+      // Removed client-side password hashing. Supabase handles hashing securely on the server.
+      // const salt = generateSalt();
+      // const hashedPassword = await hashPassword(sanitizedData!.password, salt);
+
+      // Call register with sanitized name, email, and the plaintext password
+      const result = await register(
+        sanitizedData!.name,
+        sanitizedData!.email,
+        sanitizedData!.password // Pass the plaintext password to Supabase
+      );
       console.log("Registration result:", result);
       
       switch (result) {

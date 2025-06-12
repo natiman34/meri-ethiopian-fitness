@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { ThemeProvider } from "./contexts/ThemeContext"
 import { AuthProvider } from "./contexts/AuthContext"
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom"
 import Navbar from "./components/layout/Navbar"
 import Footer from "./components/layout/Footer"
 import Home from "./pages/Home"
@@ -13,27 +13,33 @@ import Contact from "./pages/Contact"
 import BMI from "./pages/BMI"
 import Login from "./pages/auth/Login"
 import Register from "./pages/auth/Register"
+import ResetPassword from "./pages/auth/ResetPassword"
+import SetNewPassword from "./pages/auth/SetNewPassword"
 import Profile from "./pages/Profile"
 import Dashboard from "./pages/admin/Dashboard"
+import NutritionPlanDetail from "./pages/services/NutritionPlanDetail"
 import NotFound from "./pages/NotFound"
 import ProtectedRoute from "./components/auth/ProtectedRoute"
 import ScrollToTop from "./components/utils/ScrollToTop"
+import FitnessPlanDetail from "./pages/services/FitnessPlanDetail"
+import GifTest from './pages/GifTest'
 
-function App() {
+function AppContent() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const location = useLocation()
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen)
   }
 
+  // Check if current route is profile page or admin page
+  const isProfilePage = location.pathname === "/profile"
+  const isAdminPage = location.pathname.startsWith("/admin")
+
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <Router>
-          <ScrollToTop />
           <div className="flex flex-col min-h-screen bg-stone-50">
-            <Navbar menuOpen={menuOpen} toggleMenu={toggleMenu} />
-            <main className={`flex-grow ${menuOpen ? "pt-16" : ""}`}>
+      {!isProfilePage && !isAdminPage && <Navbar menuOpen={menuOpen} toggleMenu={toggleMenu} />}
+      <main className={`flex-grow ${menuOpen && !isProfilePage && !isAdminPage ? "pt-16" : ""}`}>
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
@@ -42,7 +48,12 @@ function App() {
                 <Route path="/bmi" element={<BMI />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/set-new-password" element={<SetNewPassword />} />
                 <Route path="/profile" element={<Profile />} />
+          <Route path="/nutrition-plans/:id" element={<NutritionPlanDetail />} />
+          <Route path="/test-fitness-plan/:id" element={<FitnessPlanDetail />} />
+          <Route path="/gif-test" element={<GifTest />} />
                 <Route
                   path="/admin/*"
                   element={
@@ -54,8 +65,18 @@ function App() {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
-            <Footer />
+      {!isProfilePage && <Footer />}
           </div>
+  )
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <ScrollToTop />
+          <AppContent />
         </Router>
       </AuthProvider>
     </ThemeProvider>

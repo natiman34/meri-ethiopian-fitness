@@ -352,7 +352,7 @@ const AdminUsers = () => {
       </Dialog>
 
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">User Management</h1>
+        <h1 className="text-2xl font-semibold text-gray-900"> </h1>
         <Button onClick={() => {
           setIsAddModalOpen(true);
           setAddFormErrors({}); // Clear errors when opening modal

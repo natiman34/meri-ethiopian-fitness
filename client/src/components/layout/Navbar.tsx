@@ -128,16 +128,6 @@ const Navbar: React.FC<NavbarProps> = ({ menuOpen, toggleMenu }) => {
             >
               BMI
             </NavLink>
-            <NavLink
-              to="/profile"
-              className={({ isActive }) =>
-                `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActive ? "text-green-700 bg-green-50" : "text-gray-700 hover:text-green-600 hover:bg-green-50"
-                }`
-              }
-            >
-              Profile
-            </NavLink>
           </nav>
 
           {/* Auth Buttons or User Menu */}
@@ -251,20 +241,9 @@ const Navbar: React.FC<NavbarProps> = ({ menuOpen, toggleMenu }) => {
             >
               BMI
             </NavLink>
-            
 
             {user ? (
               <>
-                <NavLink
-                  to="/profile"
-                  className={({ isActive }) =>
-                    `block px-3 py-2 rounded-md text-base font-medium ${
-                      isActive ? "text-green-700 bg-green-50" : "text-gray-700 hover:text-green-600 hover:bg-green-50"
-                    }`
-                  }
-                >
-                  Profile
-                </NavLink>
                 {user.role !== "user" && (
                   <NavLink
                     to="/admin"

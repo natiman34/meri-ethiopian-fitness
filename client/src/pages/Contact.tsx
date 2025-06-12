@@ -83,24 +83,24 @@ const Contact: React.FC = () => {
                     <div className="flex items-start">
                       <MapPin className="w-5 h-5 text-green-600 mt-1 mr-3" />
                       <div>
-                        <h3 className="font-medium text-gray-800">Address</h3>
-                        <p className="text-gray-600 mt-1">123 Fitness Street, Addis Ababa, Ethiopia</p>
+                        <h3 className="font-medium text-gray-800"></h3>
+                        <p className="text-gray-600 mt-1"></p>
                       </div>
                     </div>
 
                     <div className="flex items-start">
                       <Phone className="w-5 h-5 text-green-600 mt-1 mr-3" />
                       <div>
-                        <h3 className="font-medium text-gray-800">Phone</h3>
-                        <p className="text-gray-600 mt-1">+251 11 234 5678</p>
+                        <h3 className="font-medium text-gray-800"></h3>
+                        <p className="text-gray-600 mt-1"></p>
                       </div>
                     </div>
 
                     <div className="flex items-start">
                       <Mail className="w-5 h-5 text-green-600 mt-1 mr-3" />
                       <div>
-                        <h3 className="font-medium text-gray-800">Email</h3>
-                        <p className="text-gray-600 mt-1">info@hulgizetena.com</p>
+                        <h3 className="font-medium text-gray-800"></h3>
+                        <p className="text-gray-600 mt-1"></p>
                       </div>
                     </div>
                   </div>

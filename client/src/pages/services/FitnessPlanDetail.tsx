@@ -8,6 +8,7 @@ import Button from "../../components/ui/Button";
 import { useAuth } from "../../contexts/AuthContext";
 import { FitnessPlanService } from "../../services/FitnessPlanService";
 import { Loader2, AlertCircle } from "lucide-react";
+import AnimatedGif from '../../components/AnimatedGif';
 
 const FitnessPlanDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,34 +18,47 @@ const FitnessPlanDetail: React.FC = () => {
   const [selectedDay, setSelectedDay] = useState(1);
   const { user } = useAuth();
 
+  console.log("FitnessPlanDetail mounted. ID from params:", id);
+
   useEffect(() => {
     const fetchPlan = async () => {
+      console.log("Fetching plan for ID:", id);
       if (!id) {
         setError("Plan ID is missing.");
         setIsLoading(false);
+        console.log("Error: Plan ID is missing.");
         return;
       }
       setIsLoading(true);
       setError(null);
       try {
-        const fetchedPlan = await FitnessPlanService.getFitnessPlanById(id);
+        const fitnessPlanService = FitnessPlanService.getInstance();
+        console.log("Calling getFitnessPlanById with ID:", id);
+        const fetchedPlan = await fitnessPlanService.getFitnessPlanById(id);
+        console.log("Fetched plan result:", fetchedPlan);
         if (fetchedPlan) {
           setPlan(fetchedPlan);
           if (fetchedPlan.schedule.length > 0) {
             setSelectedDay(fetchedPlan.schedule[0].day);
           }
+          console.log("Fetched plan successfully:", fetchedPlan);
         } else {
           setError("Fitness plan not found.");
+          console.log("Error: Fitness plan not found for ID:", id);
         }
       } catch (err) {
         console.error("Failed to fetch fitness plan:", err);
         setError("Failed to load fitness plan. Please try again later.");
+        console.log("Error fetching plan:", err);
       } finally {
         setIsLoading(false);
+        console.log("Loading finished. IsLoading:", false);
       }
     };
     fetchPlan();
   }, [id]);
+
+  console.log("Render Check: isLoading=", isLoading, ", error=", error, ", plan=", plan);
 
   if (isLoading) {
     return (
@@ -85,7 +99,7 @@ const FitnessPlanDetail: React.FC = () => {
       <div className="relative h-[400px] mb-12">
         <div className="absolute inset-0">
           <img
-            src={plan.image_url || "https://via.placeholder.com/1200x400?text=Fitness+Plan"}
+            src={plan.image_url || "/images/placeholders/plan-hero.jpg"}
             alt={plan.title}
             className="w-full h-full object-cover"
           />
@@ -124,7 +138,7 @@ const FitnessPlanDetail: React.FC = () => {
                 </div>
               </div>
               
-              <p className="text-lg text-white">{plan.description}</p>
+              <p className="text-lg text-white whitespace-pre-wrap">{plan.description}</p>
             </div>
           </div>
         </div>
@@ -223,10 +237,10 @@ const FitnessPlanDetail: React.FC = () => {
                         <div key={exercise.id} className="border rounded-lg p-6">
                           <div className="flex flex-col md:flex-row gap-6">
                             <div className="md:w-1/3">
-                              <img
-                                src={exercise.gifUrl || "https://via.placeholder.com/200x200?text=No+GIF"}
+                              <AnimatedGif
+                                src={exercise.gifUrl || "/images/placeholders/exercise-gif.gif"}
                                 alt={exercise.name}
-                                className="w-full h-48 object-cover rounded-lg"
+                                className="w-full h-48 rounded-lg"
                               />
                             </div>
                             <div className="md:w-2/3">
@@ -237,19 +251,13 @@ const FitnessPlanDetail: React.FC = () => {
                                 {exercise.sets && (
                                   <div>
                                     <span className="text-sm text-gray-500">Sets</span>
-                                    <p className="font-semibold">{exercise.sets}</p>
+                                    <p className="font-semibold">{exercise.sets.length}</p>
                                   </div>
                                 )}
-                                {exercise.reps && (
+                                {exercise.estimatedTime && (
                                   <div>
-                                    <span className="text-sm text-gray-500">Reps</span>
-                                    <p className="font-semibold">{exercise.reps}</p>
-                                  </div>
-                                )}
-                                {exercise.duration && (
-                                  <div>
-                                    <span className="text-sm text-gray-500">Duration</span>
-                                    <p className="font-semibold">{exercise.duration}</p>
+                                    <span className="text-sm text-gray-500">Estimated Time</span>
+                                    <p className="font-semibold">{exercise.estimatedTime} mins</p>
                                   </div>
                                 )}
                                 {exercise.targetMuscles && exercise.targetMuscles.length > 0 && (

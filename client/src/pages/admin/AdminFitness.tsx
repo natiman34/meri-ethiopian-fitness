@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react"
 import { Search, Edit, Trash2, Plus, Filter, X } from "lucide-react"
 import Button from "../../components/ui/Button"
-import { FitnessPlan, FitnessCategory, FitnessLevel } from '../../models/FitnessPlan'
+import { FitnessPlan as IFitnessPlan, FitnessCategory, FitnessLevel, DaySchedule, Exercise, ExerciseSet } from '../../types/content'
+import { FitnessPlan } from '../../types/content'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { Dialog } from '@headlessui/react'
@@ -23,7 +24,7 @@ const AdminFitness = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editingPlan, setEditingPlan] = useState<FitnessPlan | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [newPlan, setNewPlan] = useState<Partial<FitnessPlan>>({
+  const [newPlan, setNewPlan] = useState<Partial<IFitnessPlan>>({
     title: '',
     description: '',
     category: 'weight-loss',
@@ -35,7 +36,19 @@ const AdminFitness = () => {
     equipment: [],
     goals: [],
     schedule: [],
-    status: 'draft'
+    status: 'draft',
+    tags: [],
+    featured: false,
+    rating: undefined,
+    reviewCount: undefined,
+    completionRate: undefined,
+    averageWorkoutTime: undefined,
+    muscleGroups: [],
+    equipmentRequired: [],
+    timeOfDay: 'any',
+    location: 'any',
+    intensity: 'low',
+    created_at: new Date().toISOString(),
   })
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({})
   const itemsPerPage = 10
@@ -67,7 +80,7 @@ const AdminFitness = () => {
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setPlans(data || []);
+        setPlans((data || []).map(planData => new FitnessPlan(planData as IFitnessPlan)));
       } catch (error) {
         console.error('Error fetching fitness plans:', error);
         setError('Failed to load fitness plans');
@@ -85,15 +98,15 @@ const AdminFitness = () => {
     return matchesSearch && matchesCategory && matchesLevel && matchesStatus
   })
 
-  const validateForm = (plan: Partial<FitnessPlan>) => {
+  const validateForm = (plan: Partial<IFitnessPlan>) => {
     const errors: {[key: string]: string} = {}
     if (!plan.title?.trim()) errors.title = 'Title is required'
     if (!plan.description?.trim()) errors.description = 'Description is required'
     if (!plan.category) errors.category = 'Category is required'
     if (!plan.level) errors.level = 'Level is required'
-    if (!plan.duration || plan.duration < 1) errors.duration = 'Duration must be at least 1 minute'
-    if (!plan.weekly_workouts || plan.weekly_workouts < 1) errors.weekly_workouts = 'Weekly workouts must be at least 1'
-    if (!plan.difficulty || plan.difficulty < 1 || plan.difficulty > 5) errors.difficulty = 'Difficulty must be between 1 and 5'
+    if (plan.duration === undefined || plan.duration < 1) errors.duration = 'Duration must be at least 1 minute'
+    if (plan.weekly_workouts === undefined || plan.weekly_workouts < 1) errors.weekly_workouts = 'Weekly workouts must be at least 1'
+    if (plan.difficulty === undefined || plan.difficulty < 1 || plan.difficulty > 5) errors.difficulty = 'Difficulty must be between 1 and 5'
     if (!plan.prerequisites?.length) errors.prerequisites = 'At least one prerequisite is required'
     if (!plan.equipment?.length) errors.equipment = 'At least one equipment item is required'
     if (!plan.goals?.length) errors.goals = 'At least one goal is required'
@@ -111,10 +124,12 @@ const AdminFitness = () => {
     setIsLoading(true)
     setError(null)
     try {
-      const planToInsert = {
+      const planToInsert = new FitnessPlan({
         ...newPlan,
         user_id: user?.id || null,
-      }
+        created_at: new Date().toISOString(),
+        // All other properties are already part of newPlan and will be handled by the constructor
+      });
 
       const { data, error } = await supabase
         .from('fitness_plans')
@@ -124,7 +139,7 @@ const AdminFitness = () => {
 
       if (error) throw error
       if (data) {
-        setPlans([data, ...plans])
+        setPlans([new FitnessPlan(data), ...plans])
         setIsCreateModalOpen(false)
         setNewPlan({
           title: '',
@@ -138,7 +153,18 @@ const AdminFitness = () => {
           equipment: [],
           goals: [],
           schedule: [],
-          status: 'draft'
+          status: 'draft',
+          tags: [],
+          featured: false,
+          rating: undefined,
+          reviewCount: undefined,
+          completionRate: undefined,
+          averageWorkoutTime: undefined,
+          muscleGroups: [],
+          equipmentRequired: [],
+          timeOfDay: 'any',
+          location: 'any',
+          intensity: 'low',
         })
         setFormErrors({})
       }
@@ -151,7 +177,7 @@ const AdminFitness = () => {
   }
 
   const handleEditPlan = async (plan: FitnessPlan) => {
-    const errors = validateForm(plan)
+    const errors = validateForm(plan);
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors)
       return
@@ -160,13 +186,17 @@ const AdminFitness = () => {
     setIsLoading(true)
     setError(null)
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('fitness_plans')
-        .update(plan)
+        .update(plan.toObject())
         .eq('id', plan.id)
+        .select()
+        .single();
 
       if (error) throw error
-      setPlans(plans.map(p => p.id === plan.id ? plan : p))
+      if (data) {
+        setPlans(plans.map(p => p.id === plan.id ? new FitnessPlan(data as IFitnessPlan) : p));
+      }
       setIsEditModalOpen(false)
       setEditingPlan(null)
       setFormErrors({})
@@ -206,24 +236,31 @@ const AdminFitness = () => {
 
   // Handlers for schedule
   const handleAddDay = (planType: 'new' | 'edit') => {
-    const newDay = {
+    const newDay: DaySchedule = {
       day: planType === 'new' 
         ? (newPlan.schedule?.length || 0) + 1 
         : (editingPlan?.schedule?.length || 0) + 1,
       restDay: false,
-      exercises: []
+      exercises: [],
+      totalEstimatedTime: 0,
+      focusAreas: [],
+      notes: undefined,
+      totalCaloriesBurn: undefined,
     }
 
     if (planType === 'new') {
       setNewPlan(prev => ({
         ...prev,
-        schedule: [...(prev.schedule || []), newDay]
+        schedule: [...(prev?.schedule || []), newDay]
       }))
     } else if (planType === 'edit' && editingPlan) {
-      setEditingPlan(prev => ({
-        ...prev,
+      setEditingPlan(prev => {
+        if (!prev) return null;
+        return new FitnessPlan({
+          ...prev.toObject(),
         schedule: [...(prev.schedule || []), newDay]
-      }))
+        });
+      });
     }
   }
 
@@ -231,44 +268,63 @@ const AdminFitness = () => {
     if (planType === 'new') {
       setNewPlan(prev => ({
         ...prev,
-        schedule: (prev.schedule || []).filter((_, i) => i !== dayIndex)
+        schedule: (prev?.schedule || []).filter((_, i) => i !== dayIndex)
       }))
     } else if (planType === 'edit' && editingPlan) {
-      setEditingPlan(prev => ({
-        ...prev,
+      setEditingPlan(prev => {
+        if (!prev) return null;
+        return new FitnessPlan({
+          ...prev.toObject(),
         schedule: (prev.schedule || []).filter((_, i) => i !== dayIndex)
-      }))
+        });
+      });
     }
   }
 
   const handleAddExercise = (planType: 'new' | 'edit', dayIndex: number) => {
-    const newExercise = {
+    const newExercise: Exercise = {
       id: crypto.randomUUID(),
       name: '',
       description: '',
+      image: '',
+      gifUrl: '',
+      videoUrl: undefined,
       steps: [],
+      sets: [],
+      equipment: [],
       targetMuscles: [],
-      difficulty: 'beginner' as FitnessLevel
-    }
-
+      secondaryMuscles: [],
+      difficulty: 'beginner',
+      category: 'strength',
+      instructions: [],
+      tips: [],
+      commonMistakes: [],
+      variations: [],
+      estimatedTime: 0,
+      caloriesBurn: undefined,
+      muscleGroup: 'full-body',
+    };
     if (planType === 'new') {
       setNewPlan(prev => ({
         ...prev,
-        schedule: (prev.schedule || []).map((day, i) => 
+        schedule: (prev?.schedule || []).map((day, i) =>
           i === dayIndex 
             ? { ...day, exercises: [...day.exercises, newExercise] }
             : day
         )
       }))
     } else if (planType === 'edit' && editingPlan) {
-      setEditingPlan(prev => ({
-        ...prev,
+      setEditingPlan(prev => {
+        if (!prev) return null;
+        return new FitnessPlan({
+          ...prev.toObject(),
         schedule: (prev.schedule || []).map((day, i) => 
           i === dayIndex 
             ? { ...day, exercises: [...day.exercises, newExercise] }
             : day
         )
-      }))
+        });
+      });
     }
   }
 
@@ -276,21 +332,24 @@ const AdminFitness = () => {
     if (planType === 'new') {
       setNewPlan(prev => ({
         ...prev,
-        schedule: (prev.schedule || []).map((day, i) => 
+        schedule: (prev?.schedule || []).map((day, i) =>
           i === dayIndex 
             ? { ...day, exercises: day.exercises.filter((_, j) => j !== exerciseIndex) }
             : day
         )
       }))
     } else if (planType === 'edit' && editingPlan) {
-      setEditingPlan(prev => ({
-        ...prev,
+      setEditingPlan(prev => {
+        if (!prev) return null;
+        return new FitnessPlan({
+          ...prev.toObject(),
         schedule: (prev.schedule || []).map((day, i) => 
           i === dayIndex 
             ? { ...day, exercises: day.exercises.filter((_, j) => j !== exerciseIndex) }
             : day
         )
-      }))
+        });
+      });
     }
   }
 
@@ -304,35 +363,28 @@ const AdminFitness = () => {
     if (planType === 'new') {
       setNewPlan(prev => ({
         ...prev,
-        schedule: (prev.schedule || []).map((day, i) => 
+        schedule: (prev?.schedule || []).map((day, i) =>
           i === dayIndex 
-            ? {
-                ...day,
-                exercises: day.exercises.map((exercise, j) => 
-                  j === exerciseIndex 
-                    ? { ...exercise, [field]: value }
-                    : exercise
-                )
-              }
+            ? { ...day, exercises: day.exercises.map((exercise, j) =>
+                j === exerciseIndex ? { ...exercise, [field]: value } : exercise
+              ) }
             : day
         )
       }))
     } else if (planType === 'edit' && editingPlan) {
-      setEditingPlan(prev => ({
-        ...prev,
+      setEditingPlan(prev => {
+        if (!prev) return null;
+        return new FitnessPlan({
+          ...prev.toObject(),
         schedule: (prev.schedule || []).map((day, i) => 
           i === dayIndex 
-            ? {
-                ...day,
-                exercises: day.exercises.map((exercise, j) => 
-                  j === exerciseIndex 
-                    ? { ...exercise, [field]: value }
-                    : exercise
-                )
-              }
+              ? { ...day, exercises: day.exercises.map((exercise, j) =>
+                  j === exerciseIndex ? { ...exercise, [field]: value } : exercise
+                ) }
             : day
         )
-      }))
+        });
+      });
     }
   }
 
@@ -820,14 +872,14 @@ const AdminFitness = () => {
             {editingPlan && (
               <form onSubmit={(e) => {
                 e.preventDefault();
-                handleEditPlan(editingPlan);
+                if (editingPlan) handleEditPlan(editingPlan);
               }} className="mt-4 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Title</label>
                   <input
                     type="text"
-                    value={editingPlan.title}
-                    onChange={(e) => setEditingPlan({ ...editingPlan, title: e.target.value })}
+                    value={editingPlan?.title || ''}
+                    onChange={(e) => setEditingPlan(prev => prev ? new FitnessPlan({ ...prev.toObject(), title: e.target.value }) : null)}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                   />
                   {formErrors.title && <p className="mt-1 text-sm text-red-600">{formErrors.title}</p>}
@@ -836,8 +888,8 @@ const AdminFitness = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Description</label>
                   <textarea
-                    value={editingPlan.description || ''}
-                    onChange={(e) => setEditingPlan({ ...editingPlan, description: e.target.value })}
+                    value={editingPlan?.description || ''}
+                    onChange={(e) => setEditingPlan(prev => prev ? new FitnessPlan({ ...prev.toObject(), description: e.target.value }) : null)}
                     rows={3}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                   />
@@ -848,8 +900,8 @@ const AdminFitness = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Category</label>
                     <select
-                      value={editingPlan.category}
-                      onChange={(e) => setEditingPlan({ ...editingPlan, category: e.target.value as FitnessCategory })}
+                      value={editingPlan?.category || ''}
+                      onChange={(e) => setEditingPlan(prev => prev ? new FitnessPlan({ ...prev.toObject(), category: e.target.value as FitnessCategory }) : null)}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                     >
                       <option value="weight-loss">Weight Loss</option>
@@ -863,8 +915,8 @@ const AdminFitness = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Level</label>
                     <select
-                      value={editingPlan.level}
-                      onChange={(e) => setEditingPlan({ ...editingPlan, level: e.target.value as FitnessLevel })}
+                      value={editingPlan?.level || ''}
+                      onChange={(e) => setEditingPlan(prev => prev ? new FitnessPlan({ ...prev.toObject(), level: e.target.value as FitnessLevel }) : null)}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                     >
                       <option value="beginner">Beginner</option>
@@ -880,8 +932,8 @@ const AdminFitness = () => {
                     <label className="block text-sm font-medium text-gray-700">Duration</label>
                     <input
                       type="text"
-                      value={editingPlan.duration}
-                      onChange={(e) => setEditingPlan({ ...editingPlan, duration: parseInt(e.target.value) || 0 })}
+                      value={editingPlan?.duration || 0}
+                      onChange={(e) => setEditingPlan(prev => prev ? new FitnessPlan({ ...prev.toObject(), duration: parseInt(e.target.value) || 0 }) : null)}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                     />
                     {formErrors.duration && <p className="mt-1 text-sm text-red-600">{formErrors.duration}</p>}
@@ -890,8 +942,8 @@ const AdminFitness = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Status</label>
                     <select
-                      value={editingPlan.status}
-                      onChange={(e) => setEditingPlan({ ...editingPlan, status: e.target.value as "draft" | "published" })}
+                      value={editingPlan?.status || ''}
+                      onChange={(e) => setEditingPlan(prev => prev ? new FitnessPlan({ ...prev.toObject(), status: e.target.value as "draft" | "published" }) : null)}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                     >
                       <option value="draft">Draft</option>
@@ -976,7 +1028,7 @@ const AdminFitness = () => {
             className="flex items-center"
             onClick={() => {
               setIsCreateModalOpen(true)
-              setNewPlan({
+              setNewPlan(new FitnessPlan({
                 title: '',
                 description: '',
                 category: 'weight-loss',
@@ -988,8 +1040,19 @@ const AdminFitness = () => {
                 equipment: [],
                 goals: [],
                 schedule: [],
-                status: 'draft'
-              })
+                status: 'draft',
+                tags: [],
+                featured: false,
+                rating: undefined,
+                reviewCount: undefined,
+                completionRate: undefined,
+                averageWorkoutTime: undefined,
+                muscleGroups: [],
+                equipmentRequired: [],
+                timeOfDay: 'any',
+                location: 'any',
+                intensity: 'low',
+              }))
               setFormErrors({})
             }}
           >
