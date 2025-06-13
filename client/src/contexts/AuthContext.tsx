@@ -1,8 +1,8 @@
 "use client"
 
-import React, { createContext, useState, useContext, useEffect, useCallback, ReactNode, useMemo } from "react"
+import React, { createContext, useState, useContext, useEffect, useCallback, ReactNode } from "react"
 import { supabase } from "../lib/supabase"
-import { Session, User as SupabaseUser, AuthError } from "@supabase/supabase-js"
+import { Session, User as SupabaseUser } from "@supabase/supabase-js"
 
 // Define types for roles
 type UserRole = "user" | "admin_super" | "admin_nutritionist" | "admin_fitness" | "nutritionist" | "planner"
@@ -572,8 +572,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setAuthError(null)
 
     try {
-      let authError: Error | null = null;
-
       // 1. Update email in Supabase Auth if provided and different from current
       if (updates.email && updates.email !== user.email) {
         console.log("Attempting to update email in Supabase Auth for user:", user.id);
@@ -583,7 +581,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (authUpdateError) {
           console.error("Supabase Auth email update error:", authUpdateError);
-          authError = authUpdateError;
            setIsLoading(false);
            setAuthError(authUpdateError);
            throw authUpdateError;
@@ -626,7 +623,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error("Profile update caught exception:", error);
       const err = error instanceof Error ? error : new Error("Profile update failed")
-      if (!authError) setAuthError(err);
+      setAuthError(err);
       throw err;
     } finally {
       setIsLoading(false);

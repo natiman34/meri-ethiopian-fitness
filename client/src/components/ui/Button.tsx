@@ -2,7 +2,7 @@ import type React from "react"
 import { forwardRef } from "react"
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "link" | "danger"
-type ButtonSize = "sm" | "md" | "lg" | "xl"
+type ButtonSize = "sm" | "md" | "lg" | "xl" | "icon"
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
@@ -48,6 +48,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       md: "text-sm px-4 py-2.5 min-h-[40px]",
       lg: "text-base px-6 py-3 min-h-[44px]",
       xl: "text-lg px-8 py-4 min-h-[48px]",
+      icon: "p-2 min-h-[40px] min-w-[40px]",
     }
 
     const widthStyles = fullWidth ? "w-full" : ""

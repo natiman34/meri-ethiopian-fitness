@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AnimatedGif from './AnimatedGif';
 import { normalizePath } from '../utils/mediaUtils';
 
@@ -19,10 +19,12 @@ const Exercise: React.FC<ExerciseProps> = ({
   steps,
   className = ""
 }) => {
+  const [imageError, setImageError] = useState(false);
+
   // Determine which image source to use - prefer GIF if available
   const displayImageSrc = gifUrl || image;
   const isGif = displayImageSrc.toLowerCase().endsWith('.gif') || (gifUrl && gifUrl.length > 0);
-  
+
   // Normalize paths
   const normalizedImage = normalizePath(image);
   const normalizedGif = gifUrl ? normalizePath(gifUrl) : '';
@@ -42,12 +44,18 @@ const Exercise: React.FC<ExerciseProps> = ({
               className="w-full h-full object-contain"
             />
           ) : (
-            <img 
-              src={normalizedImage} 
-              alt={name} 
-              className="w-full h-full object-cover" 
-              onError
-            />
+            imageError ? (
+              <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                <span className="text-gray-500">Image not available</span>
+              </div>
+            ) : (
+              <img
+                src={normalizedImage}
+                alt={name}
+                className="w-full h-full object-cover"
+                onError={() => setImageError(true)}
+              />
+            )
           )}
         </div>
         

@@ -1,4 +1,4 @@
-const { setupAdminAccounts } = require('../src/utils/setupAdminAccounts');
+import { setupAdminAccounts } from '../src/utils/setupAdminAccounts';
 
 console.log('Setting up admin accounts...');
 

@@ -3,8 +3,6 @@ import { Routes, Route, Link } from "react-router-dom"
 import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
 import { ChevronRight } from "lucide-react"
-import FitnessPlans from "./services/FitnessPlans"
-import NutritionPlans from "./services/NutritionPlans"
 import EducationalContent from "./services/EducationalContent"
 import MotivationalContent from "./services/MotivationalContent"
 import FitnessPlanDetail from "./services/FitnessPlanDetail"
@@ -12,6 +10,9 @@ import NutritionPlanDetail from "./services/NutritionPlanDetail"
 import EducationalContentDetail from "./services/EducationalContentDetail"
 import MotivationalContentDetail from "./services/MotivationalContentDetail"
 import FitnessAndNutritionPlans from "./services/FitnessAndNutritionPlans"
+import PhysicalFitnessGuide from "./services/PhysicalFitnessGuide"
+import BMICalculator from "./services/BMICalculator"
+import FitnessAssessment from "./services/FitnessAssessment"
 
 const ServicesOverview: React.FC = () => {
   // Using mock data for demonstration
@@ -79,6 +80,9 @@ const Services: React.FC = () => {
       <Route path="/" element={<ServicesOverview />} />
       <Route path="fitness-and-nutrition-plans" element={<FitnessAndNutritionPlans />} />
       <Route path="educational-content" element={<EducationalContent />} />
+      <Route path="educational-content/physical-fitness" element={<PhysicalFitnessGuide />} />
+      <Route path="educational-content/tools/bmi-calculator" element={<BMICalculator />} />
+      <Route path="educational-content/tools/fitness-assessment" element={<FitnessAssessment />} />
       <Route path="educational-content/:id" element={<EducationalContentDetail />} />
       <Route path="motivational-content" element={<MotivationalContent />} />
       <Route path="motivational-content/:id" element={<MotivationalContentDetail />} />

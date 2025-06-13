@@ -1,4 +1,4 @@
-const { supabase } = require('../lib/supabase');
+import { supabase } from '../lib/supabase';
 
 const adminAccounts = [
   {
@@ -70,4 +70,4 @@ const setupAdminAccounts = async () => {
   }
 };
 
-module.exports = { setupAdminAccounts };
+export { setupAdminAccounts };

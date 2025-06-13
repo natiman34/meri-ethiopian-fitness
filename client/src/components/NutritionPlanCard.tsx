@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { NutritionPlan, NutritionCategory, NutritionLevel, DayMeal } from "@/types/content";
-import { Utensils, Star, Clock, Heart, Scale } from 'lucide-react';
-import ImageWithFallback from './ImageWithFallback'; // Assuming ImageWithFallback is in the same directory
+import { NutritionPlan } from "../types/content";
+import { Star, Clock, Heart, Scale } from 'lucide-react';
+import ImageWithFallback from './ImageWithFallback';
 
 interface NutritionPlanCardProps {
   plan: NutritionPlan;
@@ -45,11 +45,6 @@ const categoryConfig: Record<string, {
     icon: "🏃",
     description: "Plans focused on building cardiovascular endurance"
   },
-  'muscle-building': {
-    color: "bg-indigo-100 text-indigo-800",
-    icon: "💪",
-    description: "Plans focused on building muscle mass and definition"
-  },
   'functional': {
     color: "bg-teal-100 text-teal-800",
     icon: "⚡",
@@ -80,7 +75,7 @@ const NutritionPlanCard: React.FC<NutritionPlanCardProps> = ({
         <div className={variant === 'featured' ? "h-48 relative" : "h-48"}>
           <ImageWithFallback
             src={plan.image_url || plan.image}
-            alt={plan.title || (plan as any).name || 'Nutrition Plan'}
+            alt={plan.title || 'Nutrition Plan'}
             className="w-full h-full object-cover"
           />
           {variant === 'featured' && (
