@@ -23,7 +23,7 @@ const Footer: React.FC = () => {
               Embrace health and fitness through Ethiopian culture. We provide culturally relevant nutrition and fitness
               guidance to help you achieve your wellness goals.
             </p>
-           
+          </div>
 
           {/* Quick Links */}
           <div>
@@ -82,7 +82,6 @@ const Footer: React.FC = () => {
                 </Link>
               </li>
             </ul>
-          </div>
           </div>
         </div>
       </div>

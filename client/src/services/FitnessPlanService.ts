@@ -81,7 +81,7 @@ export class FitnessPlanService {
         rating: plan.rating || undefined,
         reviewCount: plan.reviewCount || 0,
         completionRate: plan.completionRate || 0,
-        user_id: plan.user_id || undefined,
+        user_id: plan.user_id || null,
         image_url: plan.image_url || undefined,
         thumbnail_gif_url: plan.thumbnail_gif_url || undefined,
         full_gif_url: plan.full_gif_url || undefined,

@@ -3,10 +3,9 @@
 import React, { useState } from "react"
 import { Link } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
-import EmailService from "../../services/EmailService"
 import Button from "../../components/ui/Button"
 import Card from "../../components/ui/Card"
-import { Mail, ArrowLeft, CheckCircle } from "lucide-react"
+import { Mail, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react"
 
 const ResetPassword: React.FC = () => {
   const [email, setEmail] = useState("")
@@ -14,8 +13,7 @@ const ResetPassword: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState("")
 
-  const { resetPassword } = useAuth()
-  const emailService = EmailService.getInstance()
+  const { resetPassword, authError } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -24,39 +22,21 @@ const ResetPassword: React.FC = () => {
 
     try {
       // Validate email format
-      if (!emailService.isValidEmail(email)) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(email)) {
         setError("Please enter a valid email address.")
-        setIsLoading(false)
         return
       }
 
-      // Check if email service is available
-      const isAvailable = await emailService.isEmailServiceAvailable()
-      if (!isAvailable) {
-        setError("Email service is currently unavailable. Please try again later.")
-        setIsLoading(false)
-        return
-      }
+      // Send password reset email using AuthContext
+      await resetPassword(email)
 
-      console.log("Email service configuration:", emailService.getEmailConfig())
-      
-      // Send password reset email
-      await emailService.sendPasswordResetEmail(email)
-      
       setIsSuccess(true)
     } catch (err: any) {
       console.error("Password reset error:", err)
-      
-      // Provide user-friendly error messages
-      if (err.message?.includes("User not found")) {
-        setError("No account found with this email address. Please check your email or create a new account.")
-      } else if (err.message?.includes("rate limit")) {
-        setError("Too many password reset attempts. Please wait a few minutes before trying again.")
-      } else if (err.message?.includes("network")) {
-        setError("Network error. Please check your internet connection and try again.")
-      } else {
-        setError(err.message || "Failed to send password reset email. Please try again.")
-      }
+
+      // Use the error message from the AuthContext or provide a fallback
+      setError(err.message || "Failed to send password reset email. Please try again.")
     } finally {
       setIsLoading(false)
     }

@@ -12,7 +12,6 @@ import NutritionPlanDetail from "./services/NutritionPlanDetail"
 import EducationalContentDetail from "./services/EducationalContentDetail"
 import MotivationalContentDetail from "./services/MotivationalContentDetail"
 import FitnessAndNutritionPlans from "./services/FitnessAndNutritionPlans"
-import ExerciseLibrary from "./services/ExerciseLibrary"
 
 const ServicesOverview: React.FC = () => {
   // Using mock data for demonstration
@@ -22,12 +21,6 @@ const ServicesOverview: React.FC = () => {
       description: "Comprehensive workout and meal plans for all levels and goals.",
       icon: "💪🥗",
       link: "fitness-and-nutrition-plans",
-    },
-    {
-      title: "Exercise Library",
-      description: "Browse our comprehensive collection of exercises with GIF demonstrations and detailed instructions.",
-      icon: "🏋️",
-      link: "exercise-library",
     },
     {
       title: "Educational Content",
@@ -85,7 +78,6 @@ const Services: React.FC = () => {
     <Routes>
       <Route path="/" element={<ServicesOverview />} />
       <Route path="fitness-and-nutrition-plans" element={<FitnessAndNutritionPlans />} />
-      <Route path="exercise-library" element={<ExerciseLibrary />} />
       <Route path="educational-content" element={<EducationalContent />} />
       <Route path="educational-content/:id" element={<EducationalContentDetail />} />
       <Route path="motivational-content" element={<MotivationalContent />} />

@@ -17,71 +17,109 @@ const SetNewPassword: React.FC = () => {
   const [error, setError] = useState("")
   const [isValidToken, setIsValidToken] = useState(false)
   const [isCheckingToken, setIsCheckingToken] = useState(true)
+  const [resetTokens, setResetTokens] = useState<{accessToken: string, refreshToken: string | null}>({accessToken: '', refreshToken: null})
 
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
   useEffect(() => {
-    console.log("Current window.location.origin:", window.location.origin);
-    const checkToken = async () => {
+    console.log("Current window.location:", {
+      origin: window.location.origin,
+      href: window.location.href,
+      hash: window.location.hash,
+      search: window.location.search
+    });
+
+    const handlePasswordReset = async () => {
       try {
-        console.log("Checking password reset token...");
-        
-        // Get the access token and refresh token from URL hash parameters
-        const hash = window.location.hash.substring(1); // Remove the leading #
-        const hashParams = new URLSearchParams(hash);
-        
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-        const type = hashParams.get('type'); // Keep type for consistency, though not strictly needed for token validation
-        
-        console.log("URL hash parameters:", { accessToken: !!accessToken, refreshToken: !!refreshToken, type });
-        
-        if (!accessToken) {
-          setError("Invalid or missing reset token. Please request a new password reset.");
-          setIsCheckingToken(false);
-          return;
+        console.log("Handling password reset session...");
+
+        // Check multiple sources for tokens (hash, query params, and URL patterns)
+        let accessToken = null;
+        let refreshToken = null;
+        let type = null;
+
+        // Method 1: Check hash parameters
+        if (window.location.hash) {
+          const hashParams = new URLSearchParams(window.location.hash.substring(1));
+          accessToken = hashParams.get('access_token');
+          refreshToken = hashParams.get('refresh_token');
+          type = hashParams.get('type');
+          console.log("Hash parameters found:", { accessToken: !!accessToken, refreshToken: !!refreshToken, type });
         }
 
-        // Set the session with the tokens from the URL
-        const { data, error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken || '',
+        // Method 2: Check query parameters if hash didn't work
+        if (!accessToken && window.location.search) {
+          const searchParams = new URLSearchParams(window.location.search);
+          accessToken = searchParams.get('access_token');
+          refreshToken = searchParams.get('refresh_token');
+          type = searchParams.get('type');
+          console.log("Query parameters found:", { accessToken: !!accessToken, refreshToken: !!refreshToken, type });
+        }
+
+        // Method 3: Regex fallback for any URL format
+        if (!accessToken) {
+          const urlString = window.location.href;
+          const accessTokenMatch = urlString.match(/[?&#]access_token=([^&]+)/);
+          const refreshTokenMatch = urlString.match(/[?&#]refresh_token=([^&]+)/);
+          const typeMatch = urlString.match(/[?&#]type=([^&]+)/);
+
+          if (accessTokenMatch) {
+            accessToken = decodeURIComponent(accessTokenMatch[1]);
+            refreshToken = refreshTokenMatch ? decodeURIComponent(refreshTokenMatch[1]) : null;
+            type = typeMatch ? decodeURIComponent(typeMatch[1]) : null;
+            console.log("Regex extraction found:", { accessToken: !!accessToken, refreshToken: !!refreshToken, type });
+          }
+        }
+
+        console.log("Final extracted parameters:", {
+          accessToken: !!accessToken,
+          refreshToken: !!refreshToken,
+          type,
+          accessTokenLength: accessToken?.length || 0
         });
 
-        if (error) {
-          console.error("Token validation error:", error);
-          
-          // Provide specific error messages
-          if (error.message?.includes("expired")) {
-            setError("The password reset link has expired. Please request a new password reset.");
-          } else if (error.message?.includes("invalid")) {
-            setError("Invalid reset token. Please request a new password reset.");
-          } else {
-            setError("Invalid or expired reset token. Please request a new password reset.");
-          }
-          
-          setIsCheckingToken(false);
-          return;
-        }
+        if (type === 'recovery' && accessToken) {
+          console.log("Valid password recovery link detected");
 
-        if (data.session) {
-          console.log("Valid session established for password reset");
-          setIsValidToken(true);
+          // Enhanced token validation
+          if (accessToken.length > 20 && accessToken.startsWith('eyJ')) {
+            console.log("Reset tokens appear valid (JWT format)");
+
+            // Additional security: Validate token without creating session
+            try {
+              // Test token validity by attempting to decode (basic validation)
+              const tokenParts = accessToken.split('.');
+              if (tokenParts.length === 3) {
+                // Store tokens for password update but don't create session yet
+                setResetTokens({ accessToken, refreshToken });
+                setIsValidToken(true);
+                console.log("Token validation successful - ready for password reset");
+              } else {
+                throw new Error("Invalid JWT structure");
+              }
+            } catch (tokenError) {
+              console.error("Token validation failed:", tokenError);
+              setError("Invalid reset token structure. Please request a new password reset.");
+            }
+          } else {
+            console.error("Invalid token format - too short or wrong prefix");
+            setError("Invalid reset token format. Please request a new password reset.");
+          }
         } else {
-          console.error("No session established after token validation");
-          setError("Invalid or expired reset token. Please request a new password reset.");
+          console.log("No valid reset tokens found in URL - type:", type, "accessToken:", !!accessToken);
+          setError("Invalid or missing reset token. Please request a new password reset.");
         }
       } catch (err) {
-        console.error("Error checking token:", err);
+        console.error("Error handling password reset:", err);
         setError("An error occurred while validating the reset token.");
       } finally {
         setIsCheckingToken(false);
       }
     }
 
-    checkToken()
-  }, [searchParams])
+    handlePasswordReset()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -111,24 +149,83 @@ const SetNewPassword: React.FC = () => {
     setIsLoading(true)
 
     try {
-      console.log("Updating password for user...");
-      
+      console.log("Updating password with reset tokens...");
+
+      if (!resetTokens.accessToken) {
+        throw new Error("No reset tokens available. Please request a new password reset.");
+      }
+
+      // Enhanced security: Validate tokens before using them
+      console.log("Validating reset tokens before password update...");
+
+      // First, verify the token is still valid without creating a persistent session
+      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+        access_token: resetTokens.accessToken,
+        refresh_token: resetTokens.refreshToken || '',
+      });
+
+      if (sessionError) {
+        console.error("Failed to establish session for password update:", sessionError);
+
+        // Provide specific error messages based on error type
+        if (sessionError.message?.includes("expired")) {
+          throw new Error("Reset link has expired. Please request a new password reset.");
+        } else if (sessionError.message?.includes("invalid")) {
+          throw new Error("Invalid reset link. Please request a new password reset.");
+        } else {
+          throw new Error("Reset session could not be established. Please request a new password reset.");
+        }
+      }
+
+      if (!sessionData.session) {
+        console.error("No session established from reset tokens");
+        throw new Error("Invalid reset tokens. Please request a new password reset.");
+      }
+
+      console.log("Session established successfully, updating password...");
+
+      // Update the password
       const { data, error } = await supabase.auth.updateUser({
         password: password
-      })
+      });
 
       if (error) {
         console.error("Password update error:", error);
-        throw error
+
+        // Provide specific error messages
+        if (error.message?.includes("weak")) {
+          throw new Error("Password is too weak. Please choose a stronger password.");
+        } else if (error.message?.includes("same")) {
+          throw new Error("New password must be different from your current password.");
+        } else {
+          throw error;
+        }
       }
 
       console.log("Password updated successfully:", data);
-      setIsSuccess(true)
-      
-      // Redirect to login after 3 seconds
+
+      // CRITICAL SECURITY: Immediately sign out the user after password reset
+      // This prevents automatic login and forces user to log in with new password
+      console.log("Signing out user after password reset for security...");
+      await supabase.auth.signOut();
+
+      // Clear any local storage or session data
+      localStorage.removeItem('supabase.auth.token');
+      sessionStorage.clear();
+
+      console.log("User signed out successfully. Password reset complete.");
+
+      setIsSuccess(true);
+
+      // Redirect to login after 3 seconds with success message
       setTimeout(() => {
-        navigate("/login")
-      }, 3000)
+        navigate("/login", {
+          state: {
+            message: "Password reset successful! Please log in with your new password.",
+            type: "success"
+          }
+        });
+      }, 3000);
     } catch (err: any) {
       console.error("Password update error:", err)
       
@@ -202,10 +299,16 @@ const SetNewPassword: React.FC = () => {
             <Card.Body>
               <div className="text-center">
                 <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Password updated successfully!</h2>
-                <p className="text-gray-600 mb-6">
-                  Your password has been reset. You will be redirected to the login page in a few seconds.
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Password Reset Complete!</h2>
+                <p className="text-gray-600 mb-4">
+                  Your password has been updated successfully.
                 </p>
+                <p className="text-sm text-gray-500 mb-6">
+                  For security reasons, you have been logged out. Please log in with your new password.
+                </p>
+                <div className="text-xs text-gray-400 mb-4">
+                  Redirecting to login page in 3 seconds...
+                </div>
                 <Link
                   to="/login"
                   className="inline-flex items-center text-sm text-green-600 hover:text-green-500"

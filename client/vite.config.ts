@@ -20,5 +20,10 @@ export default defineConfig({
         secure: false,
       },
     },
+    cors: true, // Enable CORS for development
+  },
+  optimizeDeps: {
+    exclude: [], // Add any problematic dependencies here
   },
 })
+

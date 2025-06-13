@@ -17,6 +17,7 @@ const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'instructions' | 'tips' | 'variations'>('overview');
+  const [videoError, setVideoError] = useState(false);
 
   if (!isOpen || !exercise) return null;
 
@@ -96,6 +97,7 @@ const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
                 <AnimatedGif
                   src={exercise.gifUrl}
                   alt={exercise.name}
+                  staticImageSrc={exercise.image} // Use static image as fallback
                   className="w-full h-full"
                 />
               ) : exercise.videoUrl ? (
@@ -106,6 +108,10 @@ const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
                   muted={isMuted}
                   onPlay={() => setIsPlaying(true)}
                   onPause={() => setIsPlaying(false)}
+                  onError={() => {
+                    // If video fails, show the static image
+                    setVideoError(true);
+                  }}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
@@ -114,6 +120,19 @@ const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
                     alt={exercise.name}
                     className="w-full h-full object-cover"
                   />
+                </div>
+              )}
+              
+              {videoError && (
+                <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                  <img
+                    src={exercise.image}
+                    alt={exercise.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-2 text-sm text-center">
+                    Video unavailable. Showing static image.
+                  </div>
                 </div>
               )}
               

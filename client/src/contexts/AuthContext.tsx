@@ -33,6 +33,8 @@ interface AuthContextType {
   logout: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
   updateProfile: (updates: Partial<User>) => Promise<void>
+  setPasswordResetMode: (enabled: boolean) => void
+  isPasswordResetMode: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -57,6 +59,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isProfileLoading, setIsProfileLoading] = useState(false) // Separate loading state for profile
   const [isInitialized, setIsInitialized] = useState(false)
   const [authError, setAuthError] = useState<Error | null>(null) // Track auth errors
+  const [isPasswordResetMode, setIsPasswordResetMode] = useState(false) // Track password reset mode
 
   // Ensure user profile exists in user_profiles table
   const ensureProfile = useCallback(async (sessionUser: SupabaseUser): Promise<User> => {
@@ -318,7 +321,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             return;
           }
 
-          // For SIGNED_IN or other events with a session
+          // CRITICAL SECURITY FIX: Check password reset mode BEFORE any session handling
+          if (isPasswordResetMode && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED")) {
+            console.log(`AUTH_PROVIDER: SECURITY - Blocking ${event} event during password reset mode`);
+            console.log("AUTH_PROVIDER: SECURITY - No session or user will be set during password reset");
+            // Completely block any authentication state changes during password reset
+            // Don't set session, don't load profile, don't update any auth state
+
+            // ADDITIONAL SECURITY: Force immediate signout if session was created
+            if (newSession) {
+              console.log("AUTH_PROVIDER: SECURITY - Force signing out session created during password reset");
+              setTimeout(async () => {
+                await supabase.auth.signOut();
+              }, 0);
+            }
+
+            return;
+          }
+
+          // For SIGNED_IN or other events with a session (only if NOT in password reset mode)
           setSession(newSession);
           setAuthError(null); // Clear previous errors on a new auth event
 
@@ -380,16 +401,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setAuthError(null)
     try {
       console.log("Attempting login for:", email)
-      
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password 
+        password
       })
 
       if (error) {
         console.error("Sign in error:", error)
-        setAuthError(new Error("Invalid email or password. Please check your credentials and try again."))
-        throw error
+
+        // Create more specific error messages
+        let errorMessage = "Login failed. Please try again."
+
+        if (error.message?.includes("Invalid login credentials")) {
+          errorMessage = "Invalid email or password. Please check your credentials and try again."
+        } else if (error.message?.includes("Email not confirmed")) {
+          errorMessage = "Your email has not been confirmed. Please check your inbox for a confirmation email."
+        } else if (error.message?.includes("Too many requests")) {
+          errorMessage = "Too many login attempts. Please wait a few minutes before trying again."
+        } else if (error.message?.includes("User not found")) {
+          errorMessage = "No account found with this email address. Please check your email or create a new account."
+        } else if (error.message) {
+          errorMessage = error.message
+        }
+
+        const customError = new Error(errorMessage)
+        setAuthError(customError)
+        throw customError
       }
 
       if (!data?.user) {
@@ -397,8 +435,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setAuthError(err)
         throw err
       }
-      
+
       // Session is handled by auth state change listener
+      console.log("Login successful for user:", data.user.email)
     } catch (error) {
       const err = error instanceof Error ? error : new Error("Login failed")
       setAuthError(err)
@@ -471,38 +510,57 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Reset password function
   const resetPassword = useCallback(async (email: string): Promise<void> => {
+    setIsLoading(true)
+    setAuthError(null)
+
     try {
       console.log("Starting password reset for email:", email);
-      
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(email)) {
+        throw new Error("Please enter a valid email address.")
+      }
+
+      // Get the current origin and ensure it's properly formatted
+      const origin = window.location.origin;
+      const redirectUrl = `${origin}/set-new-password`;
+
+      console.log("Current window.location.origin:", origin);
+      console.log("Sending password reset with redirect URL:", redirectUrl);
+
+      // Also log the port for debugging
+      console.log("Current port:", window.location.port);
+
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/set-new-password`,
-        captchaToken: undefined // Disable captcha for now, can be enabled later
+        redirectTo: redirectUrl,
       });
 
       if (error) {
         console.error("Supabase password reset error:", error);
-        
+
         // Provide specific error messages based on Supabase error codes
-        switch (error.message) {
-          case "User not found":
-            throw new Error("No account found with this email address. Please check your email or create a new account.");
-          case "Too many requests":
-            throw new Error("Too many password reset attempts. Please wait a few minutes before trying again.");
-          case "Email rate limit exceeded":
-            throw new Error("Too many password reset emails sent. Please wait before requesting another.");
-          default:
-            throw error;
+        if (error.message?.includes("User not found") || error.message?.includes("not found")) {
+          throw new Error("No account found with this email address. Please check your email or create a new account.");
+        } else if (error.message?.includes("rate limit") || error.message?.includes("Too many")) {
+          throw new Error("Too many password reset attempts. Please wait a few minutes before trying again.");
+        } else if (error.message?.includes("Email rate limit")) {
+          throw new Error("Too many password reset emails sent. Please wait before requesting another.");
+        } else {
+          throw new Error(error.message || "Failed to send password reset email. Please try again.");
         }
       }
 
       console.log("Password reset email sent successfully:", data);
-      
+
       // The email has been sent successfully
       // Supabase will automatically send the email with the reset link
-      
-    } catch (error) {
-      console.error("Password reset error:", error);
-      throw error;
+    } catch (error: any) {
+      console.error("Password reset error:", error)
+      setAuthError(error)
+      throw error
+    } finally {
+      setIsLoading(false)
     }
   }, [])
 
@@ -575,7 +633,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [user])
 
-  // Computed properties 
+  // Password reset mode control functions
+  const setPasswordResetMode = useCallback((enabled: boolean) => {
+    console.log("AUTH_PROVIDER: Setting password reset mode:", enabled)
+    setIsPasswordResetMode(enabled)
+  }, [])
+
+  // Computed properties
   const isAuthenticated = !!session && !!user
   const isAdmin = isAuthenticated && (
     user?.role === "admin_super" || 
@@ -612,19 +676,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     resetPassword,
-    updateProfile
+    updateProfile,
+    setPasswordResetMode,
+    isPasswordResetMode
   }
 
   return (
     <AuthContext.Provider value={contextValue}>
       {isInitialized ? (
-        authError ? (
-          <div className="text-red-500 p-4">
-            Authentication error: {authError.message}
-          </div>
-        ) : (
-          children
-        )
+        children
       ) : (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-lg">Loading...</div>

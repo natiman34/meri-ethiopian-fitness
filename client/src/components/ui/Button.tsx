@@ -31,23 +31,23 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref,
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none"
+      "inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none touch-manipulation active:scale-95"
 
     const variantStyles: Record<ButtonVariant, string> = {
-      primary: "bg-green-600 text-white hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2",
-      secondary: "bg-gray-800 text-white hover:bg-gray-900 focus:ring-2 focus:ring-gray-700 focus:ring-offset-2",
+      primary: "bg-green-600 text-white hover:bg-green-700 active:bg-green-800 focus:ring-2 focus:ring-green-500 focus:ring-offset-2",
+      secondary: "bg-gray-800 text-white hover:bg-gray-900 active:bg-gray-950 focus:ring-2 focus:ring-gray-700 focus:ring-offset-2",
       outline:
-        "bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2",
-      ghost: "bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2",
-      link: "bg-transparent text-green-600 hover:text-green-700 hover:underline p-0 h-auto",
-      danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2",
+        "bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50 active:bg-gray-100 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2",
+      ghost: "bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2",
+      link: "bg-transparent text-green-600 hover:text-green-700 active:text-green-800 hover:underline p-0 h-auto",
+      danger: "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 focus:ring-2 focus:ring-red-500 focus:ring-offset-2",
     }
 
     const sizeStyles: Record<ButtonSize, string> = {
-      sm: "text-xs px-2.5 py-1.5",
-      md: "text-sm px-4 py-2",
-      lg: "text-base px-6 py-3",
-      xl: "text-lg px-8 py-4",
+      sm: "text-xs px-3 py-2 min-h-[36px]",
+      md: "text-sm px-4 py-2.5 min-h-[40px]",
+      lg: "text-base px-6 py-3 min-h-[44px]",
+      xl: "text-lg px-8 py-4 min-h-[48px]",
     }
 
     const widthStyles = fullWidth ? "w-full" : ""

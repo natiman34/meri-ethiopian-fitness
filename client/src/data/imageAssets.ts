@@ -62,6 +62,11 @@ export const imageAssets = {
       gif: "/images/exercises/lunge.gif",
       image: "/images/exercises/lunge.jpg",
       video: "/videos/sample-video.mp4"
+    },
+    benchPress: {
+      gif: "/images/exercises/bench-press.gif",
+      image: "/images/exercises/bench-press.jpg",
+      video: "/videos/sample-video.mp4"
     }
   },
 
@@ -123,7 +128,6 @@ export const imageAssets = {
 
   // Hero Images
   hero: {
-    exerciseLibrary: "/images/hero/exercise-library.jpg",
     workoutPlans: "/images/hero/workout-plans.jpg",
     nutrition: "/images/hero/nutrition.jpg"
   }

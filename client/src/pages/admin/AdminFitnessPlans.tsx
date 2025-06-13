@@ -104,9 +104,9 @@ const AdminFitnessPlans = () => {
     setIsSaving(true)
     setError(null)
     try {
-      if (currentPlan.id) {
+      if ('id' in currentPlan && currentPlan.id) {
         // Update existing plan
-        await fitnessPlanService.updateFitnessPlan(currentPlan.id, currentPlan)
+        await fitnessPlanService.updateFitnessPlan(currentPlan.id as string, currentPlan)
       } else {
         // Create new plan
         const newPlanInstance = new FitnessPlan({

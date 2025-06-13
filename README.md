@@ -4,7 +4,7 @@ A comprehensive fitness and nutrition management application built with React, T
 
 ## 🚀 Features
 
-- **User Authentication**: Secure login and registration system
+- **User Authentication**: Secure login and registration system with password reset
 - **BMI Calculator**: Calculate and track your Body Mass Index
 - **Fitness Plans**: Personalized workout plans and tracking
 - **Nutrition Plans**: Customized meal plans and nutrition guidance
@@ -38,7 +38,7 @@ A comprehensive fitness and nutrition management application built with React, T
 │   │   └── types/         # Type definitions
 │   ├── scripts/           # Database and setup scripts
 │   └── supabase/          # Supabase configuration
-├── supabase/              # Supabase project files
+├── supabase/              # Supabase project files and functions
 └── package.json           # Root dependencies
 ```
 

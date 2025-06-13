@@ -3,7 +3,10 @@
 import React, { useState } from "react"
 import { useAuth } from "../../contexts/AuthContext"
 import { useNavigate, Link } from "react-router-dom"
-import { Card } from "../../components/Card" 
+import { Card } from "../../components/Card"
+import { ErrorModal, SuccessModal } from "../../components/ui/Modal"
+import { useToast } from "../../components/ui/Toast"
+import { AlertCircle } from "lucide-react"
 
 import { supabase } from "../../lib/supabase"
 import {
@@ -22,11 +25,15 @@ const Register: React.FC = () => {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
+  const [errorDetails, setErrorDetails] = useState("")
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
   const { register } = useAuth()
   const navigate = useNavigate()
+  const { showError, showSuccess, ToastContainer } = useToast()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -40,12 +47,18 @@ const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
+    setErrorDetails("");
     setSuccessMessage("");
+    setShowErrorModal(false);
+    setShowSuccessModal(false);
     setIsLoading(true);
 
     // Rate limiting (by email)
     if (!registrationRateLimiter.isAllowed(formData.email)) {
-      setError("Too many registration attempts. Please try again later.");
+      const errorMsg = "Too many registration attempts. Please try again later.";
+      setError(errorMsg);
+      setShowErrorModal(true);
+      showError(errorMsg, "Rate Limited");
       setIsLoading(false);
       return;
     }
@@ -53,7 +66,10 @@ const Register: React.FC = () => {
     // Validate and sanitize registration data
     const { isValid, errors, sanitizedData } = validateRegistrationData(formData);
     if (!isValid) {
-      setError(Object.values(errors).join(". "));
+      const errorMsg = Object.values(errors).join(". ");
+      setError(errorMsg);
+      setShowErrorModal(true);
+      showError(errorMsg, "Validation Error");
       setIsLoading(false);
       return;
     }
@@ -63,29 +79,28 @@ const Register: React.FC = () => {
         throw new Error("Authentication service not available");
       }
 
-      // Removed client-side password hashing. Supabase handles hashing securely on the server.
-      // const salt = generateSalt();
-      // const hashedPassword = await hashPassword(sanitizedData!.password, salt);
-
       // Call register with sanitized name, email, and the plaintext password
       const result = await register(
         sanitizedData!.name,
         sanitizedData!.email,
-        sanitizedData!.password // Pass the plaintext password to Supabase
+        sanitizedData!.password
       );
       console.log("Registration result:", result);
-      
+
       switch (result) {
         case "success":
           console.log("Registration successful, redirecting");
-          navigate("/");
+          showSuccess("Registration successful! Welcome to መሪ Ethiopian Fitness!", "Welcome!");
+          setTimeout(() => navigate("/"), 1500);
           break;
 
         case "confirm_email":
           console.log("Email confirmation needed");
-          setSuccessMessage(
-            "Registration successful! Please check your email to confirm your account before logging in."
-          );
+          const successMsg = "Registration successful! Please check your email to confirm your account before logging in.";
+          setSuccessMessage(successMsg);
+          setShowSuccessModal(true);
+          showSuccess(successMsg, "Check Your Email");
+
           // Clear form
           setFormData({
             name: "",
@@ -97,19 +112,32 @@ const Register: React.FC = () => {
 
         case "existing_user":
           console.log("User already exists");
-          setError(
-            "An account with this email already exists. Please sign in instead."
-          );
+          const existingUserMsg = "An account with this email already exists. Please sign in instead.";
+          setError(existingUserMsg);
+          setShowErrorModal(true);
+          showError(existingUserMsg, "Account Exists");
           break;
 
         default:
-          setError("An unexpected error occurred during registration.");
+          const unexpectedMsg = "An unexpected error occurred during registration.";
+          setError(unexpectedMsg);
+          setShowErrorModal(true);
+          showError(unexpectedMsg, "Registration Failed");
       }
     } catch (err: any) {
       console.error("Registration error in form handler:", err);
-      
+
+      // Prepare error details for modal
+      const errorDetails = {
+        message: err.message || "Unknown error",
+        timestamp: new Date().toISOString(),
+        ...(err.error_description && { description: err.error_description })
+      };
+
+      setErrorDetails(JSON.stringify(errorDetails, null, 2));
+
       let errorMessage = "An error occurred during registration";
-      
+
       if (err instanceof Error) {
         // Handle specific error cases
         if (err.message.includes("User already registered")) {
@@ -117,7 +145,7 @@ const Register: React.FC = () => {
         } else if (err.message.includes("Invalid email")) {
           errorMessage = "Please enter a valid email address.";
         } else if (err.message.includes("Password")) {
-          errorMessage = err.message; // Use password-related error messages directly
+          errorMessage = err.message;
         } else {
           errorMessage = err.message;
         }
@@ -126,37 +154,75 @@ const Register: React.FC = () => {
       } else if (err?.message) {
         errorMessage = err.message;
       }
-      
+
       setError(errorMessage);
+      setShowErrorModal(true);
+      showError(errorMessage, "Registration Failed");
     } finally {
       setIsLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <Link to="/" className="inline-block">
-            <div className="font-bold text-3xl flex items-center justify-center">
-              <span className="text-red-600">መሪ</span>
-              <span className="text-yellow-600">Ethiopian</span>
-              <span className="text-green-600">Fitness</span>
-            </div>
-          </Link>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Create your account</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Or{" "}
-            <Link to="/login" className="font-medium text-green-600 hover:text-green-500">
-              sign in to your existing account
-            </Link>
-          </p>
-        </div>
+    <>
+      <ToastContainer />
+      <ErrorModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title="Registration Failed"
+        message={error}
+        details={errorDetails}
+      />
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Registration Successful"
+        message={successMessage}
+      />
 
-        <Card>
-          <Card.Body>
-            {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">{error}</div>}
-            {successMessage && <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-md">{successMessage}</div>}
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <Link to="/" className="inline-block">
+              <div className="font-bold text-3xl flex items-center justify-center">
+                <span className="text-red-600">መሪ</span>
+                <span className="text-yellow-600">Ethiopian</span>
+                <span className="text-green-600">Fitness</span>
+              </div>
+            </Link>
+            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Create your account</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Or{" "}
+              <Link to="/login" className="font-medium text-green-600 hover:text-green-500">
+                sign in to your existing account
+              </Link>
+            </p>
+          </div>
+
+          <Card>
+            <Card.Body>
+              {/* Inline error display (less prominent than modal) */}
+              {error && !showErrorModal && (
+                <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md flex items-center">
+                  <AlertCircle size={16} className="mr-2" />
+                  <div>
+                    <p className="text-sm">{error}</p>
+                    <button
+                      onClick={() => setShowErrorModal(true)}
+                      className="text-xs text-red-600 hover:text-red-800 underline mt-1"
+                    >
+                      View details
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {successMessage && !showSuccessModal && (
+                <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-md flex items-center">
+                  <AlertCircle size={16} className="mr-2" />
+                  {successMessage}
+                </div>
+              )}
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -245,6 +311,7 @@ const Register: React.FC = () => {
         </Card>
       </div>
     </div>
+    </>
   )
 }
 

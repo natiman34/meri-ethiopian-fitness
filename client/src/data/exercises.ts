@@ -3,6 +3,331 @@ import { getExerciseImage } from './imageAssets';
 
 export const exercises: Exercise[] = [
   {
+    id: 'bench-press',
+    name: 'Bench Press',
+    description: 'A compound exercise for chest, shoulders, and triceps.',
+    image: getExerciseImage('benchPress', 'image'),
+    gifUrl: "https://i.pinimg.com/originals/25/de/3f/25de3f5a1a9253976220109a0ef2dfff.gif", // Pinterest GIF link
+    videoUrl: getExerciseImage('benchPress', 'video'),
+    steps: [
+      'Lie on a flat bench, grasp barbell with overhand grip slightly wider than shoulder-width.',
+      'Lower barbell slowly to mid-chest.',
+      'Push barbell back up to starting position.'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'warm-up' as SetType,
+        reps: 8,
+        restTime: 60,
+        notes: 'Use lighter weight to warm up'
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 10,
+        restTime: 90,
+        rpe: 7
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 10,
+        restTime: 90,
+        rpe: 8
+      },
+      {
+        setNumber: 4,
+        setType: 'working' as SetType,
+        reps: 8,
+        restTime: 90,
+        rpe: 9
+      }
+    ],
+    equipment: ['barbell', 'bench'],
+    targetMuscles: ['chest'],
+    secondaryMuscles: ['shoulders', 'triceps'],
+    difficulty: 'intermediate',
+    category: 'strength',
+    instructions: [
+      'Keep your feet flat on the floor',
+      'Maintain a slight arch in your lower back',
+      'Keep your wrists straight and elbows at about 45 degrees from your body'
+    ],
+    tips: [
+      'Focus on controlled movement',
+      'Breathe out when pushing the weight up',
+      'Keep shoulders back and down throughout the movement'
+    ],
+    commonMistakes: [
+      'Bouncing the bar off the chest',
+      'Lifting hips off the bench',
+      'Flaring elbows too wide'
+    ],
+    variations: [
+      'Close-grip bench press',
+      'Wide-grip bench press',
+      'Dumbbell bench press'
+    ],
+    estimatedTime: 12,
+    caloriesBurn: 80,
+    muscleGroup: 'chest'
+  },
+  {
+    id: 'incline-dumbbell-press',
+    name: 'Incline Dumbbell Press',
+    description: 'Targets the upper chest muscles and shoulders.',
+    image: getExerciseImage('inclineDumbbellPress', 'image'),
+    gifUrl: getExerciseImage('inclineDumbbellPress', 'gif'),
+    videoUrl: getExerciseImage('inclineDumbbellPress', 'video'),
+    steps: [
+      'Set an adjustable bench to a 30-45 degree incline.',
+      'Sit with your back against the bench, holding a dumbbell in each hand at shoulder level.',
+      'Press the dumbbells upward until your arms are extended.',
+      'Lower the dumbbells back to shoulder level with control.'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'warm-up' as SetType,
+        reps: 8,
+        restTime: 60,
+        notes: 'Use lighter weight to warm up'
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 10,
+        restTime: 90,
+        rpe: 7
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 90,
+        rpe: 8
+      }
+    ],
+    equipment: ['dumbbells', 'incline bench'],
+    targetMuscles: ['upper chest'],
+    secondaryMuscles: ['shoulders', 'triceps'],
+    difficulty: 'intermediate',
+    category: 'strength',
+    estimatedTime: 10,
+    caloriesBurn: 70,
+    muscleGroup: 'chest'
+  },
+  {
+    id: 'shoulder-press-db-bb',
+    name: 'Shoulder Press (Dumbbell or Barbell)',
+    description: 'A compound exercise that targets the deltoid muscles.',
+    image: getExerciseImage('shoulderPress', 'image'),
+    gifUrl: getExerciseImage('shoulderPress', 'gif'),
+    videoUrl: getExerciseImage('shoulderPress', 'video'),
+    steps: [
+      'Sit on a bench with back support or stand with feet shoulder-width apart.',
+      'Hold dumbbells at shoulder height with palms facing forward.',
+      'Press the weights upward until arms are fully extended overhead.',
+      'Lower the weights back to shoulder level with control.'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'warm-up' as SetType,
+        reps: 8,
+        restTime: 60,
+        notes: 'Use lighter weight to warm up'
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 10,
+        restTime: 90,
+        rpe: 7
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 10,
+        restTime: 90,
+        rpe: 8
+      }
+    ],
+    equipment: ['dumbbells', 'barbell'],
+    targetMuscles: ['shoulders'],
+    secondaryMuscles: ['triceps', 'upper chest'],
+    difficulty: 'intermediate',
+    category: 'strength',
+    estimatedTime: 10,
+    caloriesBurn: 65,
+    muscleGroup: 'shoulders'
+  },
+  {
+    id: 'lateral-raises',
+    name: 'Lateral Raises',
+    description: 'An isolation exercise that targets the lateral deltoids.',
+    image: getExerciseImage('lateralRaises', 'image'),
+    gifUrl: getExerciseImage('lateralRaises', 'gif'),
+    videoUrl: getExerciseImage('lateralRaises', 'video'),
+    steps: [
+      'Stand with feet shoulder-width apart, holding dumbbells at your sides.',
+      'Keep a slight bend in your elbows and raise the dumbbells out to the sides.',
+      'Lift until arms are parallel to the floor.',
+      'Lower the weights back down with control.'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'warm-up' as SetType,
+        reps: 10,
+        restTime: 60,
+        notes: 'Use lighter weight to warm up'
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 60,
+        rpe: 7
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 15,
+        restTime: 60,
+        rpe: 8
+      }
+    ],
+    equipment: ['dumbbells'],
+    targetMuscles: ['lateral deltoids'],
+    secondaryMuscles: ['trapezius'],
+    difficulty: 'beginner',
+    category: 'strength',
+    estimatedTime: 8,
+    caloriesBurn: 50,
+    muscleGroup: 'shoulders'
+  },
+  {
+    id: 'triceps-dips',
+    name: 'Triceps Dips',
+    description: 'A compound exercise that primarily targets the triceps.',
+    image: getExerciseImage('tricepsDips', 'image'),
+    gifUrl: getExerciseImage('tricepsDips', 'gif'),
+    videoUrl: getExerciseImage('tricepsDips', 'video'),
+    steps: [
+      'Position yourself on parallel bars with arms straight and shoulders over hands.',
+      'Lower your body by bending your elbows until they reach a 90-degree angle.',
+      'Push yourself back up to the starting position by extending your elbows.',
+      'Keep your elbows close to your body throughout the movement.'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'warm-up' as SetType,
+        reps: 6,
+        restTime: 60,
+        notes: 'Use assistance if needed'
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 8,
+        restTime: 90,
+        rpe: 7
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 10,
+        restTime: 90,
+        rpe: 8
+      }
+    ],
+    equipment: ['parallel bars', 'dip station'],
+    targetMuscles: ['triceps'],
+    secondaryMuscles: ['chest', 'shoulders'],
+    difficulty: 'intermediate',
+    category: 'strength',
+    estimatedTime: 10,
+    caloriesBurn: 70,
+    muscleGroup: 'arms'
+  },
+  {
+    id: 'skull-crushers',
+    name: 'Skull Crushers',
+    description: 'An isolation exercise that targets the triceps muscles.',
+    image: getExerciseImage('skullCrushers', 'image'),
+    gifUrl: getExerciseImage('skullCrushers', 'gif'),
+    videoUrl: getExerciseImage('skullCrushers', 'video'),
+    steps: [
+      'Lie on a flat bench holding an EZ bar or dumbbells with arms extended above chest.',
+      'Keeping upper arms stationary, bend elbows to lower the weight toward your forehead.',
+      'Extend your elbows to return to the starting position.',
+      'Keep movements slow and controlled.'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'warm-up' as SetType,
+        reps: 8,
+        restTime: 60,
+        notes: 'Use lighter weight to warm up'
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 10,
+        restTime: 90,
+        rpe: 7
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 90,
+        rpe: 8
+      }
+    ],
+    equipment: ['EZ bar', 'dumbbells', 'bench'],
+    targetMuscles: ['triceps'],
+    secondaryMuscles: [],
+    difficulty: 'intermediate',
+    category: 'strength',
+    estimatedTime: 10,
+    caloriesBurn: 60,
+    muscleGroup: 'arms'
+  },
+  {
+    id: 'light-jogging-rowing',
+    name: 'Light Jogging or Rowing',
+    description: 'Low-intensity cardiovascular activity for warm-up or active recovery.',
+    image: getExerciseImage('lightJoggingOrRowing', 'image'),
+    gifUrl: getExerciseImage('lightJoggingOrRowing', 'gif'),
+    videoUrl: getExerciseImage('lightJoggingOrRowing', 'video'),
+    steps: [
+      'For jogging: find an open space or treadmill, maintain a light pace.',
+      'For rowing: set resistance, focus on proper form (legs, core, arms).'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'cardio' as SetType,
+        reps: 15, // minutes
+        restTime: 0,
+        notes: 'Maintain a conversational pace'
+      }
+    ],
+    equipment: ['treadmill', 'rowing machine', 'none'],
+    targetMuscles: ['heart'],
+    secondaryMuscles: ['legs', 'core', 'arms'],
+    difficulty: 'beginner',
+    category: 'cardio',
+    estimatedTime: 15,
+    caloriesBurn: 100,
+    muscleGroup: 'full-body'
+  },
+  {
     id: 'push-up',
     name: 'Push-Up',
     description: 'A classic bodyweight exercise that targets the chest, shoulders, and triceps.',
@@ -483,186 +808,8 @@ export const exercises: Exercise[] = [
     estimatedTime: 7,
     caloriesBurn: 12,
     muscleGroup: 'legs'
-  },
-  {
-    id: 'bench-press',
-    name: 'Bench Press',
-    description: 'A compound exercise for chest, shoulders, and triceps.',
-    image: getExerciseImage('pushUp', 'image'), // Placeholder, replace with actual image
-    gifUrl: "/images/exercises/bench-press.gif",
-    videoUrl: "",
-    steps: ['Lie on a flat bench, grasp barbell with overhand grip slightly wider than shoulder-width.', 'Lower barbell slowly to mid-chest.', 'Push barbell back up to starting position.'],
-    sets: [
-      { setNumber: 1, setType: 'working' as SetType, reps: 8, weight: 60, restTime: 60, rpe: 7 },
-      { setNumber: 2, setType: 'working' as SetType, reps: 10, weight: 60, restTime: 60, rpe: 7 },
-      { setNumber: 3, setType: 'working' as SetType, reps: 12, weight: 60, restTime: 60, rpe: 7 },
-      { setNumber: 4, setType: 'working' as SetType, reps: 8, weight: 60, restTime: 60, rpe: 7 }
-    ],
-    equipment: ['barbell', 'bench'],
-    targetMuscles: ['chest', 'triceps', 'shoulders'],
-    secondaryMuscles: [],
-    difficulty: 'intermediate',
-    category: 'strength',
-    instructions: ['Maintain a slight arch in lower back.', 'Keep feet flat on floor.', 'Control the movement.'],
-    tips: ['Use a spotter for heavy lifts.', 'Warm up properly.'],
-    commonMistakes: ['Bouncing the bar off chest.', 'Flaring elbows out too wide.'],
-    variations: ['Incline Bench Press', 'Decline Bench Press', 'Dumbbell Bench Press'],
-    estimatedTime: 10,
-    caloriesBurn: 15,
-    muscleGroup: 'chest'
-  },
-  {
-    id: 'incline-dumbbell-press',
-    name: 'Incline Dumbbell Press',
-    description: 'Targets upper chest and shoulders.',
-    image: getExerciseImage('pushUp', 'image'), // Placeholder, replace with actual image
-    gifUrl: "/images/exercises/incline-dumbbell-press.gif",
-    videoUrl: "",
-    steps: ['Lie on an incline bench, hold dumbbells above chest.', 'Lower dumbbells to sides of upper chest.', 'Press dumbbells back up.'],
-    sets: [
-      { setNumber: 1, setType: 'working' as SetType, reps: 10, weight: 20, restTime: 60, rpe: 7 },
-      { setNumber: 2, setType: 'working' as SetType, reps: 12, weight: 20, restTime: 60, rpe: 7 },
-      { setNumber: 3, setType: 'working' as SetType, reps: 10, weight: 20, restTime: 60, rpe: 7 }
-    ],
-    equipment: ['dumbbells', 'incline bench'],
-    targetMuscles: ['chest', 'shoulders'],
-    secondaryMuscles: ['triceps'],
-    difficulty: 'intermediate',
-    category: 'strength',
-    instructions: ['Keep elbows slightly tucked.', 'Control the descent.'],
-    tips: ['Adjust bench angle for different emphasis.'],
-    commonMistakes: ['Arching back too much.', 'Using too heavy weights.'],
-    variations: ['Incline Barbell Press'],
-    estimatedTime: 8,
-    caloriesBurn: 12,
-    muscleGroup: 'chest'
-  },
-  {
-    id: 'shoulder-press-db-bb',
-    name: 'Shoulder Press (Dumbbell or Barbell)',
-    description: 'Builds strength in shoulders and triceps.',
-    image: getExerciseImage('pushUp', 'image'), // Placeholder, replace with actual image
-    gifUrl: "/images/exercises/shoulder-press-db-bb.gif",
-    videoUrl: "",
-    steps: ['Sit or stand, hold weights at shoulder height.', 'Press weights overhead until arms are fully extended.', 'Lower back to starting position.'],
-    sets: [
-      { setNumber: 1, setType: 'working' as SetType, reps: 10, weight: 30, restTime: 60, rpe: 7 },
-      { setNumber: 2, setType: 'working' as SetType, reps: 10, weight: 30, restTime: 60, rpe: 7 },
-      { setNumber: 3, setType: 'working' as SetType, reps: 10, weight: 30, restTime: 60, rpe: 7 }
-    ],
-    equipment: ['dumbbells', 'barbell', 'bench (optional)'],
-    targetMuscles: ['shoulders', 'triceps'],
-    secondaryMuscles: [],
-    difficulty: 'intermediate',
-    category: 'strength',
-    instructions: ['Keep core engaged.', 'Avoid locking elbows.'],
-    tips: ['Use a spotter for barbell press.'],
-    commonMistakes: ['Using momentum.', 'Flaring elbows.'],
-    variations: ['Arnold Press', 'Machine Shoulder Press'],
-    estimatedTime: 8,
-    caloriesBurn: 10,
-    muscleGroup: 'shoulders'
-  },
-  {
-    id: 'lateral-raises',
-    name: 'Lateral Raises',
-    description: 'Isolates side deltoids for wider shoulders.',
-    image: getExerciseImage('pushUp', 'image'), // Placeholder, replace with actual image
-    gifUrl: "/images/exercises/lateral-raises.gif",
-    videoUrl: "",
-    steps: ['Stand with dumbbells at sides.', 'Raise arms out to sides until parallel to floor, slight bend in elbows.', 'Lower slowly.'],
-    sets: [
-      { setNumber: 1, setType: 'working' as SetType, reps: 12, weight: 10, restTime: 45, rpe: 6 },
-      { setNumber: 2, setType: 'working' as SetType, reps: 15, weight: 10, restTime: 45, rpe: 6 },
-      { setNumber: 3, setType: 'working' as SetType, reps: 12, weight: 10, restTime: 45, rpe: 6 }
-    ],
-    equipment: ['dumbbells'],
-    targetMuscles: ['shoulders'],
-    secondaryMuscles: [],
-    difficulty: 'beginner',
-    category: 'strength',
-    instructions: ['Keep torso still.', 'Focus on muscle contraction.'],
-    tips: ['Don\'t swing the weights.'],
-    commonMistakes: ['Using too heavy weights.', 'Shrugging shoulders.'],
-    variations: ['Cable Lateral Raises'],
-    estimatedTime: 6,
-    caloriesBurn: 8,
-    muscleGroup: 'shoulders'
-  },
-  {
-    id: 'triceps-dips',
-    name: 'Triceps Dips',
-    description: 'Effective bodyweight exercise for triceps.',
-    image: getExerciseImage('pushUp', 'image'), // Placeholder, replace with actual image
-    gifUrl: "/images/exercises/triceps-dips.gif",
-    videoUrl: "",
-    steps: ['Place hands on parallel bars or bench, lower body by bending elbows.', 'Push back up.'],
-    sets: [
-      { setNumber: 1, setType: 'working' as SetType, reps: 8, restTime: 60, rpe: 7 },
-      { setNumber: 2, setType: 'working' as SetType, reps: 12, restTime: 60, rpe: 7 },
-      { setNumber: 3, setType: 'working' as SetType, reps: 8, restTime: 60, rpe: 7 }
-    ],
-    equipment: ['parallel bars', 'bench'],
-    targetMuscles: ['triceps', 'chest', 'shoulders'],
-    secondaryMuscles: [],
-    difficulty: 'intermediate',
-    category: 'strength',
-    instructions: ['Keep body upright.', 'Control descent.'],
-    tips: ['Lean forward to target chest more, stay upright for triceps.'],
-    commonMistakes: ['Not going deep enough.', 'Flaring elbows too wide.'],
-    variations: ['Bench Dips'],
-    estimatedTime: 7,
-    caloriesBurn: 10,
-    muscleGroup: 'triceps'
-  },
-  {
-    id: 'skull-crushers',
-    name: 'Skull Crushers',
-    description: 'Isolates triceps.',
-    image: getExerciseImage('pushUp', 'image'), // Placeholder, replace with actual image
-    gifUrl: "/images/exercises/skull-crushers.gif",
-    videoUrl: "",
-    steps: ['Lie on bench, hold EZ bar or dumbbells above chest, arms extended.', 'Lower weight towards forehead by bending elbows.', 'Extend arms back up.'],
-    sets: [
-      { setNumber: 1, setType: 'working' as SetType, reps: 10, weight: 20, restTime: 60, rpe: 7 },
-      { setNumber: 2, setType: 'working' as SetType, reps: 12, weight: 20, restTime: 60, rpe: 7 },
-      { setNumber: 3, setType: 'working' as SetType, reps: 10, weight: 20, restTime: 60, rpe: 7 }
-    ],
-    equipment: ['EZ bar', 'dumbbells', 'bench'],
-    targetMuscles: ['triceps'],
-    secondaryMuscles: [],
-    difficulty: 'intermediate',
-    category: 'strength',
-    instructions: ['Keep upper arms stationary.', 'Control movement.'],
-    tips: ['Use a spotter or lighter weight when learning.'],
-    commonMistakes: ['Moving upper arms.', 'Using too heavy weight.'],
-    variations: ['Dumbbell Skull Crushers', 'Cable Skull Crushers'],
-    estimatedTime: 7,
-    caloriesBurn: 9,
-    muscleGroup: 'triceps'
-  },
-  {
-    id: 'light-jogging-rowing',
-    name: 'Light Jogging or Rowing',
-    description: 'Low-intensity cardio for warm-up or active recovery.',
-    image: getExerciseImage('pushUp', 'image'), // Placeholder, replace with actual image
-    gifUrl: "/images/exercises/light-jogging-rowing.gif",
-    videoUrl: "",
-    steps: ['Perform light jogging outdoors or on a treadmill, or use a rowing machine at a comfortable pace.'],
-    sets: [
-      { setNumber: 1, setType: 'warm-up' as SetType, reps: 10, restTime: 0, notes: '10-15 minutes continuous' }
-    ],
-    equipment: ['bodyweight', 'treadmill', 'rowing machine'],
-    targetMuscles: ['full-body'],
-    secondaryMuscles: ['legs', 'cardiovascular'],
-    difficulty: 'beginner',
-    category: 'cardio',
-    instructions: ['Maintain a conversational pace.', 'Focus on steady breathing.'],
-    tips: ['Listen to music or a podcast.'],
-    commonMistakes: ['Going too fast.', 'Not warming up properly.'],
-    variations: ['Cycling', 'Elliptical'],
-    estimatedTime: 15,
-    caloriesBurn: 80,
-    muscleGroup: 'full-body'
   }
 ]; 
+
+
+

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ImageOff, Loader2 } from 'lucide-react';
 
 interface ImageWithFallbackProps {
-  src: string;
+  src?: string;
   alt: string;
   fallbackSrc?: string;
   className?: string;
@@ -22,9 +22,11 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
   loadingComponent,
   errorComponent
 }) => {
-  const [imageSrc, setImageSrc] = useState(src);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
+  // If src is undefined, use fallback immediately
+  const initialSrc = src || fallbackSrc;
+  const [imageSrc, setImageSrc] = useState(initialSrc);
+  const [isLoading, setIsLoading] = useState(!!initialSrc); // Only show loading if we have a source
+  const [hasError, setHasError] = useState(!initialSrc); // Show error if no source is provided
 
   const handleLoad = () => {
     setIsLoading(false);
