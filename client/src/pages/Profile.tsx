@@ -5,8 +5,8 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import { useAuth, User as AuthUserType } from "../contexts/AuthContext"
 import Card from "../components/ui/Card"
 import Button from "../components/ui/Button"
-import { User, Mail, Edit2, Save, X, Ruler, Scale, Dumbbell, Flame, ChevronLeft, ChevronRight, Plus } from "lucide-react"
-import RoutineSection from "../components/profile/RoutineSection"
+import { User, Mail, Edit2, Save, X, Ruler, Scale, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react"
+
 import ProfileNavigation, { ProfileSection } from "../components/profile/ProfileNavigation"
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, parse } from 'date-fns'
 import { supabase } from '../lib/supabase'
@@ -43,10 +43,10 @@ const Profile: React.FC = () => {
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [currentMonth, setCurrentMonth] = useState(new Date())
 
-  // State for saving activities
-  const [isSavingActivity, setIsSavingActivity] = useState(false)
-  const [saveActivityError, setSaveActivityError] = useState<string | null>(null)
-  const [saveActivitySuccess, setSaveActivitySuccess] = useState<string | null>(null)
+  // State for manually selected activity days (separate from database activities)
+  const [selectedDays, setSelectedDays] = useState<Set<string>>(new Set())
+
+
 
   useEffect(() => {
     setFormData({
@@ -125,45 +125,25 @@ const Profile: React.FC = () => {
     })
   }
 
-  // Function to save an activity to the database
-  const saveActivityToDatabase = async (date: Date, activityDetails: any) => {
-    if (!user) {
-      setSaveActivityError('You must be logged in to save activities.')
-      return
-    }
+  const handleDayClick = (day: Date) => {
+    const dayString = format(day, 'yyyy-MM-dd')
 
-    setIsSavingActivity(true)
-    setSaveActivityError(null)
-    setSaveActivitySuccess(null)
-
-    try {
-      const { data, error } = await supabase
-        .from('activities')
-        .insert([
-          {
-            user_id: user.id,
-            date: format(date, 'yyyy-MM-dd'),
-            type: activityDetails.type || 'general',
-            details: activityDetails.details || {},
-          }
-        ])
-        .select()
-
-      if (error) throw error
-
-      setSaveActivitySuccess('Activity saved successfully!')
-      fetchActivities()
-
-    } catch (err: any) {
-      setSaveActivityError(`Failed to save activity: ${err.message || 'Unknown error'}`)
-    } finally {
-      setIsSavingActivity(false)
-    }
+    setSelectedDays(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(dayString)) {
+        // Day is already selected, remove it (toggle off)
+        newSet.delete(dayString)
+      } else {
+        // Day is not selected, add it (toggle on)
+        newSet.add(dayString)
+      }
+      return newSet
+    })
   }
 
-  const handleDayClick = (day: Date) => {
-    const simulatedActivity = { type: 'Workout', details: { name: 'Logged Workout', duration: 'Unknown' } }
-    saveActivityToDatabase(day, simulatedActivity)
+  // Function to reset all manually selected days
+  const handleResetSelectedDays = () => {
+    setSelectedDays(new Set())
   }
 
   // Function to fetch activities for the current month
@@ -256,24 +236,7 @@ const Profile: React.FC = () => {
           </Card.Body>
         </Card>
 
-        {user?.role === 'user' && (
-          <div className="mt-6">
-            <h3 className="font-semibold text-gray-900 mb-4">Your Progress</h3>
-            <div className="flex justify-around items-center gap-6">
-              <div className="flex flex-col items-center p-6 bg-gray-50 rounded-lg shadow-sm flex-1 min-w-0">
-                <Dumbbell size={48} className="text-green-600 mb-2" />
-                <div className="text-3xl font-bold text-gray-900">0</div>
-                <div className="text-sm text-gray-600">Workouts</div>
-              </div>
 
-              <div className="flex flex-col items-center p-6 bg-gray-50 rounded-lg shadow-sm flex-1 min-w-0">
-                <Flame size={48} className="text-orange-500 mb-2" />
-                <div className="text-3xl font-bold text-gray-900">0</div>
-                <div className="text-sm text-gray-600">Calories</div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="md:col-span-2 flex flex-col gap-6">
@@ -392,8 +355,15 @@ const Profile: React.FC = () => {
           {/* Activity Header */}
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-gray-900">Activity</h2>
-            <Button variant="outline" size="sm" onClick={() => console.log('See All Activities')} className="text-gray-600 hover:bg-gray-100">
-              SEE ALL
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetSelectedDays}
+              leftIcon={<RotateCcw size={16} />}
+              className="text-gray-600 hover:bg-gray-100"
+              disabled={selectedDays.size === 0}
+            >
+              Reset
             </Button>
           </div>
 
@@ -431,70 +401,70 @@ const Profile: React.FC = () => {
                   const today = isToday(day);
                   // Check if this day has activities based on fetched data
                   const hasActivity = activities[fullDateISO]?.length > 0;
+                  // Check if this day is manually selected
+                  const isManuallySelected = selectedDays.has(fullDateISO);
 
                   return (
                     <div
                       key={index}
-                      className={`flex flex-col items-center justify-center w-full aspect-square rounded-full cursor-pointer
+                      className={`flex flex-col items-center justify-center w-full aspect-square rounded-full cursor-pointer transition-all duration-200
                                            ${isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}
                                            ${today ? 'bg-gray-200 font-semibold' : 'hover:bg-gray-100'}
                                            ${hasActivity ? 'border-2 border-green-600' : ''}
+                                           ${isManuallySelected ? 'bg-blue-100 border-2 border-blue-500' : ''}
+                                           ${hasActivity && isManuallySelected ? 'bg-purple-100 border-2 border-purple-500' : ''}
                                            text-sm
                                            `}
                       onClick={() => handleDayClick(day)}
-                      aria-label={`Day ${dayNumber} ${format(day, 'MMMM')}${hasActivity ? ', with activities' : ''}`}
+                      aria-label={`Day ${dayNumber} ${format(day, 'MMMM')}${hasActivity ? ', with database activities' : ''}${isManuallySelected ? ', manually selected' : ''}`}
                     >
                       <span>{dayNumber}</span>
-                      {hasActivity && <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-0.5"></div>}
+                      <div className="flex space-x-0.5 mt-0.5">
+                        {hasActivity && <div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>}
+                        {isManuallySelected && <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>}
+                      </div>
                     </div>
                   );
                 })}
               </div>
+
+              {/* Legend */}
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Legend:</h4>
+                <div className="flex flex-wrap gap-4 text-xs">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full border-2 border-green-600 flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>
+                    </div>
+                    <span className="text-gray-600">Database Activities</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-blue-100 border-2 border-blue-500 flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
+                    </div>
+                    <span className="text-gray-600">Manually Selected</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-purple-100 border-2 border-purple-500 flex items-center justify-center">
+                      <div className="flex space-x-0.5">
+                        <div className="w-1 h-1 bg-green-600 rounded-full"></div>
+                        <div className="w-1 h-1 bg-blue-600 rounded-full"></div>
+                      </div>
+                    </div>
+                    <span className="text-gray-600">Both</span>
+                  </div>
+                </div>
+              </div>
             </>
           )}
 
-          {/* Add Activity Button */}
-          <div className="mt-6 text-center">
-            <Button
-              variant="outline"
-              leftIcon={<Plus size={16} />}
-              onClick={() => {
-                console.log('Add Activity Button Clicked');
-                // For now, simulate adding an activity for today
-                const dateToSave = new Date();
-                const simulatedActivity = { type: 'Generic Activity', details: { description: 'Logged via Add Button' } };
-                saveActivityToDatabase(dateToSave, simulatedActivity);
-              }}
-              disabled={!user || isSavingActivity}
-              className="w-full justify-center text-gray-700 hover:bg-gray-100 border-gray-300"
-            >
-              {isSavingActivity ? 'Adding Activity...' : 'ADD ACTIVITY'}
-            </Button>
-            {!user && (
-              <p className="mt-2 text-sm text-blue-600 italic">Log in to track your activities.</p>
-            )}
 
-            {/* Saving feedback messages */}
-            {saveActivitySuccess && (
-              <p className="mt-2 text-sm text-green-600">{saveActivitySuccess}</p>
-            )}
-            {saveActivityError && (
-              <p className="mt-2 text-sm text-red-600">{saveActivityError}</p>
-            )}
-          </div>
         </Card.Body>
       </Card>
     </div>
   )
 
-  // Helper function to render the routines section
-  const renderRoutinesSection = () => (
-    <div className="max-w-4xl mx-auto">
-      {user?.role === 'user' && user?.id && (
-        <RoutineSection userId={user.id} isOwnProfile={true} />
-      )}
-    </div>
-  )
+
 
   // Helper function to render the current section
   const renderCurrentSection = () => {
@@ -505,8 +475,6 @@ const Profile: React.FC = () => {
         return renderPersonalInfoSection()
       case 'activity':
         return user?.role === 'user' ? renderActivitySection() : renderPersonalInfoSection()
-      case 'routines':
-        return user?.role === 'user' ? renderRoutinesSection() : renderPersonalInfoSection()
       default:
         return renderOverviewSection()
     }

@@ -198,15 +198,4 @@ INSERT INTO exercises (name, description, instructions, muscle_groups, equipment
  'flexibility', 
  false);
 
--- Sample Routine Templates
-INSERT INTO routine_templates (name, description, category, difficulty_level, duration_weeks, days_per_week, target_audience, is_featured) VALUES
 
-('Ethiopian Warrior Training', 'Traditional Ethiopian-inspired full body workout combining strength and cultural movements', 'ethiopian_traditional', 'intermediate', 8, 4, ARRAY['intermediate', 'cultural_fitness'], true),
-
-('Beginner Bodyweight Basics', 'Perfect starting routine for fitness beginners using only bodyweight exercises', 'strength', 'beginner', 4, 3, ARRAY['beginners', 'home_workout'], true),
-
-('Ethiopian Weight Loss Journey', 'Culturally-inspired cardio and strength routine for weight loss', 'weight_loss', 'beginner', 12, 5, ARRAY['weight_loss', 'beginners'], true),
-
-('Advanced Muscle Building', 'Intensive muscle building routine for experienced trainees', 'muscle_building', 'advanced', 16, 6, ARRAY['advanced', 'muscle_building'], false),
-
-('Traditional Ethiopian Flexibility', 'Flexibility and mobility routine inspired by Ethiopian cultural movements', 'ethiopian_traditional', 'beginner', 6, 3, ARRAY['flexibility', 'cultural_fitness'], true);

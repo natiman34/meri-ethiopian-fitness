@@ -7,7 +7,7 @@ export const exercises: Exercise[] = [
     name: 'Bench Press',
     description: 'A compound exercise for chest, shoulders, and triceps.',
     image: getExerciseImage('benchPress', 'image'),
-    gifUrl: "https://i.pinimg.com/originals/25/de/3f/25de3f5a1a9253976220109a0ef2dfff.gif", // Pinterest GIF link
+    gifUrl: "/images/exercises/bench-press.gif",
     videoUrl: getExerciseImage('benchPress', 'video'),
     steps: [
       'Lie on a flat bench, grasp barbell with overhand grip slightly wider than shoulder-width.',
@@ -78,7 +78,7 @@ export const exercises: Exercise[] = [
     name: 'Incline Dumbbell Press',
     description: 'Targets the upper chest muscles and shoulders.',
     image: getExerciseImage('inclineDumbbellPress', 'image'),
-    gifUrl: getExerciseImage('inclineDumbbellPress', 'gif'),
+    gifUrl: "/images/exercises/incline-dumbbell-press.gif",
     videoUrl: getExerciseImage('inclineDumbbellPress', 'video'),
     steps: [
       'Set an adjustable bench to a 30-45 degree incline.',
@@ -123,7 +123,7 @@ export const exercises: Exercise[] = [
     name: 'Shoulder Press (Dumbbell or Barbell)',
     description: 'A compound exercise that targets the deltoid muscles.',
     image: getExerciseImage('shoulderPress', 'image'),
-    gifUrl: getExerciseImage('shoulderPress', 'gif'),
+    gifUrl: "/images/exercises/shoulder-press-db-bb.gif",
     videoUrl: getExerciseImage('shoulderPress', 'video'),
     steps: [
       'Sit on a bench with back support or stand with feet shoulder-width apart.',
@@ -168,7 +168,7 @@ export const exercises: Exercise[] = [
     name: 'Lateral Raises',
     description: 'An isolation exercise that targets the lateral deltoids.',
     image: getExerciseImage('lateralRaises', 'image'),
-    gifUrl: getExerciseImage('lateralRaises', 'gif'),
+    gifUrl: "/images/exercises/lateral-raises.gif",
     videoUrl: getExerciseImage('lateralRaises', 'video'),
     steps: [
       'Stand with feet shoulder-width apart, holding dumbbells at your sides.',
@@ -213,7 +213,7 @@ export const exercises: Exercise[] = [
     name: 'Triceps Dips',
     description: 'A compound exercise that primarily targets the triceps.',
     image: getExerciseImage('tricepsDips', 'image'),
-    gifUrl: getExerciseImage('tricepsDips', 'gif'),
+    gifUrl: "/images/exercises/triceps-dips.gif",
     videoUrl: getExerciseImage('tricepsDips', 'video'),
     steps: [
       'Position yourself on parallel bars with arms straight and shoulders over hands.',
@@ -258,7 +258,7 @@ export const exercises: Exercise[] = [
     name: 'Skull Crushers',
     description: 'An isolation exercise that targets the triceps muscles.',
     image: getExerciseImage('skullCrushers', 'image'),
-    gifUrl: getExerciseImage('skullCrushers', 'gif'),
+    gifUrl: "/images/exercises/skull-crushers.gif",
     videoUrl: getExerciseImage('skullCrushers', 'video'),
     steps: [
       'Lie on a flat bench holding an EZ bar or dumbbells with arms extended above chest.',
@@ -303,7 +303,7 @@ export const exercises: Exercise[] = [
     name: 'Light Jogging or Rowing',
     description: 'Low-intensity cardiovascular activity for warm-up or active recovery.',
     image: getExerciseImage('lightJoggingOrRowing', 'image'),
-    gifUrl: getExerciseImage('lightJoggingOrRowing', 'gif'),
+    gifUrl: "/images/exercises/light-jogging-rowing.gif",
     videoUrl: getExerciseImage('lightJoggingOrRowing', 'video'),
     steps: [
       'For jogging: find an open space or treadmill, maintain a light pace.',
@@ -401,7 +401,7 @@ export const exercises: Exercise[] = [
     name: 'Bodyweight Squat',
     description: 'A fundamental lower body exercise that targets the quadriceps, glutes, and hamstrings.',
     image: getExerciseImage('squat', 'image'),
-    gifUrl: getExerciseImage('squat', 'gif'),
+    gifUrl: "/images/exercises/Bodyweight Squat.gif",
     videoUrl: getExerciseImage('squat', 'video'),
     steps: [
       'Stand with feet shoulder-width apart',
@@ -470,7 +470,7 @@ export const exercises: Exercise[] = [
     name: 'Plank',
     description: 'An isometric core exercise that strengthens the entire core and improves stability.',
     image: getExerciseImage('plank', 'image'),
-    gifUrl: getExerciseImage('plank', 'gif'),
+    gifUrl: "/images/exercises/planks.gif",
     videoUrl: getExerciseImage('plank', 'video'),
     steps: [
       'Start in a forearm plank position',
@@ -539,7 +539,7 @@ export const exercises: Exercise[] = [
     name: 'Burpee',
     description: 'A full-body exercise that combines a squat, push-up, and jump for maximum calorie burn.',
     image: getExerciseImage('burpee', 'image'),
-    gifUrl: getExerciseImage('burpee', 'gif'),
+    gifUrl: "/images/exercises/Burpees.gif",
     videoUrl: getExerciseImage('burpee', 'video'),
     steps: [
       'Start in a standing position',
@@ -609,7 +609,7 @@ export const exercises: Exercise[] = [
     name: 'Mountain Climber',
     description: 'A dynamic cardio exercise that targets the core while providing cardiovascular benefits.',
     image: getExerciseImage('mountainClimber', 'image'),
-    gifUrl: getExerciseImage('mountainClimber', 'gif'),
+    gifUrl: "/images/exercises/Mountain Climber.gif",
     videoUrl: getExerciseImage('mountainClimber', 'video'),
     steps: [
       'Start in a plank position',
@@ -745,7 +745,7 @@ export const exercises: Exercise[] = [
     name: 'Walking Lunge',
     description: 'A dynamic lower body exercise that targets multiple muscle groups while improving balance.',
     image: getExerciseImage('lunge', 'image'),
-    gifUrl: getExerciseImage('lunge', 'gif'),
+    gifUrl: "/images/exercises/Walking Lunge.gif",
     videoUrl: getExerciseImage('lunge', 'video'),
     steps: [
       'Start in a standing position',
@@ -815,7 +815,7 @@ export const exercises: Exercise[] = [
     name: 'Romanian Deadlift',
     description: 'A hip-hinge movement that targets the hamstrings and glutes.',
     image: getExerciseImage('romanianDeadlift', 'image'),
-    gifUrl: getExerciseImage('romanianDeadlift', 'gif'),
+    gifUrl: "/images/exercises/Romanian Deadlift.gif",
     videoUrl: getExerciseImage('romanianDeadlift', 'video'),
     steps: [
       'Hold barbell with overhand grip, feet hip-width apart',
@@ -860,7 +860,7 @@ export const exercises: Exercise[] = [
     name: 'Leg Press',
     description: 'Machine-based lower body exercise for building leg strength.',
     image: getExerciseImage('legPress', 'image'),
-    gifUrl: getExerciseImage('legPress', 'gif'),
+    gifUrl: "/images/exercises/Leg Press.gif",
     videoUrl: getExerciseImage('legPress', 'video'),
     steps: [
       'Sit in leg press machine with back against pad',
@@ -925,7 +925,7 @@ export const exercises: Exercise[] = [
     name: 'Calf Raises',
     description: 'Isolation exercise for calf muscle development.',
     image: getExerciseImage('calfRaises', 'image'),
-    gifUrl: getExerciseImage('calfRaises', 'gif'),
+    gifUrl: "/images/exercises/Calf Raises.gif",
     videoUrl: getExerciseImage('calfRaises', 'video'),
     steps: [
       'Stand with balls of feet on platform or floor',
@@ -998,7 +998,7 @@ export const exercises: Exercise[] = [
     name: 'Jump Squat',
     description: 'Explosive squat variation for HIIT training and fat loss.',
     image: getExerciseImage('jumpSquat', 'image'),
-    gifUrl: getExerciseImage('jumpSquat', 'gif'),
+    gifUrl: "/images/exercises/Jump Squat.gif",
     videoUrl: getExerciseImage('jumpSquat', 'video'),
     steps: [
       'Stand with feet shoulder-width apart',
@@ -1050,7 +1050,7 @@ export const exercises: Exercise[] = [
     name: 'Bulgarian Split Squat',
     description: 'Single-leg squat variation for lower body strength and stability.',
     image: getExerciseImage('bulgarianSplitSquat', 'image'),
-    gifUrl: getExerciseImage('bulgarianSplitSquat', 'gif'),
+    gifUrl: "/images/exercises/Bulgarian Split Squat.gif",
     videoUrl: getExerciseImage('bulgarianSplitSquat', 'video'),
     steps: [
       'Stand 2-3 feet in front of bench or elevated surface',
@@ -1116,7 +1116,7 @@ export const exercises: Exercise[] = [
     name: 'Step-Up',
     description: 'Functional lower body exercise using a bench or platform.',
     image: getExerciseImage('stepUp', 'image'),
-    gifUrl: getExerciseImage('stepUp', 'gif'),
+    gifUrl: "/images/exercises/Step-Up.gif",
     videoUrl: getExerciseImage('stepUp', 'video'),
     steps: [
       'Stand in front of bench or sturdy platform',
@@ -1182,7 +1182,7 @@ export const exercises: Exercise[] = [
     name: 'Pull-Up',
     description: 'Upper body pulling exercise for back and bicep development.',
     image: getExerciseImage('pullUp', 'image'),
-    gifUrl: getExerciseImage('pullUp', 'gif'),
+    gifUrl: "/images/exercises/Pull-Up.gif",
     videoUrl: getExerciseImage('pullUp', 'video'),
     steps: [
       'Hang from pull-up bar with palms facing away',
@@ -1248,7 +1248,7 @@ export const exercises: Exercise[] = [
     name: 'Dumbbell Rows',
     description: 'Back strengthening exercise using dumbbells.',
     image: getExerciseImage('dumbbellRows', 'image'),
-    gifUrl: getExerciseImage('dumbbellRows', 'gif'),
+    gifUrl: "/images/exercises/Dumbbell Rows.gif",
     videoUrl: getExerciseImage('dumbbellRows', 'video'),
     steps: [
       'Hold dumbbell in one hand, place other hand on bench',
@@ -1314,7 +1314,7 @@ export const exercises: Exercise[] = [
     name: 'Russian Twists',
     description: 'Core exercise targeting obliques and rotational strength.',
     image: getExerciseImage('russianTwists', 'image'),
-    gifUrl: getExerciseImage('russianTwists', 'gif'),
+    gifUrl: "/images/exercises/Russian Twists.gif",
     videoUrl: getExerciseImage('russianTwists', 'video'),
     steps: [
       'Sit on floor with knees bent, feet slightly off ground',
@@ -1374,6 +1374,633 @@ export const exercises: Exercise[] = [
     estimatedTime: 5,
     caloriesBurn: 25,
     muscleGroup: 'abs'
+  },
+  // Additional exercises for Day 5-7 weight gain plan
+  {
+    id: 'dumbbell-snatch',
+    name: 'Dumbbell Snatch',
+    description: 'Explosive full-body movement for power development.',
+    image: getExerciseImage('dumbbellSnatch', 'image'),
+    gifUrl: "/images/exercises/Dumbbell Snatch.gif",
+    videoUrl: getExerciseImage('dumbbellSnatch', 'video'),
+    steps: [
+      'Start with dumbbell between feet in squat position',
+      'Explosively pull dumbbell overhead in one motion',
+      'Catch dumbbell with arm extended overhead',
+      'Lower with control and repeat'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 8,
+        restTime: 75,
+        rpe: 8
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 8,
+        restTime: 75,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 8,
+        restTime: 75,
+        rpe: 8
+      }
+    ],
+    equipment: ['dumbbells'],
+    targetMuscles: ['full-body'],
+    secondaryMuscles: ['shoulders', 'legs', 'core'],
+    difficulty: 'advanced',
+    category: 'power',
+    estimatedTime: 12,
+    caloriesBurn: 100,
+    muscleGroup: 'full-body'
+  },
+  {
+    id: 'kettlebell-swings',
+    name: 'Kettlebell Swings',
+    description: 'Dynamic hip-hinge movement for power and conditioning.',
+    image: getExerciseImage('kettlebellSwings', 'image'),
+    gifUrl: "/images/exercises/Kettlebell Swings.gif",
+    videoUrl: getExerciseImage('kettlebellSwings', 'video'),
+    steps: [
+      'Stand with feet shoulder-width apart, kettlebell in front',
+      'Hinge at hips and swing kettlebell between legs',
+      'Drive hips forward to swing kettlebell to chest height',
+      'Let kettlebell swing back down and repeat'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 15,
+        restTime: 60,
+        rpe: 7
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 15,
+        restTime: 60,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 15,
+        restTime: 60,
+        rpe: 8
+      }
+    ],
+    equipment: ['kettlebell'],
+    targetMuscles: ['glutes', 'hamstrings'],
+    secondaryMuscles: ['core', 'shoulders'],
+    difficulty: 'intermediate',
+    category: 'power',
+    estimatedTime: 10,
+    caloriesBurn: 90,
+    muscleGroup: 'legs'
+  },
+  {
+    id: 'box-jumps',
+    name: 'Box Jumps',
+    description: 'Explosive jumping exercise for lower body power.',
+    image: getExerciseImage('boxJumps', 'image'),
+    gifUrl: "/images/exercises/Box Jumps.gif",
+    videoUrl: getExerciseImage('boxJumps', 'video'),
+    steps: [
+      'Stand in front of box or platform',
+      'Bend knees and swing arms back',
+      'Jump explosively onto box',
+      'Step down carefully and repeat'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 75,
+        rpe: 7
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 75,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 75,
+        rpe: 8
+      }
+    ],
+    equipment: ['box', 'platform'],
+    targetMuscles: ['legs', 'glutes'],
+    secondaryMuscles: ['core', 'calves'],
+    difficulty: 'intermediate',
+    category: 'plyometric',
+    estimatedTime: 10,
+    caloriesBurn: 80,
+    muscleGroup: 'legs'
+  },
+  {
+    id: 'battle-ropes',
+    name: 'Battle Ropes',
+    description: 'High-intensity cardio exercise using heavy ropes.',
+    image: getExerciseImage('battleRopes', 'image'),
+    gifUrl: "/images/exercises/Battle Ropes.gif",
+    videoUrl: getExerciseImage('battleRopes', 'video'),
+    steps: [
+      'Hold rope ends with both hands',
+      'Create waves by moving arms up and down alternately',
+      'Keep core engaged and maintain rhythm',
+      'Continue for specified time'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 30, // seconds
+        restTime: 75,
+        rpe: 8
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 30, // seconds
+        restTime: 75,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 30, // seconds
+        restTime: 75,
+        rpe: 8
+      }
+    ],
+    equipment: ['battle ropes'],
+    targetMuscles: ['full-body'],
+    secondaryMuscles: ['core', 'shoulders', 'arms'],
+    difficulty: 'intermediate',
+    category: 'cardio',
+    instructions: ['Keep core tight', 'Maintain steady rhythm', 'Use full body motion'],
+    tips: ['Start with shorter intervals', 'Focus on form over speed'],
+    commonMistakes: ['Using only arms', 'Poor posture'],
+    variations: ['Alternating waves', 'Spiral waves', 'Slams'],
+    estimatedTime: 5,
+    caloriesBurn: 120,
+    muscleGroup: 'full-body'
+  },
+  {
+    id: 'hanging-leg-raises',
+    name: 'Hanging Leg Raises',
+    description: 'Advanced core exercise performed hanging from a bar.',
+    image: getExerciseImage('hangingLegRaises', 'image'),
+    gifUrl: "/images/exercises/Hanging Leg Raises.gif",
+    videoUrl: getExerciseImage('hangingLegRaises', 'video'),
+    steps: [
+      'Hang from pull-up bar with arms extended',
+      'Keep legs straight and raise them up',
+      'Lift until legs are parallel to floor',
+      'Lower with control and repeat'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 15,
+        restTime: 60,
+        rpe: 8
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 15,
+        restTime: 60,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 15,
+        restTime: 60,
+        rpe: 8
+      }
+    ],
+    equipment: ['pull-up bar'],
+    targetMuscles: ['abs'],
+    secondaryMuscles: ['core', 'forearms'],
+    difficulty: 'advanced',
+    category: 'strength',
+    instructions: ['Keep core engaged', 'Control the movement', 'Don\'t swing'],
+    tips: ['Start with bent knees if needed', 'Focus on slow controlled movement'],
+    commonMistakes: ['Using momentum', 'Not full range of motion'],
+    variations: ['Bent knee raises', 'Hanging knee tucks'],
+    estimatedTime: 8,
+    caloriesBurn: 60,
+    muscleGroup: 'abs'
+  },
+  {
+    id: 'front-squats',
+    name: 'Front Squats',
+    description: 'Squat variation with weight held in front for increased core engagement.',
+    image: getExerciseImage('frontSquats', 'image'),
+    gifUrl: "/images/exercises/Front Squats.gif",
+    videoUrl: getExerciseImage('frontSquats', 'video'),
+    steps: [
+      'Hold barbell across front of shoulders',
+      'Keep elbows high and chest up',
+      'Squat down keeping weight on front',
+      'Drive through heels to stand up'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 8,
+        restTime: 90,
+        rpe: 8
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 8,
+        restTime: 90,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 8,
+        restTime: 90,
+        rpe: 8
+      }
+    ],
+    equipment: ['barbell', 'squat rack'],
+    targetMuscles: ['legs', 'glutes'],
+    secondaryMuscles: ['core', 'shoulders'],
+    difficulty: 'advanced',
+    category: 'strength',
+    instructions: ['Keep elbows high', 'Maintain upright torso', 'Full depth squat'],
+    tips: ['Start with lighter weight', 'Focus on mobility first'],
+    commonMistakes: ['Dropping elbows', 'Leaning forward'],
+    variations: ['Goblet squats', 'Cross-arm front squats'],
+    estimatedTime: 12,
+    caloriesBurn: 100,
+    muscleGroup: 'legs'
+  },
+  {
+    id: 'deadlifts',
+    name: 'Deadlifts',
+    description: 'Fundamental compound movement for full-body strength.',
+    image: getExerciseImage('deadlifts', 'image'),
+    gifUrl: "/images/exercises/Deadlifts.gif",
+    videoUrl: getExerciseImage('deadlifts', 'video'),
+    steps: [
+      'Stand with feet hip-width apart, bar over mid-foot',
+      'Bend at hips and knees to grip bar',
+      'Keep back straight and lift by extending hips and knees',
+      'Stand tall then lower bar with control'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 6,
+        restTime: 120,
+        rpe: 8
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 6,
+        restTime: 120,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 6,
+        restTime: 120,
+        rpe: 8
+      }
+    ],
+    equipment: ['barbell', 'plates'],
+    targetMuscles: ['back', 'glutes', 'legs'],
+    secondaryMuscles: ['core', 'forearms'],
+    difficulty: 'advanced',
+    category: 'strength',
+    instructions: ['Keep bar close to body', 'Neutral spine', 'Drive through heels'],
+    tips: ['Start with lighter weight', 'Focus on form first'],
+    commonMistakes: ['Rounding back', 'Bar drifting away'],
+    variations: ['Sumo deadlift', 'Trap bar deadlift'],
+    estimatedTime: 15,
+    caloriesBurn: 120,
+    muscleGroup: 'full-body'
+  },
+  {
+    id: 'hip-thrusts',
+    name: 'Hip Thrusts',
+    description: 'Glute-focused exercise performed with back against bench.',
+    image: getExerciseImage('hipThrusts', 'image'),
+    gifUrl: "/images/exercises/Hip Thrusts.gif",
+    videoUrl: getExerciseImage('hipThrusts', 'video'),
+    steps: [
+      'Sit with back against bench, barbell over hips',
+      'Plant feet firmly on ground',
+      'Drive hips up by squeezing glutes',
+      'Lower with control and repeat'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 75,
+        rpe: 7
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 75,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 75,
+        rpe: 8
+      }
+    ],
+    equipment: ['barbell', 'bench'],
+    targetMuscles: ['glutes'],
+    secondaryMuscles: ['hamstrings', 'core'],
+    difficulty: 'intermediate',
+    category: 'strength',
+    instructions: ['Squeeze glutes at top', 'Keep core engaged', 'Full range of motion'],
+    tips: ['Use pad for comfort', 'Focus on glute activation'],
+    commonMistakes: ['Not full hip extension', 'Using back instead of glutes'],
+    variations: ['Single-leg hip thrust', 'Bodyweight hip thrust'],
+    estimatedTime: 10,
+    caloriesBurn: 80,
+    muscleGroup: 'glutes'
+  },
+  {
+    id: 'hanging-knee-tucks',
+    name: 'Hanging Knee Tucks',
+    description: 'Core exercise performed hanging from bar with knee movement.',
+    image: getExerciseImage('hangingKneeTucks', 'image'),
+    gifUrl: "/images/exercises/Hanging Knee Tucks.gif",
+    videoUrl: getExerciseImage('hangingKneeTucks', 'video'),
+    steps: [
+      'Hang from pull-up bar with arms extended',
+      'Bring knees up toward chest',
+      'Squeeze abs at top of movement',
+      'Lower knees with control'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 60,
+        rpe: 7
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 60,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 60,
+        rpe: 8
+      }
+    ],
+    equipment: ['pull-up bar'],
+    targetMuscles: ['abs'],
+    secondaryMuscles: ['core', 'forearms'],
+    difficulty: 'intermediate',
+    category: 'strength',
+    instructions: ['Control the movement', 'Engage core throughout', 'Don\'t swing'],
+    tips: ['Start with small range if needed', 'Focus on abs not hip flexors'],
+    commonMistakes: ['Using momentum', 'Not engaging core'],
+    variations: ['Hanging leg raises', 'Hanging oblique crunches'],
+    estimatedTime: 8,
+    caloriesBurn: 50,
+    muscleGroup: 'abs'
+  },
+  // Additional exercises for weight loss plan
+  {
+    id: 'jump-rope',
+    name: 'Jump Rope',
+    description: 'High-intensity cardio exercise for fat burning and coordination.',
+    image: getExerciseImage('jumpRope', 'image'),
+    gifUrl: "/images/exercises/Jump Ropes.gif",
+    videoUrl: getExerciseImage('jumpRope', 'video'),
+    steps: [
+      'Hold rope handles with arms at sides',
+      'Rotate rope with wrists, not arms',
+      'Jump with both feet together',
+      'Land softly on balls of feet'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 60, // seconds
+        restTime: 60,
+        rpe: 7
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 60, // seconds
+        restTime: 60,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 60, // seconds
+        restTime: 60,
+        rpe: 8
+      }
+    ],
+    equipment: ['jump rope'],
+    targetMuscles: ['full-body'],
+    secondaryMuscles: ['calves', 'core', 'shoulders'],
+    difficulty: 'beginner',
+    category: 'cardio',
+    instructions: ['Keep elbows close to body', 'Use wrist rotation', 'Stay on balls of feet', 'Maintain rhythm'],
+    tips: ['Start slow and build speed', 'Keep jumps low', 'Relax shoulders'],
+    commonMistakes: ['Jumping too high', 'Using arms instead of wrists', 'Landing on heels'],
+    variations: ['Single leg jumps', 'Double unders', 'Criss-cross'],
+    estimatedTime: 5,
+    caloriesBurn: 80,
+    muscleGroup: 'full-body'
+  },
+  {
+    id: 'bicycle-crunches',
+    name: 'Bicycle Crunches',
+    description: 'Dynamic core exercise targeting abs and obliques.',
+    image: getExerciseImage('bicycleCrunches', 'image'),
+    gifUrl: "/images/exercises/Bicycle Crunches.gif",
+    videoUrl: getExerciseImage('bicycleCrunches', 'video'),
+    steps: [
+      'Lie on back with hands behind head',
+      'Lift shoulders off ground and bring knees to chest',
+      'Rotate torso bringing elbow to opposite knee',
+      'Alternate sides in cycling motion'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 20,
+        restTime: 30,
+        rpe: 7
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 20,
+        restTime: 30,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 20,
+        restTime: 30,
+        rpe: 8
+      }
+    ],
+    equipment: ['bodyweight'],
+    targetMuscles: ['abs', 'obliques'],
+    secondaryMuscles: ['core'],
+    difficulty: 'intermediate',
+    category: 'strength',
+    instructions: ['Keep lower back pressed to floor', 'Don\'t pull on neck', 'Control the movement', 'Breathe rhythmically'],
+    tips: ['Focus on quality over speed', 'Keep core engaged', 'Don\'t rush the movement'],
+    commonMistakes: ['Pulling on neck', 'Moving too fast', 'Not engaging core'],
+    variations: ['Slow bicycle crunches', 'Weighted bicycle crunches'],
+    estimatedTime: 5,
+    caloriesBurn: 30,
+    muscleGroup: 'abs'
+  },
+  {
+    id: 'side-plank',
+    name: 'Side Plank',
+    description: 'Isometric core exercise targeting obliques and lateral stability.',
+    image: getExerciseImage('sidePlank', 'image'),
+    gifUrl: "/images/exercises/Side Plank.gif",
+    videoUrl: getExerciseImage('sidePlank', 'video'),
+    steps: [
+      'Lie on side with forearm on ground',
+      'Stack feet and lift hips off ground',
+      'Keep body in straight line',
+      'Hold position for specified time'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 30, // seconds each side
+        restTime: 30,
+        rpe: 7
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 30, // seconds each side
+        restTime: 30,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 30, // seconds each side
+        restTime: 30,
+        rpe: 8
+      }
+    ],
+    equipment: ['bodyweight'],
+    targetMuscles: ['obliques', 'core'],
+    secondaryMuscles: ['shoulders', 'glutes'],
+    difficulty: 'intermediate',
+    category: 'strength',
+    instructions: ['Keep body straight', 'Don\'t let hips sag', 'Engage core throughout', 'Breathe normally'],
+    tips: ['Start with shorter holds', 'Keep top arm on hip or extended up', 'Focus on alignment'],
+    commonMistakes: ['Letting hips drop', 'Rolling forward or back', 'Holding breath'],
+    variations: ['Side plank with leg lift', 'Side plank with rotation', 'Modified side plank'],
+    estimatedTime: 4,
+    caloriesBurn: 25,
+    muscleGroup: 'abs'
+  },
+  {
+    id: 'plank-to-push-up',
+    name: 'Plank to Push-up',
+    description: 'Dynamic exercise combining plank hold with push-up movement.',
+    image: getExerciseImage('plankToPushUp', 'image'),
+    gifUrl: "/images/exercises/Plank to Push-up.gif",
+    videoUrl: getExerciseImage('plankToPushUp', 'video'),
+    steps: [
+      'Start in forearm plank position',
+      'Push up to high plank one arm at a time',
+      'Lower back to forearm plank one arm at a time',
+      'Repeat alternating lead arm'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 45,
+        rpe: 7
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 45,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 45,
+        rpe: 8
+      }
+    ],
+    equipment: ['bodyweight'],
+    targetMuscles: ['core', 'chest', 'shoulders'],
+    secondaryMuscles: ['triceps', 'abs'],
+    difficulty: 'intermediate',
+    category: 'strength',
+    instructions: ['Keep core tight throughout', 'Move one arm at a time', 'Maintain straight body line', 'Control the movement'],
+    tips: ['Start slow and focus on form', 'Keep hips stable', 'Alternate lead arm each rep'],
+    commonMistakes: ['Moving too fast', 'Letting hips sag', 'Not alternating lead arm'],
+    variations: ['Modified on knees', 'Plank to push-up with rotation'],
+    estimatedTime: 6,
+    caloriesBurn: 40,
+    muscleGroup: 'full-body'
   }
 ];
 

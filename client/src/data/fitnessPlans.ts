@@ -69,14 +69,13 @@ This comprehensive program is designed for individuals looking to build muscle m
           exercises.find(ex => ex.id === 'leg-press'),
           exercises.find(ex => ex.id === 'lunge'),
           exercises.find(ex => ex.id === 'calf-raises'),
-          exercises.find(ex => ex.id === 'hanging-leg-raise'),
           exercises.find(ex => ex.id === 'plank'),
         ].filter(Boolean) as Exercise[],
         totalEstimatedTime: 75,
         totalCaloriesBurn: 350,
         focusAreas: ['legs', 'glutes', 'abs', 'core'],
         restBetweenSets: '45-90 seconds',
-        notes: '**EXACT WORKOUT:** Squats: 4×8-12, Romanian Deadlifts: 3×10, Leg Press: 3×12, Lunges: 3×10 (each leg), Calf Raises: 4×12-15, Hanging Leg Raises: 3×15, Plank: 3×45 sec, Cardio: Cycling or brisk walking (10-15 min). **Rest Time Between Sets:** 45-90 sec'
+        notes: '**EXACT WORKOUT:** Squats: 4×8-12, Romanian Deadlifts: 3×10, Leg Press: 3×12, Lunges: 3×10 (each leg), Calf Raises: 4×12-15, Plank: 3×45 sec. **Rest Time Between Sets:** 45-90 sec'
       },
       {
         day: 3,
@@ -116,14 +115,14 @@ This comprehensive program is designed for individuals looking to build muscle m
         title: 'Day 5: Full Body (Power & Explosive Movements)',
         description: 'Dynamic full-body workout focusing on power, explosiveness, and athletic performance.',
         exercises: [
-          exercises.find(ex => ex.id === 'burpee'), // Using Burpee as substitute for Dumbbell Snatch
-          exercises.find(ex => ex.id === 'squat'), // Using Squat as substitute for Kettlebell Swings
-          exercises.find(ex => ex.id === 'jumping-jack'), // Using Jumping Jack as substitute for Box Jumps
-          exercises.find(ex => ex.id === 'mountain-climber'), // Using Mountain Climber as substitute for Battle Ropes
-          exercises.find(ex => ex.id === 'plank'), // Using Plank as substitute for Hanging Leg Raises
+          exercises.find(ex => ex.id === 'dumbbell-snatch'),
+          exercises.find(ex => ex.id === 'kettlebell-swings'),
+          exercises.find(ex => ex.id === 'box-jumps'),
+          exercises.find(ex => ex.id === 'battle-ropes'),
+          exercises.find(ex => ex.id === 'hanging-leg-raises'),
         ].filter(Boolean) as Exercise[],
         totalEstimatedTime: 60,
-        totalCaloriesBurn: 280,
+        totalCaloriesBurn: 350,
         focusAreas: ['full body', 'power', 'explosive', 'core'],
         restBetweenSets: '45-90 seconds',
         notes: '**EXACT WORKOUT:** Dumbbell Snatch: 3×8, Kettlebell Swings: 3×15, Box Jumps: 3×12, Battle Ropes: 3×30 sec, Hanging Leg Raises: 3×15. **Rest Time Between Sets:** 45-90 sec'
@@ -134,16 +133,16 @@ This comprehensive program is designed for individuals looking to build muscle m
         title: 'Day 6: Lower Body (Strength & Endurance)',
         description: 'Intensive lower body session focusing on strength, endurance, and muscle development.',
         exercises: [
-          exercises.find(ex => ex.id === 'lunge'), // Using Lunge as substitute for Bulgarian Split Squats
-          exercises.find(ex => ex.id === 'squat'), // Using Squat as substitute for Front Squats
-          exercises.find(ex => ex.id === 'romanian-deadlift'), // Using Romanian Deadlift as substitute for Deadlifts
-          exercises.find(ex => ex.id === 'squat'), // Using Squat as substitute for Hip Thrusts
+          exercises.find(ex => ex.id === 'bulgarian-split-squat'),
+          exercises.find(ex => ex.id === 'front-squats'),
+          exercises.find(ex => ex.id === 'deadlifts'),
+          exercises.find(ex => ex.id === 'hip-thrusts'),
           exercises.find(ex => ex.id === 'calf-raises'),
-          exercises.find(ex => ex.id === 'plank'), // Using Plank as substitute for Hanging Knee Tucks
+          exercises.find(ex => ex.id === 'hanging-knee-tucks'),
           exercises.find(ex => ex.id === 'light-jogging-rowing'),
         ].filter(Boolean) as Exercise[],
         totalEstimatedTime: 75,
-        totalCaloriesBurn: 330,
+        totalCaloriesBurn: 400,
         focusAreas: ['legs', 'glutes', 'endurance', 'cardio'],
         restBetweenSets: '45-90 seconds',
         notes: '**EXACT WORKOUT:** Bulgarian Split Squats: 3×10, Front Squats: 3×8, Deadlifts: 3×6, Hip Thrusts: 3×12, Calf Raises: 4×15, Hanging Knee Tucks: 3×12, Cardio: Light jogging (15 min). **Rest Time Between Sets:** 45-90 sec'
@@ -154,9 +153,9 @@ This comprehensive program is designed for individuals looking to build muscle m
         title: 'Day 7: Rest / Recovery',
         description: 'Complete rest day for muscle recovery and preparation for the next week.',
         exercises: [],
-        totalEstimatedTime: 0,
-        totalCaloriesBurn: 0,
-        focusAreas: ['recovery', 'rest'],
+        totalEstimatedTime: 30,
+        totalCaloriesBurn: 50,
+        focusAreas: ['recovery', 'mobility'],
         restBetweenSets: 'N/A',
         notes: 'Mobility work, foam rolling, stretching, and complete rest. Focus on sleep and nutrition.'
       }
@@ -218,10 +217,11 @@ This comprehensive fat loss program combines high-intensity interval training wi
         exercises: [
           exercises.find(ex => ex.id === 'squat'),
           exercises.find(ex => ex.id === 'push-up'),
-          exercises.find(ex => ex.id === 'deadlift'),
+          exercises.find(ex => ex.id === 'deadlifts'),
           exercises.find(ex => ex.id === 'shoulder-press-db-bb'),
           exercises.find(ex => ex.id === 'plank'),
-          exercises.find(ex => ex.id === 'jumping-jack'),
+          exercises.find(ex => ex.id === 'jump-rope'),
+          exercises.find(ex => ex.id === 'light-jogging-rowing'), // For HIIT cardio
         ].filter(Boolean) as Exercise[],
         totalEstimatedTime: 60,
         totalCaloriesBurn: 300,
@@ -239,8 +239,8 @@ This comprehensive fat loss program combines high-intensity interval training wi
           exercises.find(ex => ex.id === 'jump-squat'), // HIIT: Jump Squats 30 sec
           exercises.find(ex => ex.id === 'mountain-climber'), // HIIT: Mountain Climbers 30 sec
           exercises.find(ex => ex.id === 'burpee'), // HIIT: Burpees 30 sec
-          exercises.find(ex => ex.id === 'plank'), // Core: Hanging Leg Raises substitute
-          exercises.find(ex => ex.id === 'mountain-climber'), // Core: Bicycle Crunches substitute
+          exercises.find(ex => ex.id === 'hanging-leg-raises'), // Core: Hanging Leg Raises
+          exercises.find(ex => ex.id === 'bicycle-crunches'), // Core: Bicycle Crunches
         ].filter(Boolean) as Exercise[],
         totalEstimatedTime: 50,
         totalCaloriesBurn: 250,
@@ -258,7 +258,7 @@ This comprehensive fat loss program combines high-intensity interval training wi
           exercises.find(ex => ex.id === 'romanian-deadlift'), // Romanian Deadlifts: 3×12
           exercises.find(ex => ex.id === 'step-up'), // Step-ups: 3×12
           exercises.find(ex => ex.id === 'calf-raises'), // Calf Raises: 3×15
-          exercises.find(ex => ex.id === 'plank'), // Plank to Push-ups: 3×12 (using plank as substitute)
+          exercises.find(ex => ex.id === 'plank-to-push-up'), // Plank to Push-ups: 3×12
           exercises.find(ex => ex.id === 'light-jogging-rowing'), // Cardio: 20 min Stair Climber
         ].filter(Boolean) as Exercise[],
         totalEstimatedTime: 60,
@@ -289,7 +289,7 @@ This comprehensive fat loss program combines high-intensity interval training wi
           exercises.find(ex => ex.id === 'dumbbell-rows'), // Dumbbell Rows: 3×12
           exercises.find(ex => ex.id === 'shoulder-press-db-bb'), // Shoulder Press: 3×12
           exercises.find(ex => ex.id === 'triceps-dips'), // Triceps Dips: 3×12
-          exercises.find(ex => ex.id === 'mountain-climber'), // Battle Ropes substitute: 3×30 sec
+          exercises.find(ex => ex.id === 'battle-ropes'), // Battle Ropes: 3×30 sec
           exercises.find(ex => ex.id === 'light-jogging-rowing'), // Cardio: 20 min steady-state run
         ].filter(Boolean) as Exercise[],
         totalEstimatedTime: 60,
@@ -306,8 +306,8 @@ This comprehensive fat loss program combines high-intensity interval training wi
         exercises: [
           exercises.find(ex => ex.id === 'light-jogging-rowing'), // 30-40 min moderate-intensity cycling
           exercises.find(ex => ex.id === 'russian-twists'), // Russian Twists: 3×15
-          exercises.find(ex => ex.id === 'plank'), // Hanging Knee Raises substitute: 3×12
-          exercises.find(ex => ex.id === 'plank'), // Side Planks substitute: 3×30 sec each side
+          exercises.find(ex => ex.id === 'hanging-knee-tucks'), // Hanging Knee Raises: 3×12
+          exercises.find(ex => ex.id === 'side-plank'), // Side Planks: 3×30 sec each side
         ].filter(Boolean) as Exercise[],
         totalEstimatedTime: 50,
         totalCaloriesBurn: 220,

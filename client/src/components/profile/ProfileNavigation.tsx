@@ -1,7 +1,7 @@
 import React from 'react';
-import { User, Edit2, Calendar, Dumbbell } from 'lucide-react';
+import { User, Edit2, Calendar } from 'lucide-react';
 
-export type ProfileSection = 'overview' | 'personal-info' | 'activity' | 'routines';
+export type ProfileSection = 'overview' | 'personal-info' | 'activity';
 
 interface ProfileNavigationProps {
   activeSection: ProfileSection;
@@ -33,12 +33,6 @@ const ProfileNavigation: React.FC<ProfileNavigationProps> = ({
         label: 'Activity',
         icon: Calendar,
         description: 'Track your daily activities'
-      },
-      {
-        id: 'routines' as ProfileSection,
-        label: 'Routines',
-        icon: Dumbbell,
-        description: 'Manage your fitness routines'
       }
     ] : [])
   ];
