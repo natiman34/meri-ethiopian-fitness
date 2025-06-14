@@ -37,6 +37,15 @@ export class FeedbackService {
         .single();
 
       if (error) {
+        // Check if the error is related to row-level security policy
+        if (error.message && (
+          error.message.includes("row-level security policy") ||
+          error.message.includes("violates row-level security") ||
+          error.message.includes("RLS") ||
+          error.code === "42501"
+        )) {
+          throw new Error("First register or login in order to send feedback.");
+        }
         throw new Error(error.message || "Failed to submit feedback to Supabase");
       }
 

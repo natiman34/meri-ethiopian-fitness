@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
 import {
@@ -53,6 +53,13 @@ const Dashboard = () => {
     setSidebarOpen(false)
   }, [location.pathname])
 
+  // Redirect nutritionist admins to nutrition page
+  useEffect(() => {
+    if (user?.role === "admin_nutritionist" && location.pathname === "/admin") {
+      navigate("/admin/nutrition", { replace: true })
+    }
+  }, [user?.role, location.pathname, navigate])
+
   // Determine user role for display
   const getRoleDisplay = () => {
     switch (user?.role) {
@@ -101,8 +108,8 @@ const Dashboard = () => {
       {/* Navigation */}
       <nav className="flex-grow">
         <ul className="space-y-1 px-2">
-          {/* Dashboard Link - Remove for Super Admin */}
-          {user?.role !== "admin_super" && (
+          {/* Dashboard Link - Only for fitness admin */}
+          {user?.role === "admin_fitness" && (
           <li>
             <Link
               to="/admin"
@@ -175,8 +182,8 @@ const Dashboard = () => {
             </li>
           )}
 
-          {/* Content Management Link - Remove for Super Admin */}
-          {user?.role !== "admin_super" && (
+          {/* Content Management Link - Only for fitness admin */}
+          {user?.role === "admin_fitness" && (
           <li>
             <Link
               to="/admin/content"
@@ -293,7 +300,8 @@ const Dashboard = () => {
               </button>
 
               <h1 className="text-xl font-bold text-gray-900">
-                {location.pathname === "/admin" && "Dashboard"}
+                {location.pathname === "/admin" && user?.role === "admin_fitness" && "Dashboard"}
+                {location.pathname === "/admin" && user?.role === "admin_nutritionist" && "Nutrition Management"}
                 {location.pathname === "/admin/users" && "Users Management"}
                 {location.pathname === "/admin/fitness" && "Fitness Plans"}
                 {location.pathname === "/admin/nutrition" && "Nutrition Plans"}
@@ -317,13 +325,13 @@ const Dashboard = () => {
         <main className="flex-1 p-4 md:p-6 bg-gray-100 overflow-y-auto pt-16">
           <div className="">
             <Routes>
-              <Route 
-                path="/" 
+              <Route
+                path="/"
                 element={
                   <ProtectedRoute>
-                    <AdminOverview />
+                    {user?.role === "admin_nutritionist" ? <AdminNutrition /> : <AdminOverview />}
                   </ProtectedRoute>
-                } 
+                }
               />
               <Route 
                 path="/users" 

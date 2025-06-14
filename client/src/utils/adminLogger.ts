@@ -11,9 +11,9 @@ export const logAdminActivity = async (adminId: string, action: string, details:
       }]);
 
     if (error) {
-      console.error('Error logging admin activity:', error);
+      // Silent error handling for admin logging
     }
   } catch (error) {
-    console.error('Error in logAdminActivity:', error);
+    // Silent error handling for admin logging
   }
 };

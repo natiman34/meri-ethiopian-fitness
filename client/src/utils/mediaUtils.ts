@@ -84,25 +84,4 @@ export const getBestExerciseMedia = (exercise: any): string => {
   return "/images/placeholders/exercise.jpg";
 };
 
-/**
- * Debug function to check if an image exists at the specified path
- * @param imagePath Path to check
- * @returns Promise with the result and path information
- */
-export const debugImagePath = async (imagePath: string): Promise<{exists: boolean, path: string, absolutePath: string}> => {
-  const normalizedPath = normalizePath(imagePath);
-  const exists = await validateImageExists(normalizedPath);
-  
-  // For debugging - log the path information
-  console.log(`Image path check:
-    Original: ${imagePath}
-    Normalized: ${normalizedPath}
-    Exists: ${exists}
-  `);
-  
-  return {
-    exists,
-    path: normalizedPath,
-    absolutePath: window.location.origin + normalizedPath
-  };
-};
+

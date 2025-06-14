@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { NutritionPlanService } from '../../services/NutritionPlanService';
+import { nutritionPlanService } from '../../services/NutritionPlanService';
 import { NutritionPlan, DayMeal, CalorieRange } from '../../types/content';
 import { Loader2, AlertCircle, Utensils, Clock, Scale, Heart, CalendarDays } from 'lucide-react';
-import ImageWithFallback from '../../components/ImageWithFallback';
+
 
 const NutritionPlanDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,7 +20,7 @@ const NutritionPlanDetail: React.FC = () => {
       setError(null);
       try {
         if (id) {
-          const fetchedPlan = await NutritionPlanService.getInstance().getNutritionPlanById(id);
+          const fetchedPlan = await nutritionPlanService.getNutritionPlanById(id);
           if (fetchedPlan) {
             setPlan(fetchedPlan);
             setSelectedDay(fetchedPlan.meals[0]?.day || 1); // Set default selected day
@@ -54,7 +54,7 @@ const NutritionPlanDetail: React.FC = () => {
       <div className="pt-24 pb-16 flex flex-col items-center justify-center min-h-[50vh]">
         <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
         <p className="text-xl text-red-600 font-semibold">Error: {error}</p>
-        <Link to="/services/fitness-nutrition-plans" className="mt-6 text-green-600 hover:underline">
+        <Link to="/services/nutrition" className="mt-6 text-green-600 hover:underline">
           Return to Plans
         </Link>
       </div>
@@ -66,7 +66,7 @@ const NutritionPlanDetail: React.FC = () => {
       <div className="pt-24 pb-16 flex flex-col items-center justify-center min-h-[50vh]">
         <AlertCircle className="h-12 w-12 text-yellow-500 mb-4" />
         <p className="text-xl text-yellow-600 font-semibold">Nutrition Plan Not Found</p>
-        <Link to="/services/fitness-nutrition-plans" className="mt-6 text-green-600 hover:underline">
+        <Link to="/services/nutrition" className="mt-6 text-green-600 hover:underline">
           Return to Plans
         </Link>
       </div>
@@ -79,15 +79,8 @@ const NutritionPlanDetail: React.FC = () => {
     <div className="pt-24 pb-16 bg-gray-50">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Header Section */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8 md:flex md:items-center">
-          <div className="md:flex-shrink-0 md:mr-8 mb-4 md:mb-0">
-            <ImageWithFallback
-              src={plan.image}
-              alt={plan.title}
-              className="w-32 h-32 rounded-lg object-cover mx-auto"
-            />
-          </div>
-          <div className="flex-grow text-center md:text-left">
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <div className="text-center md:text-left">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">{plan.title}</h1>
             <p className="text-lg text-gray-600 mb-4">{plan.description}</p>
             <div className="flex flex-wrap items-center justify-center md:justify-start text-sm text-gray-500 gap-4">
@@ -148,24 +141,122 @@ const NutritionPlanDetail: React.FC = () => {
                 {currentDayMeals.name || `Meals for Day ${currentDayMeals.day}`}
               </h3>
 
+              {/* Breakfast */}
               <div className="bg-gray-50 p-4 rounded-md">
-                <p className="font-semibold text-gray-800 mb-1">Breakfast:</p>
-                <p className="text-gray-700">{currentDayMeals.breakfast}</p>
+                <p className="font-semibold text-gray-800 mb-3 flex items-center">
+                  <span className="mr-2">🌅</span> Breakfast
+                </p>
+                <div className="space-y-2">
+                  {Array.isArray(currentDayMeals.breakfast) ? (
+                    currentDayMeals.breakfast.map((meal, index) => (
+                      <div key={index} className="bg-white p-3 rounded border-l-4 border-orange-400">
+                        <p className="font-medium text-gray-800">{meal.name}</p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {meal.nutritionInfo.calories} cal |
+                          {meal.nutritionInfo.protein}g protein |
+                          {meal.nutritionInfo.fat}g fat |
+                          {meal.nutritionInfo.carbs}g carbs
+                        </p>
+                        {meal.description && (
+                          <p className="text-sm text-gray-500 mt-1">{meal.description}</p>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-700">{currentDayMeals.breakfast}</p>
+                  )}
+                </div>
               </div>
+
+              {/* Lunch */}
               <div className="bg-gray-50 p-4 rounded-md">
-                <p className="font-semibold text-gray-800 mb-1">Lunch:</p>
-                <p className="text-gray-700">{currentDayMeals.lunch}</p>
+                <p className="font-semibold text-gray-800 mb-3 flex items-center">
+                  <span className="mr-2">☀️</span> Lunch
+                </p>
+                <div className="space-y-2">
+                  {Array.isArray(currentDayMeals.lunch) ? (
+                    currentDayMeals.lunch.map((meal, index) => (
+                      <div key={index} className="bg-white p-3 rounded border-l-4 border-green-400">
+                        <p className="font-medium text-gray-800">{meal.name}</p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {meal.nutritionInfo.calories} cal |
+                          {meal.nutritionInfo.protein}g protein |
+                          {meal.nutritionInfo.fat}g fat |
+                          {meal.nutritionInfo.carbs}g carbs
+                        </p>
+                        {meal.description && (
+                          <p className="text-sm text-gray-500 mt-1">{meal.description}</p>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-700">{currentDayMeals.lunch}</p>
+                  )}
+                </div>
               </div>
+
+              {/* Dinner */}
               <div className="bg-gray-50 p-4 rounded-md">
-                <p className="font-semibold text-gray-800 mb-1">Dinner:</p>
-                <p className="text-gray-700">{currentDayMeals.dinner}</p>
+                <p className="font-semibold text-gray-800 mb-3 flex items-center">
+                  <span className="mr-2">🌙</span> Dinner
+                </p>
+                <div className="space-y-2">
+                  {Array.isArray(currentDayMeals.dinner) ? (
+                    currentDayMeals.dinner.map((meal, index) => (
+                      <div key={index} className="bg-white p-3 rounded border-l-4 border-blue-400">
+                        <p className="font-medium text-gray-800">{meal.name}</p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {meal.nutritionInfo.calories} cal |
+                          {meal.nutritionInfo.protein}g protein |
+                          {meal.nutritionInfo.fat}g fat |
+                          {meal.nutritionInfo.carbs}g carbs
+                        </p>
+                        {meal.description && (
+                          <p className="text-sm text-gray-500 mt-1">{meal.description}</p>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-700">{currentDayMeals.dinner}</p>
+                  )}
+                </div>
               </div>
+
+              {/* Snacks */}
               {currentDayMeals.snacks && currentDayMeals.snacks.length > 0 && (
                 <div className="bg-gray-50 p-4 rounded-md">
-                  <p className="font-semibold text-gray-800 mb-1">Snacks:</p>
-                  <p className="text-gray-700">{currentDayMeals.snacks.join(', ')}</p>
+                  <p className="font-semibold text-gray-800 mb-3 flex items-center">
+                    <span className="mr-2">🍎</span> Snacks
+                  </p>
+                  <div className="space-y-2">
+                    {Array.isArray(currentDayMeals.snacks) ? (
+                      currentDayMeals.snacks.map((meal, index) => (
+                        <div key={index} className="bg-white p-3 rounded border-l-4 border-purple-400">
+                          <p className="font-medium text-gray-800">{meal.name}</p>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {meal.nutritionInfo.calories} cal |
+                            {meal.nutritionInfo.protein}g protein |
+                            {meal.nutritionInfo.fat}g fat |
+                            {meal.nutritionInfo.carbs}g carbs
+                          </p>
+                          {meal.description && (
+                            <p className="text-sm text-gray-500 mt-1">{meal.description}</p>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-700">{currentDayMeals.snacks.join(', ')}</p>
+                    )}
+                  </div>
                 </div>
               )}
+
+              {/* Daily Total */}
+              <div className="bg-green-50 p-4 rounded-md border-2 border-green-200">
+                <p className="font-bold text-green-800 text-lg flex items-center">
+                  <span className="mr-2">📊</span> Daily Total: {currentDayMeals.totalCalories} calories
+                </p>
+              </div>
             </div>
           ) : (
             <div className="text-center py-8 text-gray-500">
@@ -176,8 +267,8 @@ const NutritionPlanDetail: React.FC = () => {
 
         {/* Back to Plans Link */}
         <div className="text-center mt-12">
-          <Link to="/services/fitness-nutrition-plans" className="text-lg text-green-600 hover:underline flex items-center justify-center">
-            <span className="mr-2">←</span> Back to All Plans
+          <Link to="/services/fitness-and-nutrition-plans" className="text-lg text-green-600 hover:underline flex items-center justify-center">
+            <span className="mr-2">←</span> Back to Fitness and Nutrition Plans
           </Link>
         </div>
       </div>

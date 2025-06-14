@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { NutritionPlan } from "../types/content";
 import { Star, Clock, Heart, Scale } from 'lucide-react';
-import ImageWithFallback from './ImageWithFallback';
+
 
 interface NutritionPlanCardProps {
   plan: NutritionPlan;
@@ -71,23 +71,19 @@ const NutritionPlanCard: React.FC<NutritionPlanCardProps> = ({
 
   const renderContent = () => (
     <>
-      {variant !== 'compact' && (
-        <div className={variant === 'featured' ? "h-48 relative" : "h-48"}>
-          <ImageWithFallback
-            src={plan.image_url || plan.image}
-            alt={plan.title || 'Nutrition Plan'}
-            className="w-full h-full object-cover"
-          />
-          {variant === 'featured' && (
-            <div className="absolute top-2 left-2 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-semibold flex items-center">
-              <Star className="h-3 w-3 mr-1 fill-current" /> Featured
-            </div>
-          )}
-          <div className="absolute top-2 right-2">
-            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${displayCategory.color}`}>
-              {displayCategory.icon} {plan.category.replace('-', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
-            </span>
+      {variant === 'featured' && (
+        <div className="bg-gradient-to-r from-green-400 to-green-500 p-3 text-center">
+          <div className="flex items-center justify-center text-white">
+            <Star className="h-4 w-4 mr-2 fill-current" />
+            <span className="font-semibold">Featured Plan</span>
           </div>
+        </div>
+      )}
+      {variant !== 'compact' && (
+        <div className="p-2 bg-gray-50 border-b">
+          <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${displayCategory.color}`}>
+            {displayCategory.icon} {plan.category.replace('-', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+          </span>
         </div>
       )}
       <div className={variant === 'featured' ? "p-6" : "p-4"}>
@@ -145,14 +141,14 @@ const NutritionPlanCard: React.FC<NutritionPlanCardProps> = ({
 
   if (variant === 'compact') {
     return (
-      <Link to={`/nutrition-plans/${plan.id}`} className={cardClasses[variant]}>
+      <Link to={`/services/nutrition-plans/${plan.id}`} className={cardClasses[variant]}>
         {renderContent()}
       </Link>
     );
   }
 
   return (
-    <Link to={`/nutrition-plans/${plan.id}`} className={cardClasses[variant]}>
+    <Link to={`/services/nutrition-plans/${plan.id}`} className={cardClasses[variant]}>
       {renderContent()}
     </Link>
   );

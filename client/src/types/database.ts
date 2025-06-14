@@ -115,6 +115,33 @@ export interface ProgressTracking {
   recorded_date: string;
 }
 
+export interface MealDB {
+  id: string;
+  name: string;
+  description: string | null;
+  image_url: string | null;
+  is_ethiopian: boolean;
+  ingredients: string[];
+  preparation: string | null;
+  nutritional_info: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  };
+  category: string | null; // breakfast, lunch, dinner, snack
+  cuisine_type: string | null; // ethiopian, international, etc.
+  difficulty_level: string | null; // easy, medium, hard
+  prep_time: number | null; // in minutes
+  cook_time: number | null; // in minutes
+  servings: number;
+  tags: string[];
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  status: string; // active, archived
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -137,6 +164,11 @@ export interface Database {
         Row: NutritionPlan;
         Insert: Omit<NutritionPlan, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<NutritionPlan, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      meals: {
+        Row: MealDB;
+        Insert: Omit<MealDB, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<MealDB, 'id' | 'created_at' | 'updated_at'>>;
       };
       user_plan_subscriptions: {
         Row: UserPlanSubscription;

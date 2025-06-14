@@ -4,12 +4,6 @@
 export const imageAssets = {
   // Workout Plan Images
   workoutPlans: {
-    beginner: {
-      weightLoss: "/images/plans/beginner-weight-loss.jpg",
-      strength: "/images/plans/beginner-strength.jpg",
-      flexibility: "/images/plans/beginner-flexibility.jpg",
-      cardio: "/images/plans/beginner-cardio.jpg"
-    },
     intermediate: {
       muscleBuilding: "/images/plans/intermediate-muscle-building.jpg",
       endurance: "/images/plans/intermediate-endurance.jpg",
@@ -81,11 +75,9 @@ export const imageAssets = {
 
   // New Fitness Category Images (for Jefit-like display)
   fitnessCategories: {
-    beginner: "/images/categories/jefit-beginner.jpg",
     home: "/images/categories/jefit-home.jpg",
     gym: "/images/categories/jefit-gym.jpg",
     men: "/images/categories/jefit-men.jpg",
-    women: "/images/categories/jefit-women.jpg",
     "muscle-building": "/images/categories/jefit-muscle-building.jpg",
     "fat-burning": "/images/categories/jefit-fat-burning.jpg",
     leg: "/images/categories/jefit-leg.jpg",
@@ -130,6 +122,28 @@ export const imageAssets = {
   hero: {
     workoutPlans: "/images/hero/workout-plans.jpg",
     nutrition: "/images/hero/nutrition.jpg"
+  },
+
+  // Ethiopian Traditional Dishes
+  ethiopianDishes: {
+    genfo: "/images/ethiopian-dishes/genfo.jpg",
+    injera: "/images/ethiopian-dishes/injera.jpg",
+    kitfo: "/images/ethiopian-dishes/kitfo.jpg",
+    shinbra: "/images/ethiopian-dishes/shinbra.jpg",
+    fatira: "/images/ethiopian-dishes/fatira.jpg",
+    abish: "/images/ethiopian-dishes/abish.jpg",
+    dallen: "/images/ethiopian-dishes/dallen.jpg",
+    ambaza: "/images/ethiopian-dishes/ambaza.jpg",
+    gomen: "/images/ethiopian-dishes/gomen.jpg",
+    misirWot: "/images/ethiopian-dishes/misir-wot.jpg",
+    shiroWot: "/images/ethiopian-dishes/shiro-wot.jpg",
+    doroWot: "/images/ethiopian-dishes/doro-wot.jpg",
+    beraperat: "/images/ethiopian-dishes/beraperat.jpg",
+    kashya: "/images/ethiopian-dishes/kashya.jpg",
+    ititu: "/images/ethiopian-dishes/ititu.jpg",
+    zengada: "/images/ethiopian-dishes/zengada.jpg",
+    ajaja: "/images/ethiopian-dishes/ajaja.jpg",
+    datta: "/images/ethiopian-dishes/datta.jpg"
   }
 };
 
@@ -163,4 +177,9 @@ export const getWorkoutPlanImage = (level: string, category: string): string => 
   const imageUrl = imageAssets.placeholders.plan;
   console.log(`getWorkoutPlanImage: level=${level}, category=${category}, imageUrl=${imageUrl} (placeholder)`);
   return imageUrl;
-}; 
+};
+
+// Helper function to get Ethiopian dish image
+export const getEthiopianDishImage = (dishName: string): string => {
+  return imageAssets.ethiopianDishes[dishName as keyof typeof imageAssets.ethiopianDishes] || imageAssets.placeholders.plan;
+};

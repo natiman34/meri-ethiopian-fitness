@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ImageOff } from 'lucide-react';
-import { normalizePath, debugImagePath } from '../utils/mediaUtils';
+import { normalizePath } from '../utils/mediaUtils';
 
 interface AnimatedGifProps {
   src: string;
@@ -48,11 +48,6 @@ const AnimatedGif: React.FC<AnimatedGifProps> = ({
     } else {
       // Normalize path for local files
       processedSrc = normalizePath(src);
-      
-      // Debug the path to help diagnose issues
-      debugImagePath(processedSrc).then(result => {
-        console.log(`Image path check for ${alt}:`, result);
-      });
     }
     
     // Only add cache-busting for local GIFs
@@ -65,7 +60,6 @@ const AnimatedGif: React.FC<AnimatedGifProps> = ({
   }, [src, isExternalUrl, alt]);
 
   const handleLoad = () => {
-    console.log('Image loaded successfully:', currentSrc);
     setIsLoading(false);
     setHasError(false);
     
@@ -81,34 +75,25 @@ const AnimatedGif: React.FC<AnimatedGifProps> = ({
 
   const handleError = () => {
     loadAttempts.current += 1;
-    console.error(`Error loading image (attempt ${loadAttempts.current}):`, currentSrc);
-    
+
     // For local files, try a few times with cache busting
     if (!isExternalUrl && loadAttempts.current < 3) {
       const retrySrc = `${normalizePath(src)}?retry=${loadAttempts.current}&t=${Date.now()}`;
-      console.log('Retrying with:', retrySrc);
       setCurrentSrc(retrySrc);
       return;
     }
-    
+
     // After retries or for external URLs, try the static image first
     if (staticImageSrc && loadAttempts.current === 3) {
       const normalizedStaticSrc = normalizePath(staticImageSrc);
-      console.log('Using exercise-specific static image:', normalizedStaticSrc);
       setCurrentSrc(normalizedStaticSrc);
       setUseFallbackType('static');
-      
-      // Debug the static image path
-      debugImagePath(normalizedStaticSrc).then(result => {
-        console.log(`Static image path check for ${alt}:`, result);
-      });
       return;
     }
-    
+
     // If static image fails or doesn't exist, use generic fallback
     if ((staticImageSrc && loadAttempts.current > 3) || (!staticImageSrc && loadAttempts.current >= 3)) {
       const normalizedFallbackSrc = normalizePath(fallbackSrc);
-      console.log('Using generic fallback image:', normalizedFallbackSrc);
       setCurrentSrc(normalizedFallbackSrc);
       setUseFallbackType('generic');
       setIsLoading(false);

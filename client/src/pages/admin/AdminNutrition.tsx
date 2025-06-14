@@ -1,14 +1,38 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Edit, Trash2, Plus, Filter, X } from "lucide-react"
+import { Search, Edit, Trash2, Plus, Filter, X, Database } from "lucide-react"
 import Button from "../../components/ui/Button"
 import { NutritionPlan, Meal, NutritionCategory, NutritionInfo, CalorieRange, DayMeal } from '../../types/content'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { Dialog } from '@headlessui/react'
+import MealManager from '../../components/admin/MealManager'
 
 
+
+// Mapping between frontend categories and database diet_types
+const categoryToDietType = (category: NutritionCategory): string => {
+  const mapping: Record<NutritionCategory, string> = {
+    'weight-loss': 'balanced',
+    'weight-gain': 'high-energy',
+    'maintenance': 'balanced',
+    'muscle-building': 'high-protein',
+    'endurance': 'high-energy'
+  };
+  return mapping[category] || 'balanced';
+};
+
+const dietTypeToCategory = (dietType: string): NutritionCategory => {
+  const mapping: Record<string, NutritionCategory> = {
+    'traditional': 'maintenance',
+    'high-protein': 'muscle-building',
+    'vegetarian': 'weight-loss',
+    'balanced': 'maintenance',
+    'high-energy': 'weight-gain'
+  };
+  return mapping[dietType] || 'maintenance';
+};
 
 const AdminNutrition = () => {
   const { user } = useAuth();
@@ -25,6 +49,11 @@ const AdminNutrition = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editingPlan, setEditingPlan] = useState<NutritionPlan | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isMealManagerOpen, setIsMealManagerOpen] = useState(false)
+  const [mealSelectionMode, setMealSelectionMode] = useState<{
+    planType: 'new' | 'edit';
+    mealIndex?: number;
+  } | null>(null)
   const [newPlan, setNewPlan] = useState<Partial<NutritionPlan>>({
     title: '',
     description: '',
@@ -66,7 +95,33 @@ const AdminNutrition = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setNutritionPlans(data || []);
+
+      // Convert database format to frontend format
+      const frontendPlans = (data || []).map((dbPlan: any) => ({
+        id: dbPlan.id,
+        title: dbPlan.name,
+        description: dbPlan.description,
+        duration: parseInt(dbPlan.duration) || 0,
+        category: dietTypeToCategory(dbPlan.diet_type),
+        calorieRange: { min: 0, max: dbPlan.calories || 0 },
+        meals: dbPlan.meal_plan?.meals?.map((meal: any) => ({
+          id: `meal-${Date.now()}-${Math.random()}`,
+          name: meal.name,
+          description: '',
+          image: '',
+          isEthiopian: false,
+          ingredients: meal.ingredients || [],
+          preparation: meal.preparation || '',
+          nutritionInfo: meal.nutritionalInfo || { calories: 0, protein: 0, carbs: 0, fat: 0 }
+        })) || [],
+        status: dbPlan.status || 'draft',
+        tags: [],
+        featured: false,
+        createdAt: dbPlan.created_at,
+        updatedAt: dbPlan.updated_at,
+      }));
+
+      setNutritionPlans(frontendPlans);
     } catch (error) {
       console.error('Error fetching nutrition plans:', error);
       setError('Failed to load nutrition plans');
@@ -94,16 +149,23 @@ const AdminNutrition = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const planToInsert: Omit<NutritionPlan, 'id'> = {
-        ...newPlan as NutritionPlan,
-        user_id: user?.id,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        meals: newPlan.meals || [],
-        calorieRange: newPlan.calorieRange || {min: 0, max: 0},
-        status: newPlan.status || 'draft',
-        tags: newPlan.tags || [],
-        featured: newPlan.featured || false,
+      // Map frontend data to database schema
+      const planToInsert = {
+        nutritionist_id: user?.id,
+        name: newPlan.title || '',
+        description: newPlan.description || null,
+        duration: newPlan.duration?.toString() || '0',
+        diet_type: categoryToDietType(newPlan.category || 'maintenance'),
+        calories: newPlan.calorieRange?.max || 2000,
+        meal_plan: {
+          meals: (newPlan.meals || []).map(meal => ({
+            name: meal.name,
+            ingredients: meal.ingredients || [],
+            preparation: meal.preparation || '',
+            nutritionalInfo: meal.nutritionInfo || { calories: 0, protein: 0, carbs: 0, fat: 0 }
+          }))
+        },
+        status: 'published' // Auto-publish nutrition plans so they appear in public section
       };
 
       const { data, error } = await supabase
@@ -114,7 +176,32 @@ const AdminNutrition = () => {
 
       if (error) throw error;
       if (data) {
-        setNutritionPlans([data, ...nutritionPlans]);
+        // Convert database format back to frontend format for state update
+        const frontendPlan = {
+          id: data.id,
+          title: data.name,
+          description: data.description,
+          duration: parseInt(data.duration) || 0,
+          category: dietTypeToCategory(data.diet_type),
+          calorieRange: { min: 0, max: data.calories || 0 },
+          meals: data.meal_plan?.meals?.map((meal: any) => ({
+            id: `meal-${Date.now()}-${Math.random()}`,
+            name: meal.name,
+            description: '',
+            image: '',
+            isEthiopian: false,
+            ingredients: meal.ingredients || [],
+            preparation: meal.preparation || '',
+            nutritionInfo: meal.nutritionalInfo || { calories: 0, protein: 0, carbs: 0, fat: 0 }
+          })) || [],
+          status: data.status || 'draft',
+          tags: [],
+          featured: false,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at,
+        };
+
+        setNutritionPlans([frontendPlan, ...nutritionPlans]);
         setIsCreateModalOpen(false);
         setNewPlan({
           title: '',
@@ -144,7 +231,7 @@ const AdminNutrition = () => {
     if (!plan.description?.trim()) errors.description = 'Description is required';
     if (plan.duration === undefined || plan.duration <= 0) errors.duration = 'Duration is required and must be a positive number';
     if (!plan.category) errors.category = 'Category is required';
-    if (!plan.calorieRange || plan.calorieRange.min === undefined || plan.calorieRange.max === undefined) errors.calorieRange = 'Calorie range is required';
+    if (!plan.calorieRange || plan.calorieRange.max === undefined || plan.calorieRange.max <= 0) errors.calorieRange = 'Maximum calorie value is required';
     return errors;
   };
 
@@ -158,9 +245,28 @@ const AdminNutrition = () => {
     setIsLoading(true);
     setError(null);
     try {
+      // Map frontend data to database schema
+      const updateData = {
+        name: plan.title,
+        description: plan.description || null,
+        duration: plan.duration?.toString() || '0',
+        diet_type: categoryToDietType(plan.category),
+        calories: plan.calorieRange?.max || 2000,
+        meal_plan: {
+          meals: (plan.meals || []).map(meal => ({
+            name: meal.name,
+            ingredients: meal.ingredients || [],
+            preparation: meal.preparation || '',
+            nutritionalInfo: meal.nutritionInfo || { calories: 0, protein: 0, carbs: 0, fat: 0 }
+          }))
+        },
+        status: plan.status,
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('nutrition_plans')
-        .update(plan)
+        .update(updateData)
         .eq('id', plan.id);
 
       if (error) throw error;
@@ -207,7 +313,7 @@ const AdminNutrition = () => {
       isEthiopian: false,
       ingredients: [],
       preparation: '',
-      nutritionalInfo: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+      nutritionInfo: { calories: 0, protein: 0, carbs: 0, fat: 0 },
     };
     if (planType === 'new') {
       setNewPlan(prev => ({
@@ -260,27 +366,20 @@ const AdminNutrition = () => {
     if (planType === 'new') {
       setNewPlan(prev => ({
         ...prev,
-        meals: {
-          meals: (prev.meals || []).map((meal, i) =>
-            i === mealIndex
-              ? { ...meal, nutritionalInfo: { ...(meal.nutritionalInfo || {}), [field]: value } }
-              : meal
-          ),
-          calorieRange: prev.calorieRange || {min: 0, max: 0},
-          createdAt: prev.createdAt || new Date().toISOString(),
-          updatedAt: prev.updatedAt || new Date().toISOString(),
-        }
+        meals: (prev.meals || []).map((meal, i) =>
+          i === mealIndex
+            ? { ...meal, nutritionInfo: { ...(meal.nutritionInfo || {}), [field]: value } }
+            : meal
+        )
       }));
     } else if (planType === 'edit' && editingPlan) {
       setEditingPlan(prev => ({
         ...(prev as NutritionPlan),
-        meals: {
-          meals: ((prev as NutritionPlan).meals || []).map((meal, i) =>
-            i === mealIndex
-              ? { ...meal, nutritionalInfo: { ...(meal.nutritionalInfo || {}), [field]: value } }
-              : meal
-          )
-        }
+        meals: ((prev as NutritionPlan).meals || []).map((meal, i) =>
+          i === mealIndex
+            ? { ...meal, nutritionInfo: { ...(meal.nutritionInfo || {}), [field]: value } }
+            : meal
+        )
       }));
     }
   };
@@ -349,6 +448,49 @@ const AdminNutrition = () => {
           )
       }));
     }
+  };
+
+  // Handle meal selection from database
+  const handleMealSelect = (selectedMeal: Meal) => {
+    if (!mealSelectionMode) return;
+
+    const { planType, mealIndex } = mealSelectionMode;
+
+    if (mealIndex !== undefined) {
+      // Replace existing meal
+      if (planType === 'new') {
+        setNewPlan(prev => ({
+          ...prev,
+          meals: (prev.meals || []).map((meal, i) => i === mealIndex ? selectedMeal : meal)
+        }));
+      } else if (planType === 'edit' && editingPlan) {
+        setEditingPlan(prev => ({
+          ...(prev as NutritionPlan),
+          meals: (prev.meals || []).map((meal, i) => i === mealIndex ? selectedMeal : meal)
+        }));
+      }
+    } else {
+      // Add new meal
+      if (planType === 'new') {
+        setNewPlan(prev => ({
+          ...prev,
+          meals: [...(prev.meals || []), selectedMeal]
+        }));
+      } else if (planType === 'edit' && editingPlan) {
+        setEditingPlan(prev => ({
+          ...(prev as NutritionPlan),
+          meals: [...(prev.meals || []), selectedMeal]
+        }));
+      }
+    }
+
+    setIsMealManagerOpen(false);
+    setMealSelectionMode(null);
+  };
+
+  const openMealManager = (planType: 'new' | 'edit', mealIndex?: number) => {
+    setMealSelectionMode({ planType, mealIndex });
+    setIsMealManagerOpen(true);
   };
 
 
@@ -542,7 +684,7 @@ const AdminNutrition = () => {
                           <label className="block text-sm font-medium text-gray-700">Calories</label>
                           <input
                             type="number"
-                            value={meal.nutritionalInfo?.calories || 0}
+                            value={meal.nutritionInfo?.calories || 0}
                             onChange={(e) => handleNutritionalInfoChange('new', mealIndex, 'calories', parseInt(e.target.value) || 0)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                           />
@@ -551,7 +693,7 @@ const AdminNutrition = () => {
                           <label className="block text-sm font-medium text-gray-700">Protein (g)</label>
                           <input
                             type="number"
-                            value={meal.nutritionalInfo?.protein || 0}
+                            value={meal.nutritionInfo?.protein || 0}
                             onChange={(e) => handleNutritionalInfoChange('new', mealIndex, 'protein', parseInt(e.target.value) || 0)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                           />
@@ -560,7 +702,7 @@ const AdminNutrition = () => {
                           <label className="block text-sm font-medium text-gray-700">Carbs (g)</label>
                           <input
                             type="number"
-                            value={meal.nutritionalInfo?.carbs || 0}
+                            value={meal.nutritionInfo?.carbs || 0}
                             onChange={(e) => handleNutritionalInfoChange('new', mealIndex, 'carbs', parseInt(e.target.value) || 0)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                           />
@@ -569,7 +711,7 @@ const AdminNutrition = () => {
                           <label className="block text-sm font-medium text-gray-700">Fat (g)</label>
                           <input
                             type="number"
-                            value={meal.nutritionalInfo?.fat || 0}
+                            value={meal.nutritionInfo?.fat || 0}
                             onChange={(e) => handleNutritionalInfoChange('new', mealIndex, 'fat', parseInt(e.target.value) || 0)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                           />
@@ -578,13 +720,23 @@ const AdminNutrition = () => {
                     </div>
                   </div>
                 ))}
-                <button
-                  type="button"
-                  onClick={() => handleAddMeal('new')}
-                  className="mt-4 text-sm font-medium text-green-600 hover:text-green-500"
-                >
-                  + Add Meal
-                </button>
+                <div className="flex space-x-2 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => handleAddMeal('new')}
+                    className="text-sm font-medium text-green-600 hover:text-green-500"
+                  >
+                    + Add New Meal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openMealManager('new')}
+                    className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
+                  >
+                    <Database className="mr-1 h-4 w-4" />
+                    Add from Database
+                  </button>
+                </div>
               </div>
 
               <div className="mt-6 flex justify-end space-x-2">
@@ -779,7 +931,7 @@ const AdminNutrition = () => {
                           <label className="block text-sm font-medium text-gray-700">Calories</label>
                           <input
                             type="number"
-                            value={meal.nutritionalInfo?.calories || 0}
+                            value={meal.nutritionInfo?.calories || 0}
                             onChange={(e) => handleNutritionalInfoChange('edit', mealIndex, 'calories', parseInt(e.target.value) || 0)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                           />
@@ -788,7 +940,7 @@ const AdminNutrition = () => {
                           <label className="block text-sm font-medium text-gray-700">Protein (g)</label>
                           <input
                             type="number"
-                            value={meal.nutritionalInfo?.protein || 0}
+                            value={meal.nutritionInfo?.protein || 0}
                             onChange={(e) => handleNutritionalInfoChange('edit', mealIndex, 'protein', parseInt(e.target.value) || 0)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                           />
@@ -797,7 +949,7 @@ const AdminNutrition = () => {
                           <label className="block text-sm font-medium text-gray-700">Carbs (g)</label>
                           <input
                             type="number"
-                            value={meal.nutritionalInfo?.carbs || 0}
+                            value={meal.nutritionInfo?.carbs || 0}
                             onChange={(e) => handleNutritionalInfoChange('edit', mealIndex, 'carbs', parseInt(e.target.value) || 0)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                           />
@@ -806,7 +958,7 @@ const AdminNutrition = () => {
                           <label className="block text-sm font-medium text-gray-700">Fat (g)</label>
                           <input
                             type="number"
-                            value={meal.nutritionalInfo?.fat || 0}
+                            value={meal.nutritionInfo?.fat || 0}
                             onChange={(e) => handleNutritionalInfoChange('edit', mealIndex, 'fat', parseInt(e.target.value) || 0)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                           />
@@ -815,13 +967,23 @@ const AdminNutrition = () => {
                     </div>
                   </div>
                 ))}
-                 <button
-                  type="button"
-                  onClick={() => handleAddMeal('edit')}
-                  className="mt-4 text-sm font-medium text-green-600 hover:text-green-500"
-                >
-                  + Add Meal
-                </button>
+                 <div className="flex space-x-2 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => handleAddMeal('edit')}
+                    className="text-sm font-medium text-green-600 hover:text-green-500"
+                  >
+                    + Add New Meal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openMealManager('edit')}
+                    className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
+                  >
+                    <Database className="mr-1 h-4 w-4" />
+                    Add from Database
+                  </button>
+                </div>
               </div>
 
 
@@ -848,7 +1010,7 @@ const AdminNutrition = () => {
       </Dialog>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-bold mb-4 sm:mb-0">Nutrition Plans</h2>
+        <div className="mb-4 sm:mb-0"></div>
         <Button className="flex items-center" onClick={() => {
           setIsCreateModalOpen(true);
           setNewPlan({
@@ -993,7 +1155,7 @@ const AdminNutrition = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {plan.duration}
+                    {plan.duration} days
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(plan.createdAt).toLocaleDateString()}
@@ -1075,6 +1237,26 @@ const AdminNutrition = () => {
           <p>{error}</p>
         </div>
       )}
+
+      {/* Meal Manager Modal */}
+      <Dialog open={isMealManagerOpen} onClose={() => setIsMealManagerOpen(false)} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="w-full max-w-6xl rounded bg-white p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <Dialog.Title className="text-lg font-medium">Select Meal from Database</Dialog.Title>
+              <button onClick={() => setIsMealManagerOpen(false)}>
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+
+            <MealManager
+              onMealSelect={handleMealSelect}
+              selectionMode={true}
+            />
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   )
 }

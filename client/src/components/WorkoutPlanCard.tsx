@@ -1,6 +1,6 @@
 import React from 'react';
 import { FitnessPlan } from '../types/content';
-import { Calendar, Clock, Target, Users, Star, TrendingUp } from 'lucide-react';
+import { Calendar, Clock, Target, Star, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface WorkoutPlanCardProps {
@@ -14,28 +14,6 @@ const WorkoutPlanCard: React.FC<WorkoutPlanCardProps> = ({
   variant = 'default',
   showStats = true
 }) => {
-  console.log('WorkoutPlanCard: Rendering plan', plan);
-  const getLevelColor = (level: string) => {
-    switch (level) {
-      case 'beginner': return 'bg-green-100 text-green-800';
-      case 'intermediate': return 'bg-yellow-100 text-yellow-800';
-      case 'advanced': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'weight-loss': return 'bg-red-100 text-red-800';
-      case 'weight-gain': return 'bg-blue-100 text-blue-800';
-      case 'strength': return 'bg-purple-100 text-purple-800';
-      case 'muscle-building': return 'bg-orange-100 text-orange-800';
-      case 'flexibility': return 'bg-indigo-100 text-indigo-800';
-      case 'endurance': return 'bg-teal-100 text-teal-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const getDifficultyStars = (difficulty: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star

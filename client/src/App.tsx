@@ -37,14 +37,13 @@ function AppContent() {
     setMenuOpen(false)
   }, [location.pathname])
 
-  // Check if current route is profile page or admin page
-  const isProfilePage = location.pathname === "/profile"
+  // Check if current route is admin page (profile page will now show navbar)
   const isAdminPage = location.pathname.startsWith("/admin")
 
   return (
     <div className="flex flex-col min-h-screen bg-stone-50">
-      {!isProfilePage && !isAdminPage && <Navbar menuOpen={menuOpen} toggleMenu={toggleMenu} />}
-      <main className={`flex-grow ${!isProfilePage && !isAdminPage ? "pt-16 sm:pt-20" : ""}`}>
+      {!isAdminPage && <Navbar menuOpen={menuOpen} toggleMenu={toggleMenu} />}
+      <main className={`flex-grow ${!isAdminPage ? "pt-16 sm:pt-20" : ""}`}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -70,7 +69,7 @@ function AppContent() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      {!isProfilePage && <Footer />}
+      {!isAdminPage && <Footer />}
     </div>
   )
 }

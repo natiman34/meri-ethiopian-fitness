@@ -19,8 +19,8 @@ const ServicesOverview: React.FC = () => {
   const mockServices = [
     {
       title: "Fitness and Nutrition Plans",
-      description: "Comprehensive workout and meal plans for all levels and goals.",
-      icon: "💪🥗",
+      description: "Comprehensive workout routines and authentic Ethiopian nutrition plans designed by expert nutritionists, combining traditional cuisine with modern fitness science.",
+      icon: "💪🍽️",
       link: "fitness-and-nutrition-plans",
     },
     {
@@ -47,7 +47,7 @@ const ServicesOverview: React.FC = () => {
           Explore our comprehensive range of services designed to help you achieve your fitness and wellness goals.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-8">
           {mockServices.map((service, index) => (
             <Card key={index} className="transform transition duration-300 hover:scale-105">
               <div className="flex items-center justify-center h-16 w-16 rounded-full bg-green-100 text-green-600 text-3xl mb-6">

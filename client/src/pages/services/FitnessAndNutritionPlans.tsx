@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FitnessPlan, FitnessCategory, FitnessLevel } from "../../types/content";
+import { FitnessPlan, FitnessCategory, FitnessLevel, NutritionPlan, NutritionCategory } from "../../types/content";
 import { getAllFitnessPlans, getFeaturedFitnessPlans } from "../../data/fitnessPlans";
-import { NutritionPlanService } from "../../services/NutritionPlanService";
+import { nutritionPlanService } from "../../services/NutritionPlanService";
 import { getAllNutritionPlans as getLocalAllNutritionPlans, getFeaturedNutritionPlans as getLocalFeaturedNutritionPlans } from "../../data/nutritionPlans";
-import { Loader2, AlertCircle, Dumbbell, Utensils, Star, Clock, Target, TrendingUp } from "lucide-react";
+import { Loader2, AlertCircle, Dumbbell, Utensils, Star, Clock, Target, TrendingUp, Globe } from "lucide-react";
 import WorkoutPlanCard from "../../components/WorkoutPlanCard";
+import EthiopianNutritionCard from "../../components/EthiopianNutritionCard";
 import NutritionPlanCard from "../../components/NutritionPlanCard";
+
 import { imageAssets } from "../../data/imageAssets";
 
 const allowedCategories: FitnessCategory[] = [
@@ -145,11 +147,10 @@ const FitnessAndNutritionPlans: React.FC = () => {
         // Use the new fitness plans data
         const allFitnessPlans = getAllFitnessPlans();
         setFitnessPlans(allFitnessPlans);
-        console.log('All fetched fitness plans:', allFitnessPlans);
-        
-        // Fetch nutrition plans using the updated service
-        const fetchedNutritionPlans = await NutritionPlanService.getInstance().getAllNutritionPlans();
-        setNutritionPlans(fetchedNutritionPlans);
+
+        // Fetch nutrition plans from enhanced service (includes database + local data)
+        const allNutritionPlans = await nutritionPlanService.getAllNutritionPlans();
+        setNutritionPlans(allNutritionPlans);
       } catch (err) {
         console.error("Failed to fetch plans:", err);
         setError("Failed to load plans. Please try again later.");
@@ -166,7 +167,7 @@ const FitnessAndNutritionPlans: React.FC = () => {
     (selectedFitnessLevel === 'all' || plan.level === selectedFitnessLevel)
   );
 
-  console.log('Filtered Fitness Plans:', filteredFitnessPlans);
+
 
   const filteredNutritionPlans = nutritionPlans.filter(plan =>
     nutritionCategories.includes(plan.category) &&
@@ -247,86 +248,240 @@ const FitnessAndNutritionPlans: React.FC = () => {
             <>
               {activeTab === 'fitness' && (
                 <div>
-                  {/* Popular Categories Section */}
-                  {/* Removed as per user request */}
-
-                  {/* Display All Fitness Plans */}
-                  {filteredFitnessPlans.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {filteredFitnessPlans.map((plan) => (
-                        <WorkoutPlanCard key={plan.id} plan={plan} showStats={false} />
-                      ))}
+                  {/* Fitness Plans Header */}
+                  <div className="mb-8">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <Dumbbell className="h-6 w-6 text-green-600" />
+                      <h2 className="text-2xl font-bold text-gray-900">Comprehensive Fitness Plans</h2>
                     </div>
-                  ) : (
-                    <div className="text-center py-10">
-                      <p className="text-xl text-gray-500">No fitness plans found for selected filters.</p>
-                      <p className="text-gray-400">Try adjusting your filters!</p>
+                    <p className="text-gray-600 max-w-3xl">
+                      Professional workout programs designed for specific fitness goals. Each plan includes detailed
+                      exercise instructions, progressive training schedules, and comprehensive guidance for optimal results.
+                    </p>
+                  </div>
+
+                  {/* Weight Gain Section */}
+                  <div className="mb-12">
+                    <div className="flex items-center space-x-3 mb-6">
+                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                        <span className="text-purple-600 font-bold">💪</span>
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900">Weight Gain & Muscle Building Plans</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {filteredFitnessPlans
+                        .filter(plan => plan.category === 'weight-gain')
+                        .map((plan) => (
+                          <WorkoutPlanCard key={plan.id} plan={plan} showStats={true} />
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Weight Loss Section */}
+                  <div className="mb-12">
+                    <div className="flex items-center space-x-3 mb-6">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 font-bold">🔥</span>
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900">Weight Loss & Fat Burning Plans</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {filteredFitnessPlans
+                        .filter(plan => plan.category === 'weight-loss')
+                        .map((plan) => (
+                          <WorkoutPlanCard key={plan.id} plan={plan} showStats={true} />
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Other Fitness Plans */}
+                  {filteredFitnessPlans.filter(plan => !['weight-gain', 'weight-loss'].includes(plan.category)).length > 0 && (
+                    <div className="mb-12">
+                      <div className="flex items-center space-x-3 mb-6">
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <span className="text-green-600 font-bold">⚡</span>
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-900">Additional Fitness Plans</h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredFitnessPlans
+                          .filter(plan => !['weight-gain', 'weight-loss'].includes(plan.category))
+                          .map((plan) => (
+                            <WorkoutPlanCard key={plan.id} plan={plan} showStats={false} />
+                          ))}
+                      </div>
                     </div>
                   )}
+
+                  {/* No Plans Message */}
+                  {filteredFitnessPlans.length === 0 && (
+                    <div className="text-center py-10">
+                      <Dumbbell className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                      <p className="text-xl text-gray-500">No fitness plans found for selected filters.</p>
+                      <p className="text-gray-400">Try adjusting your filters or check back later!</p>
+                    </div>
+                  )}
+
+                  {/* Educational Section for Fitness Plans */}
+                  <div className="mt-12 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <Dumbbell className="h-5 w-5 text-green-600 mr-2" />
+                      About Our Fitness Plans
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                          <span className="text-purple-600 mr-2">💪</span>
+                          Weight Gain & Muscle Building
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-3">
+                          Our weight gain plans focus on progressive overload and muscle hypertrophy:
+                        </p>
+                        <ul className="text-sm text-gray-600 space-y-1">
+                          <li>• <strong>6 days/week training:</strong> Optimal frequency for muscle growth</li>
+                          <li>• <strong>45-90 second rest:</strong> Perfect for hypertrophy and strength</li>
+                          <li>• <strong>Compound movements:</strong> Deadlifts, squats, bench press</li>
+                          <li>• <strong>Progressive overload:</strong> Systematic strength increases</li>
+                          <li>• <strong>Cardio integration:</strong> Maintains conditioning while building mass</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                          <span className="text-blue-600 mr-2">🔥</span>
+                          Weight Loss & Fat Burning
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-3">
+                          Our weight loss plans maximize calorie burn while preserving muscle:
+                        </p>
+                        <ul className="text-sm text-gray-600 space-y-1">
+                          <li>• <strong>6 days/week training:</strong> High frequency for maximum calorie burn</li>
+                          <li>• <strong>30-60 second rest:</strong> Elevated heart rate for fat loss</li>
+                          <li>• <strong>HIIT integration:</strong> High-intensity intervals for efficiency</li>
+                          <li>• <strong>Strength preservation:</strong> Maintains muscle during fat loss</li>
+                          <li>• <strong>Cardio variety:</strong> Steady-state and interval training</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="mt-6 p-4 bg-white rounded-lg border border-gray-200">
+                      <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                        <Star className="h-4 w-4 text-yellow-500 mr-2" />
+                        Plan Features
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
+                        <div className="flex items-center">
+                          <Clock className="h-4 w-4 text-green-600 mr-2" />
+                          Detailed timing
+                        </div>
+                        <div className="flex items-center">
+                          <Target className="h-4 w-4 text-blue-600 mr-2" />
+                          Specific targets
+                        </div>
+                        <div className="flex items-center">
+                          <TrendingUp className="h-4 w-4 text-purple-600 mr-2" />
+                          Progressive difficulty
+                        </div>
+                        <div className="flex items-center">
+                          <Dumbbell className="h-4 w-4 text-red-600 mr-2" />
+                          Equipment guidance
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 
               {activeTab === 'nutrition' && (
                 <div>
-                  {/* Featured Nutrition Plans Section */}
-                  {featuredNutritionPlans.length > 0 && (
+                  {/* Ethiopian Traditional Nutrition Plans Header */}
+                  <div className="mb-8">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <Globe className="h-6 w-6 text-green-600" />
+                      <h2 className="text-2xl font-bold text-gray-900">Ethiopian Traditional Nutrition Plans</h2>
+                    </div>
+                    <p className="text-gray-600 max-w-3xl">
+                      Discover authentic Ethiopian nutrition plans featuring traditional foods and cultural dishes.
+                      These plans are designed with balanced macronutrients using ingredients like Teff, Injera,
+                      traditional spices, and time-honored cooking methods for optimal health and cultural authenticity.
+                    </p>
+                  </div>
+
+                  {/* Filter Controls */}
+                  <div className="mb-6">
+                    <div className="flex flex-wrap items-center gap-4">
+                      <label className="text-sm font-medium text-gray-700">Filter by Category:</label>
+                      <select
+                        value={selectedNutritionCategory}
+                        onChange={(e) => setSelectedNutritionCategory(e.target.value as NutritionCategory | 'all')}
+                        className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      >
+                        <option value="all">All Categories</option>
+                        {nutritionCategories.map((category) => (
+                          <option key={category} value={category}>
+                            {nutritionCategoryConfig[category]?.icon} {category.replace('-', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* All Nutrition Plans */}
+                  {filteredNutritionPlans.length > 0 ? (
                     <div className="mb-12">
-                      <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                        <Star className="h-6 w-6 text-yellow-500 mr-2" />
-                        Featured Nutrition Plans
-                      </h2>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                        <Utensils className="h-5 w-5 text-green-600 mr-2" />
+                        Ethiopian Nutrition Plans ({filteredNutritionPlans.length})
+                      </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {featuredNutritionPlans.map((plan) => (
+                        {filteredNutritionPlans.map((plan, index) => (
                           <NutritionPlanCard
                             key={plan.id}
                             plan={plan}
-                            variant="featured"
+                            variant={index === 0 ? "featured" : "default"}
                             showStats={true}
                           />
                         ))}
                       </div>
                     </div>
-                  )}
-
-                  {/* Filter Controls for Nutrition Plans */}
-                  <div className="mb-8">
-                    <h2 className="text-xl font-semibold mb-4">Filter by Category</h2>
-                    <div className="flex flex-wrap gap-4">
-                      <button
-                        onClick={() => setSelectedNutritionCategory('all')}
-                        className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                          selectedNutritionCategory === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        All Categories
-                      </button>
-                      {nutritionCategories.map(category => (
-                        <button
-                          key={category}
-                          onClick={() => setSelectedNutritionCategory(category)}
-                          className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                            selectedNutritionCategory === category ? nutritionCategoryConfig[category].color : 'bg-gray-100 text-gray-800'
-                          }`}
-                        >
-                          {nutritionCategoryConfig[category].icon} {category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Display All Nutrition Plans */}
-                  {filteredNutritionPlans.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {filteredNutritionPlans.map((plan) => (
-                        <NutritionPlanCard key={plan.id} plan={plan} />
-                      ))}
-                    </div>
                   ) : (
                     <div className="text-center py-10">
-                      <p className="text-xl text-gray-500">No nutrition plans found for selected filters.</p>
-                      <p className="text-gray-400">Try adjusting your filters!</p>
+                      <Utensils className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                      <p className="text-xl text-gray-500">No nutrition plans found for selected category.</p>
+                      <p className="text-gray-400">Try selecting a different category or check back later!</p>
                     </div>
                   )}
+
+                  {/* Educational Section */}
+                  <div className="mt-12 bg-gradient-to-r from-green-50 to-yellow-50 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <Globe className="h-5 w-5 text-green-600 mr-2" />
+                      About Ethiopian Nutrition
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">For Healthy Weight Gain</h4>
+                        <p className="text-sm text-gray-600 mb-3">
+                          Ethiopian weight gain plans focus on calorie surplus from balanced macronutrients:
+                        </p>
+                        <ul className="text-sm text-gray-600 space-y-1">
+                          <li>• <strong>Carbohydrates (4 cal/gram):</strong> Barley flour, Teff, Injera</li>
+                          <li>• <strong>Proteins (4 cal/gram):</strong> Lentils, Chickpeas, Beef, Fish, Dairy</li>
+                          <li>• <strong>Fats (9 cal/gram):</strong> Butter, Niger Seed, Sesame</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">For Healthy Weight Loss</h4>
+                        <p className="text-sm text-gray-600 mb-3">
+                          Ethiopian weight loss plans create caloric deficit with nutrient-dense foods:
+                        </p>
+                        <ul className="text-sm text-gray-600 space-y-1">
+                          <li>• <strong>Fruits & Vegetables:</strong> Rich in vitamins, minerals, antioxidants</li>
+                          <li>• <strong>Lean Proteins:</strong> Fish, chicken breast, legumes</li>
+                          <li>• <strong>Healthy Fats:</strong> Nuts, seeds, olive oil</li>
+                          <li>• <strong>Whole Grains:</strong> Brown rice, quinoa, oatmeal</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </>

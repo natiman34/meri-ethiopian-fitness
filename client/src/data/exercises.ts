@@ -202,7 +202,7 @@ export const exercises: Exercise[] = [
     equipment: ['dumbbells'],
     targetMuscles: ['lateral deltoids'],
     secondaryMuscles: ['trapezius'],
-    difficulty: 'beginner',
+    difficulty: 'intermediate',
     category: 'strength',
     estimatedTime: 8,
     caloriesBurn: 50,
@@ -321,7 +321,7 @@ export const exercises: Exercise[] = [
     equipment: ['treadmill', 'rowing machine', 'none'],
     targetMuscles: ['heart'],
     secondaryMuscles: ['legs', 'core', 'arms'],
-    difficulty: 'beginner',
+    difficulty: 'intermediate',
     category: 'cardio',
     estimatedTime: 15,
     caloriesBurn: 100,
@@ -366,7 +366,7 @@ export const exercises: Exercise[] = [
     equipment: ['bodyweight'],
     targetMuscles: ['chest', 'shoulders', 'triceps'],
     secondaryMuscles: ['core', 'forearms'],
-    difficulty: 'beginner',
+    difficulty: 'intermediate',
     category: 'strength',
     instructions: [
       'Keep your body in a straight line from head to heels',
@@ -435,7 +435,7 @@ export const exercises: Exercise[] = [
     equipment: ['bodyweight'],
     targetMuscles: ['quadriceps', 'glutes', 'hamstrings'],
     secondaryMuscles: ['core', 'calves'],
-    difficulty: 'beginner',
+    difficulty: 'intermediate',
     category: 'strength',
     instructions: [
       'Keep your weight in your heels',
@@ -504,7 +504,7 @@ export const exercises: Exercise[] = [
     equipment: ['bodyweight'],
     targetMuscles: ['core', 'abs', 'obliques'],
     secondaryMuscles: ['shoulders', 'glutes'],
-    difficulty: 'beginner',
+    difficulty: 'intermediate',
     category: 'strength',
     instructions: [
       'Keep your body in a straight line from head to heels',
@@ -808,8 +808,579 @@ export const exercises: Exercise[] = [
     estimatedTime: 7,
     caloriesBurn: 12,
     muscleGroup: 'legs'
+  },
+  // Additional exercises for comprehensive fitness plans
+  {
+    id: 'romanian-deadlift',
+    name: 'Romanian Deadlift',
+    description: 'A hip-hinge movement that targets the hamstrings and glutes.',
+    image: getExerciseImage('romanianDeadlift', 'image'),
+    gifUrl: getExerciseImage('romanianDeadlift', 'gif'),
+    videoUrl: getExerciseImage('romanianDeadlift', 'video'),
+    steps: [
+      'Hold barbell with overhand grip, feet hip-width apart',
+      'Keep legs slightly bent and hinge at hips',
+      'Lower weight by pushing hips back',
+      'Drive hips forward to return to start'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 10,
+        restTime: 75,
+        rpe: 7
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 10,
+        restTime: 75,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 10,
+        restTime: 75,
+        rpe: 8
+      }
+    ],
+    equipment: ['barbell', 'dumbbells'],
+    targetMuscles: ['hamstrings', 'glutes'],
+    secondaryMuscles: ['lower back', 'core'],
+    difficulty: 'intermediate',
+    category: 'strength',
+    estimatedTime: 12,
+    caloriesBurn: 80,
+    muscleGroup: 'legs'
+  },
+  {
+    id: 'leg-press',
+    name: 'Leg Press',
+    description: 'Machine-based lower body exercise for building leg strength.',
+    image: getExerciseImage('legPress', 'image'),
+    gifUrl: getExerciseImage('legPress', 'gif'),
+    videoUrl: getExerciseImage('legPress', 'video'),
+    steps: [
+      'Sit in leg press machine with back against pad',
+      'Place feet shoulder-width apart on platform',
+      'Lower weight by bending knees to 90 degrees',
+      'Press through heels to extend legs'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 75,
+        rpe: 7
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 75,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 75,
+        rpe: 8
+      }
+    ],
+    equipment: ['leg press machine'],
+    targetMuscles: ['quadriceps', 'glutes'],
+    secondaryMuscles: ['hamstrings', 'calves'],
+    difficulty: 'beginner',
+    category: 'strength',
+    instructions: [
+      'Keep your back flat against the pad',
+      'Don\'t lock knees at the top',
+      'Control the weight on the way down'
+    ],
+    tips: [
+      'Focus on pushing through your heels',
+      'Keep knees in line with toes',
+      'Don\'t go too deep if you have knee issues'
+    ],
+    commonMistakes: [
+      'Placing feet too high or too low',
+      'Not going through full range of motion',
+      'Locking knees at the top'
+    ],
+    variations: [
+      'Single-leg leg press',
+      'High foot placement',
+      'Low foot placement'
+    ],
+    estimatedTime: 10,
+    caloriesBurn: 70,
+    muscleGroup: 'legs'
+  },
+  {
+    id: 'calf-raises',
+    name: 'Calf Raises',
+    description: 'Isolation exercise for calf muscle development.',
+    image: getExerciseImage('calfRaises', 'image'),
+    gifUrl: getExerciseImage('calfRaises', 'gif'),
+    videoUrl: getExerciseImage('calfRaises', 'video'),
+    steps: [
+      'Stand with balls of feet on platform or floor',
+      'Rise up on toes as high as possible',
+      'Lower heels below starting position',
+      'Repeat for full range of motion'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 15,
+        restTime: 45,
+        rpe: 7
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 15,
+        restTime: 45,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 15,
+        restTime: 45,
+        rpe: 8
+      },
+      {
+        setNumber: 4,
+        setType: 'working' as SetType,
+        reps: 15,
+        restTime: 45,
+        rpe: 8
+      }
+    ],
+    equipment: ['bodyweight', 'dumbbells', 'calf raise machine'],
+    targetMuscles: ['calves'],
+    secondaryMuscles: [],
+    difficulty: 'beginner',
+    category: 'strength',
+    instructions: [
+      'Keep your body straight and core engaged',
+      'Rise up as high as possible on your toes',
+      'Lower slowly for full stretch'
+    ],
+    tips: [
+      'Focus on the squeeze at the top',
+      'Control the movement, don\'t bounce',
+      'Add weight for increased difficulty'
+    ],
+    commonMistakes: [
+      'Not going through full range of motion',
+      'Bouncing at the bottom',
+      'Leaning forward or backward'
+    ],
+    variations: [
+      'Single-leg calf raises',
+      'Seated calf raises',
+      'Donkey calf raises'
+    ],
+    estimatedTime: 8,
+    caloriesBurn: 40,
+    muscleGroup: 'legs'
+  },
+  // Missing exercises for weight loss plan
+  {
+    id: 'jump-squat',
+    name: 'Jump Squat',
+    description: 'Explosive squat variation for HIIT training and fat loss.',
+    image: getExerciseImage('jumpSquat', 'image'),
+    gifUrl: getExerciseImage('jumpSquat', 'gif'),
+    videoUrl: getExerciseImage('jumpSquat', 'video'),
+    steps: [
+      'Stand with feet shoulder-width apart',
+      'Lower into squat position',
+      'Explode up jumping as high as possible',
+      'Land softly and immediately go into next rep'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 30, // seconds
+        restTime: 30,
+        rpe: 8
+      }
+    ],
+    equipment: ['bodyweight'],
+    targetMuscles: ['legs', 'glutes'],
+    secondaryMuscles: ['core', 'calves'],
+    difficulty: 'intermediate',
+    category: 'plyometric',
+    instructions: [
+      'Keep chest up throughout movement',
+      'Land softly on balls of feet',
+      'Maintain proper squat form',
+      'Use arms for momentum'
+    ],
+    tips: [
+      'Focus on explosive upward movement',
+      'Land quietly to reduce impact',
+      'Keep core engaged throughout'
+    ],
+    commonMistakes: [
+      'Landing too hard',
+      'Not going low enough in squat',
+      'Losing balance on landing'
+    ],
+    variations: [
+      'Single-leg jump squat',
+      'Jump squat with 180 turn',
+      'Weighted jump squat'
+    ],
+    estimatedTime: 1,
+    caloriesBurn: 15,
+    muscleGroup: 'legs'
+  },
+  {
+    id: 'bulgarian-split-squat',
+    name: 'Bulgarian Split Squat',
+    description: 'Single-leg squat variation for lower body strength and stability.',
+    image: getExerciseImage('bulgarianSplitSquat', 'image'),
+    gifUrl: getExerciseImage('bulgarianSplitSquat', 'gif'),
+    videoUrl: getExerciseImage('bulgarianSplitSquat', 'video'),
+    steps: [
+      'Stand 2-3 feet in front of bench or elevated surface',
+      'Place top of one foot behind you on bench',
+      'Lower into lunge position',
+      'Push through front heel to return to start'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 10,
+        restTime: 60,
+        rpe: 7
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 10,
+        restTime: 60,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 10,
+        restTime: 60,
+        rpe: 8
+      }
+    ],
+    equipment: ['bench', 'bodyweight'],
+    targetMuscles: ['quadriceps', 'glutes'],
+    secondaryMuscles: ['hamstrings', 'calves', 'core'],
+    difficulty: 'intermediate',
+    category: 'strength',
+    instructions: [
+      'Keep most weight on front leg',
+      'Don\'t push off back foot',
+      'Keep torso upright',
+      'Control the descent'
+    ],
+    tips: [
+      'Start with bodyweight only',
+      'Focus on balance and control',
+      'Keep front knee in line with toes'
+    ],
+    commonMistakes: [
+      'Putting too much weight on back leg',
+      'Leaning forward too much',
+      'Not going low enough'
+    ],
+    variations: [
+      'Weighted Bulgarian split squat',
+      'Jump Bulgarian split squat',
+      'Reverse Bulgarian split squat'
+    ],
+    estimatedTime: 8,
+    caloriesBurn: 60,
+    muscleGroup: 'legs'
+  },
+  {
+    id: 'step-up',
+    name: 'Step-Up',
+    description: 'Functional lower body exercise using a bench or platform.',
+    image: getExerciseImage('stepUp', 'image'),
+    gifUrl: getExerciseImage('stepUp', 'gif'),
+    videoUrl: getExerciseImage('stepUp', 'video'),
+    steps: [
+      'Stand in front of bench or sturdy platform',
+      'Step up with one foot, placing entire foot on surface',
+      'Push through heel to lift body up',
+      'Step down with control and repeat'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 45,
+        rpe: 7
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 45,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 45,
+        rpe: 8
+      }
+    ],
+    equipment: ['bench', 'platform'],
+    targetMuscles: ['quadriceps', 'glutes'],
+    secondaryMuscles: ['hamstrings', 'calves', 'core'],
+    difficulty: 'beginner',
+    category: 'strength',
+    instructions: [
+      'Use full foot contact on platform',
+      'Don\'t push off bottom leg',
+      'Keep chest up and core engaged',
+      'Control both up and down movements'
+    ],
+    tips: [
+      'Choose appropriate height platform',
+      'Focus on the working leg',
+      'Add weight for increased difficulty'
+    ],
+    commonMistakes: [
+      'Using momentum from bottom leg',
+      'Not using full range of motion',
+      'Leaning forward too much'
+    ],
+    variations: [
+      'Weighted step-up',
+      'Lateral step-up',
+      'Step-up with knee drive'
+    ],
+    estimatedTime: 6,
+    caloriesBurn: 45,
+    muscleGroup: 'legs'
+  },
+  {
+    id: 'pull-up',
+    name: 'Pull-Up',
+    description: 'Upper body pulling exercise for back and bicep development.',
+    image: getExerciseImage('pullUp', 'image'),
+    gifUrl: getExerciseImage('pullUp', 'gif'),
+    videoUrl: getExerciseImage('pullUp', 'video'),
+    steps: [
+      'Hang from pull-up bar with palms facing away',
+      'Pull body up until chin clears the bar',
+      'Lower with control to full arm extension',
+      'Repeat for desired reps'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 8,
+        restTime: 60,
+        rpe: 8
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 8,
+        restTime: 60,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 8,
+        restTime: 60,
+        rpe: 8
+      }
+    ],
+    equipment: ['pull-up bar'],
+    targetMuscles: ['back', 'biceps'],
+    secondaryMuscles: ['core', 'forearms'],
+    difficulty: 'intermediate',
+    category: 'strength',
+    instructions: [
+      'Keep core engaged throughout',
+      'Pull with your back, not just arms',
+      'Control the descent',
+      'Full range of motion'
+    ],
+    tips: [
+      'Use assistance if needed',
+      'Focus on squeezing shoulder blades',
+      'Don\'t swing or use momentum'
+    ],
+    commonMistakes: [
+      'Not going full range of motion',
+      'Using momentum to swing up',
+      'Not engaging core'
+    ],
+    variations: [
+      'Chin-Up',
+      'Wide-Grip Pull-Up',
+      'Assisted Pull-Up'
+    ],
+    estimatedTime: 8,
+    caloriesBurn: 60,
+    muscleGroup: 'back'
+  },
+  {
+    id: 'dumbbell-rows',
+    name: 'Dumbbell Rows',
+    description: 'Back strengthening exercise using dumbbells.',
+    image: getExerciseImage('dumbbellRows', 'image'),
+    gifUrl: getExerciseImage('dumbbellRows', 'gif'),
+    videoUrl: getExerciseImage('dumbbellRows', 'video'),
+    steps: [
+      'Hold dumbbell in one hand, place other hand on bench',
+      'Keep back straight and core engaged',
+      'Pull dumbbell to hip, squeezing shoulder blade',
+      'Lower with control and repeat'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 45,
+        rpe: 7
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 45,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 12,
+        restTime: 45,
+        rpe: 8
+      }
+    ],
+    equipment: ['dumbbells', 'bench'],
+    targetMuscles: ['back'],
+    secondaryMuscles: ['biceps', 'core'],
+    difficulty: 'beginner',
+    category: 'strength',
+    instructions: [
+      'Keep back straight throughout',
+      'Pull to hip, not chest',
+      'Squeeze shoulder blade at top',
+      'Control the weight'
+    ],
+    tips: [
+      'Focus on pulling with back muscles',
+      'Keep core tight for stability',
+      'Don\'t rotate torso'
+    ],
+    commonMistakes: [
+      'Pulling to chest instead of hip',
+      'Using too much momentum',
+      'Not squeezing shoulder blade'
+    ],
+    variations: [
+      'Bent-over barbell row',
+      'T-bar row',
+      'Cable row'
+    ],
+    estimatedTime: 8,
+    caloriesBurn: 50,
+    muscleGroup: 'back'
+  },
+  {
+    id: 'russian-twists',
+    name: 'Russian Twists',
+    description: 'Core exercise targeting obliques and rotational strength.',
+    image: getExerciseImage('russianTwists', 'image'),
+    gifUrl: getExerciseImage('russianTwists', 'gif'),
+    videoUrl: getExerciseImage('russianTwists', 'video'),
+    steps: [
+      'Sit on floor with knees bent, feet slightly off ground',
+      'Lean back to create V-shape with torso and thighs',
+      'Rotate torso side to side, touching ground beside hips',
+      'Keep core engaged throughout movement'
+    ],
+    sets: [
+      {
+        setNumber: 1,
+        setType: 'working' as SetType,
+        reps: 15,
+        restTime: 30,
+        rpe: 7
+      },
+      {
+        setNumber: 2,
+        setType: 'working' as SetType,
+        reps: 15,
+        restTime: 30,
+        rpe: 8
+      },
+      {
+        setNumber: 3,
+        setType: 'working' as SetType,
+        reps: 15,
+        restTime: 30,
+        rpe: 8
+      }
+    ],
+    equipment: ['bodyweight'],
+    targetMuscles: ['abs', 'obliques'],
+    secondaryMuscles: ['core'],
+    difficulty: 'intermediate',
+    category: 'strength',
+    instructions: [
+      'Keep feet off ground if possible',
+      'Rotate from core, not arms',
+      'Maintain V-shape position',
+      'Control the movement'
+    ],
+    tips: [
+      'Start with feet on ground if needed',
+      'Focus on quality over speed',
+      'Add weight for increased difficulty'
+    ],
+    commonMistakes: [
+      'Moving too fast',
+      'Not rotating from core',
+      'Letting feet touch ground'
+    ],
+    variations: [
+      'Weighted Russian twists',
+      'Russian twists with medicine ball',
+      'Feet elevated Russian twists'
+    ],
+    estimatedTime: 5,
+    caloriesBurn: 25,
+    muscleGroup: 'abs'
   }
-]; 
+];
+
+// Helper function to get an exercise by ID
+export const getExerciseById = (id: string): Exercise | undefined => {
+  return exercises.find(exercise => exercise.id === id);
+};
 
 
 
