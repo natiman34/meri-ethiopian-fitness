@@ -112,12 +112,20 @@ export class User {
   }
 
   // Static factory method to create User from plain object
-  static fromObject(obj: any): User {
-    return new User(obj.id, obj.name, obj.email, obj.role, obj.createdAt, obj.lastLogin, obj.bmiResults || [])
+  static fromObject(obj: Record<string, unknown>): User {
+    return new User(
+      obj.id as string,
+      obj.name as string,
+      obj.email as string,
+      obj.role as UserRole,
+      obj.createdAt as string,
+      obj.lastLogin as string,
+      (obj.bmiResults as BMIResult[]) || []
+    )
   }
 
   // Convert to plain object for API calls
-  toObject(): any {
+  toObject(): Record<string, unknown> {
     return {
       id: this._id,
       name: this._name,

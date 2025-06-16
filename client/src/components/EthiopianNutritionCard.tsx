@@ -85,7 +85,7 @@ const EthiopianNutritionCard: React.FC<EthiopianNutritionCardProps> = ({
               </div>
               <div className="text-center">
                 <Target className="h-4 w-4 mx-auto text-gray-400 mb-1" />
-                <div className="text-sm font-medium text-gray-900">{plan.features.length}</div>
+                <div className="text-sm font-medium text-gray-900">{plan.features?.length || 0}</div>
                 <div className="text-xs text-gray-500">Benefits</div>
               </div>
             </div>
@@ -192,7 +192,7 @@ const EthiopianNutritionCard: React.FC<EthiopianNutritionCardProps> = ({
             <div className="border-t pt-4 mt-4">
               <h4 className="text-sm font-medium text-gray-900 mb-2">Key Features</h4>
               <ul className="space-y-1">
-                {plan.features.map((feature, index) => (
+                {(plan.features || []).map((feature, index) => (
                   <li key={index} className="text-sm text-gray-600 flex items-start space-x-2">
                     <span className="text-green-500 mt-1">•</span>
                     <span>{feature}</span>

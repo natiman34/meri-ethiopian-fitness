@@ -48,7 +48,6 @@ const Navbar: React.FC<NavbarProps> = ({ menuOpen, toggleMenu }) => {
     }
   }, [menuOpen])
 
-  // Close menu when location changes
   useEffect(() => {
     if (menuOpen) {
       toggleMenu()
@@ -56,7 +55,6 @@ const Navbar: React.FC<NavbarProps> = ({ menuOpen, toggleMenu }) => {
     setProfileOpen(false)
   }, [location.pathname, menuOpen, toggleMenu])
 
-  // Handle escape key to close menu
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && menuOpen) {
@@ -101,7 +99,6 @@ const Navbar: React.FC<NavbarProps> = ({ menuOpen, toggleMenu }) => {
               </div>
             </Link>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
             <NavLink
               to="/"
@@ -155,7 +152,6 @@ const Navbar: React.FC<NavbarProps> = ({ menuOpen, toggleMenu }) => {
             </NavLink>
           </nav>
 
-          {/* Auth Buttons or User Menu */}
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <div className="relative">
@@ -205,7 +201,6 @@ const Navbar: React.FC<NavbarProps> = ({ menuOpen, toggleMenu }) => {
             )}
           </div>
 
-          {/* Mobile menu button */}
           <button
             onClick={handleMenuToggle}
             className="md:hidden flex items-center justify-center w-10 h-10 text-gray-700 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-md transition-colors"
@@ -215,10 +210,9 @@ const Navbar: React.FC<NavbarProps> = ({ menuOpen, toggleMenu }) => {
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
-      </div>
+        </div>
       </header>
 
-      {/* Mobile Menu Backdrop */}
       {menuOpen && (
         <div
           className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
@@ -227,12 +221,10 @@ const Navbar: React.FC<NavbarProps> = ({ menuOpen, toggleMenu }) => {
         />
       )}
 
-      {/* Mobile Menu */}
       {menuOpen && (
         <div className={`md:hidden fixed top-0 left-0 right-0 bg-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${
           menuOpen ? 'translate-y-0' : '-translate-y-full'
         }`}>
-          {/* Mobile menu header */}
           <div className="flex justify-between items-center px-4 py-4 border-b border-gray-200">
             <Link to="/" className="flex items-center" onClick={handleMenuToggle}>
               <div className="text-green-700 font-bold text-lg flex items-center">

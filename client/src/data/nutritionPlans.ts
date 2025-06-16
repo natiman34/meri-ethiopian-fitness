@@ -37,19 +37,18 @@ export const nutritionPlans: NutritionPlan[] = [
     id: "eth-weight-gain-1",
     title: "Ethiopian Traditional Weight Gain Plan",
     description: "A comprehensive weight gain plan featuring authentic Ethiopian cultural foods, focusing on a healthy calorie surplus from balanced macronutrients: carbohydrates (4 cal/gram) - brown rice, quinoa, oats, potatoes, sweet potatoes, legumes (beans, lentils), white bread; proteins (4 cal/gram) - chicken, turkey, fish, eggs, dairy products, beans, lentils, tofu; and fats (9 cal/gram) - avocados, nuts, seeds, olive oil, fatty fish. Designed to help you gain weight healthily with traditional Ethiopian cuisine.",
-    duration: 60, // days
+    duration: 60,
     category: "weight-gain",
     image_url: "/images/plans/ethiopian-weight-gain.jpg",
     calorieRange: { min: 2500, max: 3200 },
     meals: [
-      // Day 1 - Ethiopian Traditional Weight Gain Foods
       {
         day: 1,
         breakfast: [
           parseMealString("Barley flour (roasted) + Butter + spices - 556 cal, 37.20g fat, 6.6g protein, 49.9g CHO", "eth-wg-day1-breakfast", true)
         ],
         lunch: [
-          parseMealString("Shinbra (Kik wet) Gonder (Dembia) - 127 cal, 5.20g fat, 5.9g protein, 18.30g CHO", "eth-wg-day1-lunch", true),
+          parseMealString("Shinbra (Kik wet) Gonder (Dembia) - 125 cal, 5.20g fat, 5.9g protein, 18.30g CHO", "eth-wg-day1-lunch", true),
           parseMealString("Kale + beef + butter + shallot + spices + salt (Yetekur amber) (Gurage Cheha) - 126 cal, 10.90g fat, 5.9g protein, 4.20g CHO", "eth-wg-day1-lunch2", true)
         ],
         dinner: [
@@ -60,9 +59,8 @@ export const nutritionPlans: NutritionPlan[] = [
           parseMealString("Dallen (Harrari) - Sesame seed powder + honey + butter - 506 cal, 24.40g fat, 5.10g protein, 66.0g CHO", "eth-wg-day1-snack1", true),
           parseMealString("Sour milk (Cows) Ititu (Borena) - 147 cal, 12.40g fat, 5g protein, 3.90g CHO", "eth-wg-day1-snack2", true)
         ],
-        totalCalories: 2021,
+        totalCalories: 2019,
       },
-      // Day 2 - Ethiopian Traditional Weight Gain Foods
       {
         day: 2,
         breakfast: [
@@ -82,7 +80,6 @@ export const nutritionPlans: NutritionPlan[] = [
         ],
         totalCalories: 1694,
       },
-      // Day 3 - Ethiopian Traditional Weight Gain Foods
       {
         day: 3,
         breakfast: [
@@ -122,81 +119,79 @@ export const nutritionPlans: NutritionPlan[] = [
   {
     id: "eth-weight-loss-1",
     title: "Ethiopian Traditional Weight Loss Plan",
-    description: "A healthy weight loss plan focused on creating a caloric deficit, meaning you consume fewer calories than you burn. Emphasizes fruits and vegetables (vitamins, minerals, antioxidants), lean proteins (fish, chicken breast, legumes, tofu), healthy fats (avocados, nuts, seeds, olive oil), whole grains (brown rice, quinoa, oatmeal, grain bread), and legumes (beans, lentils, chickpeas). Designed for sustainable weight loss with authentic Ethiopian cuisine.",
-    duration: 45, // days
+    description: "A comprehensive weight loss plan featuring authentic Ethiopian cultural foods, focusing on high-protein, fiber-rich, and balanced meals while controlling calorie intake. Emphasizes caloric deficit through nutrient-dense Ethiopian cuisine for sustainable and healthy weight loss.",
+    duration: 45,
     category: "weight-loss",
     image_url: "/images/plans/ethiopian-weight-loss.jpg",
     calorieRange: { min: 1400, max: 1800 },
     meals: [
-      // Day 1 - Ethiopian Traditional Weight Loss Foods (Caloric Deficit)
       {
         day: 1,
         breakfast: [
-          parseMealString("Genfo (light preparation) - 134 cal, 5.5g fat, 2.10g protein, 19.20g CHO", "eth-wl-day1-breakfast", true)
+          parseMealString("Kinche (Cracked wheat) + Low-fat yogurt - 180 cal, 2g fat, 8g protein, 32g CHO", "eth-wl-day1-breakfast1", true),
+          parseMealString("Fetira (Ethiopian Crepe) with boiled eggs (without butter) - 220 cal, 6g fat, 14g protein, 28g CHO", "eth-wl-day1-breakfast2", true)
         ],
         lunch: [
-          parseMealString("Shinbra (Kik wet) with vegetables - 127 cal, 5.20g fat, 5.9g protein, 18.30g CHO", "eth-wl-day1-lunch", true),
-          parseMealString("Kale + shallot + minimal oil + spices - 79 cal, 4.8g fat, 5.4g protein, 7.9g CHO", "eth-wl-day1-lunch2", true)
+          parseMealString("Tibs (Lean beef or chicken) with lots of vegetables & small Injera - 280 cal, 8g fat, 25g protein, 22g CHO", "eth-wl-day1-lunch1", true),
+          parseMealString("Lentil Stew with Cabbage & Carrots - 160 cal, 3g fat, 12g protein, 24g CHO", "eth-wl-day1-lunch2", true)
         ],
         dinner: [
-          parseMealString("Fish (lean preparation) + minimal chili + sunflower - 134 cal, 3.60g fat, 23.10g protein, 3.20g CHO", "eth-wl-day1-dinner", true),
-          parseMealString("Mixed vegetables with minimal oil - 80 cal, 2g fat, 3g protein, 15g CHO", "eth-wl-day1-dinner2", true)
+          parseMealString("Gomen (Collard Greens) with a small portion of Tibs - 150 cal, 5g fat, 12g protein, 15g CHO", "eth-wl-day1-dinner1", true),
+          parseMealString("Firfir with Berbere & Tomato Sauce - 140 cal, 4g fat, 8g protein, 18g CHO", "eth-wl-day1-dinner2", true)
         ],
         snacks: [
-          parseMealString("Fresh fruits (Ethiopian varieties) - vitamins, minerals, antioxidants - 90 cal, 0.5g fat, 1g protein, 22g CHO", "eth-wl-day1-snack1", true),
-          parseMealString("Niger Seed (small portion) - 109 cal, 7.40g fat, 4.30g protein, 9.60g CHO", "eth-wl-day1-snack2", true)
+          parseMealString("Avocado & Lemon Juice (No sugar) - 120 cal, 11g fat, 2g protein, 6g CHO", "eth-wl-day1-snack1", true),
+          parseMealString("Greek Yogurt with Flaxseeds - 100 cal, 4g fat, 8g protein, 8g CHO", "eth-wl-day1-snack2", true)
         ],
-        totalCalories: 1653,
+        totalCalories: 1550,
       },
-      // Day 2 - Ethiopian Traditional Weight Loss Foods (Caloric Deficit)
       {
         day: 2,
         breakfast: [
-          parseMealString("Ajaja (light preparation) - 140 cal, 4.70g fat, 3.30g protein, 21.30g CHO", "eth-wl-day2-breakfast", true)
+          parseMealString("Shiro Firfir (Chickpea stew with small Injera pieces) - 200 cal, 5g fat, 10g protein, 28g CHO", "eth-wl-day2-breakfast1", true)
         ],
         lunch: [
-          parseMealString("Abish (Tigray) with vegetables - lean protein - 180 cal, 3.60g fat, 14.50g protein, 26.50g CHO", "eth-wl-day2-lunch", true),
-          parseMealString("Steamed vegetables with minimal seasoning - 60 cal, 1g fat, 2g protein, 12g CHO", "eth-wl-day2-lunch2", true)
+          parseMealString("Doro Wat (Spicy Chicken Stew) with brown rice - 320 cal, 12g fat, 28g protein, 26g CHO", "eth-wl-day2-lunch1", true),
+          parseMealString("Lentil Stew with Cabbage & Carrots - 160 cal, 3g fat, 12g protein, 24g CHO", "eth-wl-day2-lunch2", true)
         ],
         dinner: [
-          parseMealString("Kale + lean protein + minimal butter - 93 cal, 7.3g fat, 2.9g protein, 5.7g CHO", "eth-wl-day2-dinner", true),
-          parseMealString("Mushroom + Shallot + garlic (minimal oil) - 97 cal, 3.90g fat, 5.20g protein, 10g CHO", "eth-wl-day2-dinner2", true)
+          parseMealString("Shiro with a small Injera & side salad - 180 cal, 6g fat, 10g protein, 22g CHO", "eth-wl-day2-dinner1", true),
+          parseMealString("Gomen (Collard Greens) with minimal oil - 80 cal, 2g fat, 4g protein, 12g CHO", "eth-wl-day2-dinner2", true)
         ],
         snacks: [
-          parseMealString("Sour milk (Ititu) - low fat version - 74 cal, 6.20g fat, 2.50g protein, 2g CHO", "eth-wl-day2-snack1", true),
-          parseMealString("Sesame powder (small portion) - healthy fats - 70 cal, 6.10g fat, 2.10g protein, 3.10g CHO", "eth-wl-day2-snack2", true)
+          parseMealString("Boiled Eggs & Roasted Chickpeas - 140 cal, 6g fat, 12g protein, 10g CHO", "eth-wl-day2-snack1", true),
+          parseMealString("Smoothie with Spinach, Avocado, & Banana - 150 cal, 8g fat, 4g protein, 18g CHO", "eth-wl-day2-snack2", true)
         ],
-        totalCalories: 1714,
+        totalCalories: 1630,
       },
-      // Day 3 - Ethiopian Traditional Weight Loss Foods (Caloric Deficit)
       {
         day: 3,
         breakfast: [
-          parseMealString("Barley flour + butter + salt (light preparation) - 150 cal, 2g fat, 5g protein, 28g CHO", "eth-wl-day3-breakfast", true)
+          parseMealString("Kinche (Cracked wheat) + Low-fat yogurt - 180 cal, 2g fat, 8g protein, 32g CHO", "eth-wl-day3-breakfast1", true)
         ],
         lunch: [
-          parseMealString("Legumes - beans, lentils (Misir Wat) with vegetables - 200 cal, 4g fat, 12g protein, 32g CHO", "eth-wl-day3-lunch", true),
-          parseMealString("Steamed collard greens (Gomen) - whole grains - 50 cal, 1g fat, 3g protein, 8g CHO", "eth-wl-day3-lunch2", true)
+          parseMealString("Tibs (Lean beef or chicken) with lots of vegetables & small Injera - 280 cal, 8g fat, 25g protein, 22g CHO", "eth-wl-day3-lunch1", true),
+          parseMealString("Doro Wat (Spicy Chicken Stew) with brown rice - 320 cal, 12g fat, 28g protein, 26g CHO", "eth-wl-day3-lunch2", true)
         ],
         dinner: [
-          parseMealString("Lean fish with Ethiopian spices - lean protein - 180 cal, 6g fat, 28g protein, 4g CHO", "eth-wl-day3-dinner", true),
-          parseMealString("Cabbage and carrot salad - fruits and vegetables - 60 cal, 0.5g fat, 2g protein, 12g CHO", "eth-wl-day3-dinner2", true)
+          parseMealString("Shiro with a small Injera & side salad - 180 cal, 6g fat, 10g protein, 22g CHO", "eth-wl-day3-dinner1", true),
+          parseMealString("Firfir with Berbere & Tomato Sauce - 140 cal, 4g fat, 8g protein, 18g CHO", "eth-wl-day3-dinner2", true)
         ],
         snacks: [
-          parseMealString("Fresh Ethiopian fruits - vitamins, minerals, antioxidants - 80 cal, 0.3g fat, 1g protein, 20g CHO", "eth-wl-day3-snack1", true),
-          parseMealString("Boiled chickpeas (small portion) - legumes - 90 cal, 1.5g fat, 5g protein, 15g CHO", "eth-wl-day3-snack2", true)
+          parseMealString("Atmit (Oatmeal with Cinnamon & No Sugar) - 120 cal, 2g fat, 4g protein, 22g CHO", "eth-wl-day3-snack1", true),
+          parseMealString("Boiled Sweet Potatoes & Lentils - 160 cal, 1g fat, 8g protein, 32g CHO", "eth-wl-day3-snack2", true)
         ],
-        totalCalories: 1810,
+        totalCalories: 1680,
       }
     ],
     features: [
-      "Caloric deficit for healthy weight loss",
-      "Rich in Ethiopian vegetables and legumes",
-      "High fiber content for satiety",
-      "Lean proteins from traditional sources",
-      "Antioxidant-rich fruits and vegetables",
-      "Traditional spices for flavor without excess calories",
-      "Sustainable and culturally appropriate"
+      "Calorie Deficit: Eat slightly fewer calories than you burn",
+      "High Protein: At least 1.2-1.6g per kg of body weight",
+      "Fiber-Rich Foods: More vegetables, lentils, and whole grains",
+      "Healthy Fats: Use olive oil, nuts, and seeds",
+      "Hydration: Drink at least 3-4L of water daily",
+      "Sleep: Aim for 7-9 hours per night for fat loss",
+      "Traditional Ethiopian spices for flavor without excess calories"
     ],
     createdBy: "Ethiopian Dietitian",
     createdAt: "2024-01-15T11:00:00Z",

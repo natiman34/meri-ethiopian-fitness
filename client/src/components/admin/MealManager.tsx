@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Filter, X } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X } from 'lucide-react';
 import { Dialog } from '@headlessui/react';
 import Button from '../ui/Button';
 import { Meal, NutritionInfo } from '../../types/content';
 import { mealService, MealFilters } from '../../services/MealService';
 import { useAuth } from '../../contexts/AuthContext';
+import ImageSelector from './ImageSelector';
 
 interface MealManagerProps {
   onMealSelect?: (meal: Meal) => void;
@@ -20,14 +21,14 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Modal states
+  
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
   const [mealToDelete, setMealToDelete] = useState<string | null>(null);
   
-  // Form state
+ 
   const [newMeal, setNewMeal] = useState<Partial<Meal>>({
     name: '',
     description: '',
@@ -43,9 +44,28 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
     fetchMeals();
   }, []);
 
+  const applyFilters = React.useCallback(() => {
+    let filtered = meals;
+
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(meal =>
+        meal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        meal.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Ethiopian filter
+    if (filters.is_ethiopian !== undefined) {
+      filtered = filtered.filter(meal => meal.isEthiopian === filters.is_ethiopian);
+    }
+
+    setFilteredMeals(filtered);
+  }, [meals, searchTerm, filters]);
+
   useEffect(() => {
     applyFilters();
-  }, [meals, searchTerm, filters]);
+  }, [applyFilters]);
 
   const fetchMeals = async () => {
     setIsLoading(true);
@@ -61,24 +81,7 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
     }
   };
 
-  const applyFilters = () => {
-    let filtered = meals;
 
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(meal =>
-        meal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        meal.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Apply other filters
-    if (filters.is_ethiopian !== undefined) {
-      filtered = filtered.filter(meal => meal.isEthiopian === filters.is_ethiopian);
-    }
-
-    setFilteredMeals(filtered);
-  };
 
   const validateForm = (meal: Partial<Meal>) => {
     const errors: {[key: string]: string} = {};
@@ -134,6 +137,7 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
   };
 
   const handleDeleteMeal = async (id: string) => {
+    setIsLoading(true);
     try {
       await mealService.deleteMeal(id);
       setMeals(meals.filter(meal => meal.id !== id));
@@ -142,6 +146,8 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
     } catch (error) {
       console.error('Error deleting meal:', error);
       setError('Failed to delete meal');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -191,10 +197,49 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
     });
   };
 
+  // Helper functions for editing meal specifically
+  const handleEditingMealIngredientChange = (index: number, value: string) => {
+    if (!editingMeal) return;
+    const newIngredients = [...(editingMeal.ingredients || [])];
+    newIngredients[index] = value;
+    setEditingMeal({
+      ...editingMeal,
+      ingredients: newIngredients
+    });
+  };
+
+  const handleEditingMealRemoveIngredient = (index: number) => {
+    if (!editingMeal) return;
+    setEditingMeal({
+      ...editingMeal,
+      ingredients: (editingMeal.ingredients || []).filter((_, i) => i !== index)
+    });
+  };
+
+  const handleEditingMealAddIngredient = () => {
+    if (!editingMeal) return;
+    setEditingMeal({
+      ...editingMeal,
+      ingredients: [...(editingMeal.ingredients || []), '']
+    });
+  };
+
+  const handleEditingMealNutritionChange = (field: keyof NutritionInfo, value: number) => {
+    if (!editingMeal) return;
+    setEditingMeal({
+      ...editingMeal,
+      nutritionInfo: {
+        ...(editingMeal.nutritionInfo || { calories: 0, protein: 0, carbs: 0, fat: 0 }),
+        [field]: value
+      }
+    });
+  };
+
   if (isLoading && meals.length === 0) {
     return (
-      <div className="flex justify-center items-center py-8">
+      <div className="flex justify-center items-center py-8" role="status" aria-label="Loading meals">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <span className="sr-only">Loading meals...</span>
       </div>
     );
   }
@@ -233,6 +278,7 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Search meals by name or description"
             />
           </div>
 
@@ -247,6 +293,7 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
                   is_ethiopian: value === 'all' ? undefined : value === 'ethiopian'
                 });
               }}
+              aria-label="Filter meals by cuisine type"
             >
               <option value="all">All Cuisines</option>
               <option value="ethiopian">Ethiopian</option>
@@ -293,7 +340,8 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
                         setIsEditModalOpen(true);
                         setFormErrors({});
                       }}
-                      className="text-indigo-600 hover:text-indigo-900"
+                      className="text-indigo-600 hover:text-indigo-900 p-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      aria-label={`Edit ${meal.name}`}
                     >
                       <Edit className="h-4 w-4" />
                     </button>
@@ -302,7 +350,8 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
                         setMealToDelete(meal.id);
                         setIsDeleteModalOpen(true);
                       }}
-                      className="text-red-600 hover:text-red-900"
+                      className="text-red-600 hover:text-red-900 p-1 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                      aria-label={`Delete ${meal.name}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -330,10 +379,14 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
       <Dialog open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-2xl rounded bg-white p-6 max-h-[90vh] overflow-y-auto">
+          <Dialog.Panel className="w-full max-w-2xl rounded bg-white p-6 max-h-[90vh] overflow-y-auto" role="dialog" aria-labelledby="create-meal-title">
             <div className="flex justify-between items-center mb-4">
-              <Dialog.Title className="text-lg font-medium">Create New Meal</Dialog.Title>
-              <button onClick={() => setIsCreateModalOpen(false)}>
+              <Dialog.Title id="create-meal-title" className="text-lg font-medium">Create New Meal</Dialog.Title>
+              <button
+                onClick={() => setIsCreateModalOpen(false)}
+                className="p-1 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                aria-label="Close create meal dialog"
+              >
                 <X className="h-5 w-5 text-gray-500" />
               </button>
             </div>
@@ -364,7 +417,14 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
                 {formErrors.description && <p className="mt-1 text-sm text-red-600">{formErrors.description}</p>}
               </div>
 
-
+              <ImageSelector
+                currentImage={newMeal.image}
+                mealName={newMeal.name || ''}
+                isEthiopian={newMeal.isEthiopian}
+                onImageSelect={(imageUrl) => setNewMeal({ ...newMeal, image: imageUrl })}
+                onImageClear={() => setNewMeal({ ...newMeal, image: '' })}
+                onError={(message) => setError(message)}
+              />
 
               <div className="flex items-center">
                 <input
@@ -392,7 +452,8 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
                     <button
                       type="button"
                       onClick={() => handleRemoveIngredient(newMeal, index, setNewMeal)}
-                      className="ml-2 text-red-600 hover:text-red-900"
+                      className="ml-2 text-red-600 hover:text-red-900 p-1 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                      aria-label={`Remove ingredient ${ingredient || 'empty'}`}
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -486,10 +547,14 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
       <Dialog open={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-2xl rounded bg-white p-6 max-h-[90vh] overflow-y-auto">
+          <Dialog.Panel className="w-full max-w-2xl rounded bg-white p-6 max-h-[90vh] overflow-y-auto" role="dialog" aria-labelledby="edit-meal-title">
             <div className="flex justify-between items-center mb-4">
-              <Dialog.Title className="text-lg font-medium">Edit Meal</Dialog.Title>
-              <button onClick={() => setIsEditModalOpen(false)}>
+              <Dialog.Title id="edit-meal-title" className="text-lg font-medium">Edit Meal</Dialog.Title>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="p-1 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                aria-label="Close edit meal dialog"
+              >
                 <X className="h-5 w-5 text-gray-500" />
               </button>
             </div>
@@ -521,7 +586,14 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
                   {formErrors.description && <p className="mt-1 text-sm text-red-600">{formErrors.description}</p>}
                 </div>
 
-
+                <ImageSelector
+                  currentImage={editingMeal.image}
+                  mealName={editingMeal.name || ''}
+                  isEthiopian={editingMeal.isEthiopian}
+                  onImageSelect={(imageUrl) => setEditingMeal({ ...editingMeal, image: imageUrl })}
+                  onImageClear={() => setEditingMeal({ ...editingMeal, image: '' })}
+                  onError={(message) => setError(message)}
+                />
 
                 <div className="flex items-center">
                   <input
@@ -543,13 +615,14 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
                       <input
                         type="text"
                         value={ingredient}
-                        onChange={(e) => handleIngredientChange(editingMeal, index, e.target.value, setEditingMeal)}
+                        onChange={(e) => handleEditingMealIngredientChange(index, e.target.value)}
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                       />
                       <button
                         type="button"
-                        onClick={() => handleRemoveIngredient(editingMeal, index, setEditingMeal)}
-                        className="ml-2 text-red-600 hover:text-red-900"
+                        onClick={() => handleEditingMealRemoveIngredient(index)}
+                        className="ml-2 text-red-600 hover:text-red-900 p-1 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                        aria-label={`Remove ingredient ${ingredient || 'empty'}`}
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -557,7 +630,7 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
                   ))}
                   <button
                     type="button"
-                    onClick={() => handleAddIngredient(editingMeal, setEditingMeal)}
+                    onClick={handleEditingMealAddIngredient}
                     className="text-sm font-medium text-green-600 hover:text-green-500"
                   >
                     + Add Ingredient
@@ -584,7 +657,7 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
                       <input
                         type="number"
                         value={editingMeal.nutritionInfo?.calories || 0}
-                        onChange={(e) => handleNutritionChange(editingMeal, 'calories', parseInt(e.target.value) || 0, setEditingMeal)}
+                        onChange={(e) => handleEditingMealNutritionChange('calories', parseInt(e.target.value) || 0)}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                       />
                     </div>
@@ -593,7 +666,7 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
                       <input
                         type="number"
                         value={editingMeal.nutritionInfo?.protein || 0}
-                        onChange={(e) => handleNutritionChange(editingMeal, 'protein', parseFloat(e.target.value) || 0, setEditingMeal)}
+                        onChange={(e) => handleEditingMealNutritionChange('protein', parseFloat(e.target.value) || 0)}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                       />
                     </div>
@@ -602,7 +675,7 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
                       <input
                         type="number"
                         value={editingMeal.nutritionInfo?.carbs || 0}
-                        onChange={(e) => handleNutritionChange(editingMeal, 'carbs', parseFloat(e.target.value) || 0, setEditingMeal)}
+                        onChange={(e) => handleEditingMealNutritionChange('carbs', parseFloat(e.target.value) || 0)}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                       />
                     </div>
@@ -611,7 +684,7 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
                       <input
                         type="number"
                         value={editingMeal.nutritionInfo?.fat || 0}
-                        onChange={(e) => handleNutritionChange(editingMeal, 'fat', parseFloat(e.target.value) || 0, setEditingMeal)}
+                        onChange={(e) => handleEditingMealNutritionChange('fat', parseFloat(e.target.value) || 0)}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                       />
                     </div>
@@ -644,28 +717,30 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
       <Dialog open={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-sm rounded bg-white p-6">
-            <Dialog.Title className="text-lg font-medium">Delete Meal</Dialog.Title>
-            <Dialog.Description className="mt-2">
+          <Dialog.Panel className="w-full max-w-sm rounded bg-white p-6" role="dialog" aria-labelledby="delete-meal-title" aria-describedby="delete-meal-description">
+            <Dialog.Title id="delete-meal-title" className="text-lg font-medium">Delete Meal</Dialog.Title>
+            <Dialog.Description id="delete-meal-description" className="mt-2">
               Are you sure you want to delete this meal? This action cannot be undone.
             </Dialog.Description>
 
             <div className="mt-4 flex justify-end space-x-2">
               <button
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 rounded focus:outline-none focus:ring-2 focus:ring-gray-500"
                 onClick={() => setIsDeleteModalOpen(false)}
+                disabled={isLoading}
               >
                 Cancel
               </button>
               <button
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md"
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
                 onClick={() => {
                   if (mealToDelete) {
                     handleDeleteMeal(mealToDelete);
                   }
                 }}
+                disabled={isLoading}
               >
-                Delete
+                {isLoading ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </Dialog.Panel>

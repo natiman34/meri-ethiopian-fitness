@@ -25,7 +25,7 @@ const AnimatedGif: React.FC<AnimatedGifProps> = ({
   const loadAttempts = useRef(0);
   const isExternalUrl = src.startsWith('http');
 
-  // Function to clean up external URLs
+  
   const cleanExternalUrl = (url: string): string => {
     if (url.includes('pinterest.com') || url.includes('pinimg.com')) {
       return url.split('?')[0]; // Remove query parameters
@@ -34,7 +34,7 @@ const AnimatedGif: React.FC<AnimatedGifProps> = ({
   };
 
   useEffect(() => {
-    // Reset states when src changes
+    
     setIsLoading(true);
     setHasError(false);
     setUseFallbackType(null);
@@ -42,15 +42,15 @@ const AnimatedGif: React.FC<AnimatedGifProps> = ({
     
     let processedSrc = src;
     
-    // Clean external URLs
+   
     if (isExternalUrl) {
       processedSrc = cleanExternalUrl(src);
     } else {
-      // Normalize path for local files
+     
       processedSrc = normalizePath(src);
     }
     
-    // Only add cache-busting for local GIFs
+    
     if (!isExternalUrl && processedSrc.includes('.gif')) {
       const cacheBustedSrc = `${processedSrc}?t=${Date.now()}`;
       setCurrentSrc(cacheBustedSrc);
@@ -63,7 +63,7 @@ const AnimatedGif: React.FC<AnimatedGifProps> = ({
     setIsLoading(false);
     setHasError(false);
     
-    // Reset animation for local GIFs
+    
     if (!isExternalUrl && src.includes('.gif') && imgRef.current) {
       const img = imgRef.current;
       img.style.animation = 'none';
@@ -76,14 +76,14 @@ const AnimatedGif: React.FC<AnimatedGifProps> = ({
   const handleError = () => {
     loadAttempts.current += 1;
 
-    // For local files, try a few times with cache busting
+    
     if (!isExternalUrl && loadAttempts.current < 3) {
       const retrySrc = `${normalizePath(src)}?retry=${loadAttempts.current}&t=${Date.now()}`;
       setCurrentSrc(retrySrc);
       return;
     }
 
-    // After retries or for external URLs, try the static image first
+    
     if (staticImageSrc && loadAttempts.current === 3) {
       const normalizedStaticSrc = normalizePath(staticImageSrc);
       setCurrentSrc(normalizedStaticSrc);
@@ -91,7 +91,7 @@ const AnimatedGif: React.FC<AnimatedGifProps> = ({
       return;
     }
 
-    // If static image fails or doesn't exist, use generic fallback
+    
     if ((staticImageSrc && loadAttempts.current > 3) || (!staticImageSrc && loadAttempts.current >= 3)) {
       const normalizedFallbackSrc = normalizePath(fallbackSrc);
       setCurrentSrc(normalizedFallbackSrc);

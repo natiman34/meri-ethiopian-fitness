@@ -31,34 +31,10 @@ export class AuthService {
   // Register a new user
   public async register(name: string, email: string, password: string): Promise<User> {
     try {
-      // In a real implementation, this would make an API call to the backend
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, email, password }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Registration failed")
-      }
-
-      const userData = await response.json()
-
-      // Create a User object from the response data
-      const user = new User(
-        userData.id,
-        userData.name,
-        userData.email,
-        userData.role || UserRole.USER,
-        userData.createdAt,
-        userData.lastLogin,
-      )
-
-      this.currentUser = user
-      return user
+      // This service is deprecated - authentication is now handled by AuthContext with Supabase
+      // This method is kept for backward compatibility but should not be used
+      console.warn("AuthService.register is deprecated. Use AuthContext instead.");
+      throw new Error("This authentication method is deprecated. Please use the main authentication system.");
     } catch (error) {
       console.error("Registration error:", error)
       throw error
@@ -68,73 +44,10 @@ export class AuthService {
   // Login a user
   public async login(email: string, password: string): Promise<User> {
     try {
-      // In a real implementation, this would make an API call to the backend
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Login failed")
-      }
-
-      const userData = await response.json()
-
-      // Create the appropriate user type based on the role
-      let user: User
-
-      switch (userData.role) {
-        case UserRole.ADMIN_SUPER:
-          user = new Admin(
-            userData.id,
-            userData.name,
-            userData.email,
-            userData.role,
-            userData.createdAt,
-            userData.lastLogin,
-            userData.adminLevel || "super",
-          )
-          break
-        case UserRole.ADMIN_FITNESS:
-          user = new WorkoutPlanner(
-            userData.id,
-            userData.name,
-            userData.email,
-            userData.createdAt,
-            userData.lastLogin,
-            userData.specialization || "general",
-            userData.certification || "certified",
-          )
-          break
-        case UserRole.ADMIN_NUTRITIONIST:
-          user = new Nutritionist(
-            userData.id,
-            userData.name,
-            userData.email,
-            userData.createdAt,
-            userData.lastLogin,
-            userData.specialization || "general",
-            userData.certification || "certified",
-          )
-          break
-        default:
-          user = new User(
-            userData.id,
-            userData.name,
-            userData.email,
-            userData.role || UserRole.USER,
-            userData.createdAt,
-            userData.lastLogin,
-            userData.bmiResults || [],
-          )
-      }
-
-      this.currentUser = user
-      return user
+      // This service is deprecated - authentication is now handled by AuthContext with Supabase
+      // This method is kept for backward compatibility but should not be used
+      console.warn("AuthService.login is deprecated. Use AuthContext instead.");
+      throw new Error("This authentication method is deprecated. Please use the main authentication system.");
     } catch (error) {
       console.error("Login error:", error)
       throw error
@@ -144,16 +57,9 @@ export class AuthService {
   // Logout the current user
   public async logout(): Promise<void> {
     try {
-      // In a real implementation, this would make an API call to the backend
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Logout failed")
-      }
-
+      // This service is deprecated - authentication is now handled by AuthContext with Supabase
+      // This method is kept for backward compatibility but should not be used
+      console.warn("AuthService.logout is deprecated. Use AuthContext instead.");
       this.currentUser = null
     } catch (error) {
       console.error("Logout error:", error)

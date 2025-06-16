@@ -734,7 +734,6 @@ const AdminNutrition = () => {
                     className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
                   >
                     <Database className="mr-1 h-4 w-4" />
-                    Add from Database
                   </button>
                 </div>
               </div>
@@ -981,7 +980,6 @@ const AdminNutrition = () => {
                     className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
                   >
                     <Database className="mr-1 h-4 w-4" />
-                    Add from Database
                   </button>
                 </div>
               </div>

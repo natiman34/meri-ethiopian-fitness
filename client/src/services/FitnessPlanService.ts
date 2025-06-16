@@ -22,22 +22,59 @@ export class FitnessPlanService {
   }
 
   /**
-   * Fetches all fitness plans, optionally filtered by status.
+   * Fetches all fitness plans from both local data and database, optionally filtered by status.
    * @param status 'draft' | 'published' | undefined
    * @returns A promise that resolves to an array of FitnessPlan objects.
    */
   public async getFitnessPlans(status?: string): Promise<FitnessPlan[]> {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const allPlans = getAllFitnessPlans();
+      // Get local plans
+      const localPlans = getAllFitnessPlans();
 
-    if (status) {
-        return allPlans.filter(plan => plan.status === status).map(plan => new FitnessPlan(plan as FitnessPlan));
+      // Get database plans
+      let query = supabase
+        .from('fitness_plans')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (status) {
+        query = query.eq('status', status);
       }
-      
-      return allPlans.map(plan => new FitnessPlan(plan as FitnessPlan));
+
+      const { data: dbPlans, error } = await query;
+
+      if (error) {
+        console.warn('Error fetching database plans, using local only:', error);
+        // Fall back to local plans only
+        const filteredLocalPlans = status
+          ? localPlans.filter(plan => plan.status === status)
+          : localPlans;
+        return filteredLocalPlans.map(plan => new FitnessPlan(plan as FitnessPlan));
+      }
+
+      console.log('Database plans fetched:', dbPlans?.length || 0, 'plans')
+      console.log('Database plans:', dbPlans)
+
+      // Combine local and database plans, avoiding duplicates
+      const allPlans = [...localPlans];
+      const localPlanIds = new Set(localPlans.map(plan => plan.id));
+
+      if (dbPlans) {
+        dbPlans.forEach(dbPlan => {
+          if (!localPlanIds.has(dbPlan.id)) {
+            allPlans.push(dbPlan as FitnessPlan);
+          }
+        });
+      }
+
+      const filteredPlans = status
+        ? allPlans.filter(plan => plan.status === status)
+        : allPlans;
+
+      console.log('Filtered plans:', filteredPlans.length, 'plans with status:', status)
+      console.log('Final plans to return:', filteredPlans)
+
+      return filteredPlans.map(plan => new FitnessPlan(plan as FitnessPlan));
     } catch (error) {
       console.error('Error fetching fitness plans:', error);
       throw new Error('Failed to fetch fitness plans');
@@ -45,17 +82,39 @@ export class FitnessPlanService {
   }
 
   /**
-   * Fetches a single fitness plan by its ID.
+   * Fetches a single fitness plan by its ID from both database and local data.
    * @param id The ID of the fitness plan.
    * @returns A promise that resolves to a FitnessPlan object or null if not found.
    */
   public async getFitnessPlanById(id: string): Promise<FitnessPlan | null> {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      const plan = getFitnessPlanById(id);
-      return plan ? new FitnessPlan(plan as FitnessPlan) : null;
+      console.log('Searching for plan with ID:', id);
+
+      // First try to get from database
+      const { data: dbPlan, error } = await supabase
+        .from('fitness_plans')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (!error && dbPlan) {
+        console.log('Found plan in database:', dbPlan);
+        return new FitnessPlan(dbPlan);
+      }
+
+      if (error) {
+        console.log('Database error (trying local):', error);
+      }
+
+      // Fallback to local data
+      const localPlan = getFitnessPlanById(id);
+      if (localPlan) {
+        console.log('Found plan in local data:', localPlan);
+        return new FitnessPlan(localPlan as FitnessPlan);
+      }
+
+      console.log('Plan not found in database or local data');
+      return null;
     } catch (error) {
       console.error('Error fetching fitness plan:', error);
       throw new Error('Failed to fetch fitness plan');
@@ -72,8 +131,8 @@ export class FitnessPlanService {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const newPlanData: FitnessPlan = {
-        ...plan as FitnessPlan,
+      const newPlanData = {
+        ...plan,
         id: `plan-${Date.now()}`,
         created_at: new Date().toISOString(),
         status: plan.status || 'draft',
@@ -129,8 +188,8 @@ export class FitnessPlanService {
         throw new Error('Fitness plan not found');
       }
       
-      const updatedPlanData: FitnessPlan = {
-        ...planData as FitnessPlan,
+      const updatedPlanData = {
+        ...planData,
         ...updates
       };
       

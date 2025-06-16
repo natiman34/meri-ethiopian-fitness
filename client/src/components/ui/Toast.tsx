@@ -101,7 +101,7 @@ const Toast: React.FC<ToastProps> = ({
   )
 }
 
-// Toast Hook for easier usage
+
 export const useToast = () => {
   const [toasts, setToasts] = useState<Array<{
     id: string

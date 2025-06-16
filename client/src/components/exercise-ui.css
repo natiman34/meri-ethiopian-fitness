@@ -1,6 +1,4 @@
-/* Exercise UI Components Styles */
 
-/* Line clamp utility for text truncation */
 .line-clamp-1 {
   overflow: hidden;
   display: -webkit-box;
@@ -22,7 +20,7 @@
   -webkit-line-clamp: 3;
 }
 
-/* Exercise Card Hover Effects */
+
 .exercise-card {
   transition: all 0.3s ease;
 }
@@ -32,7 +30,6 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
-/* Image Hover Effects */
 .exercise-image {
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
@@ -42,13 +39,13 @@
   opacity: 0.9;
 }
 
-/* Modal Backdrop */
+
 .modal-backdrop {
   backdrop-filter: blur(4px);
   background-color: rgba(0, 0, 0, 0.75);
 }
 
-/* Smooth Transitions */
+
 .smooth-transition {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -67,7 +64,7 @@
   }
 }
 
-/* Skeleton Loading */
+
 .skeleton {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
@@ -83,7 +80,7 @@
   }
 }
 
-/* Difficulty Badge Colors */
+
 .difficulty-beginner {
   background-color: #dcfce7;
   color: #166534;
@@ -99,7 +96,6 @@
   color: #991b1b;
 }
 
-/* Category Badge Colors */
 .category-strength {
   background-color: #dbeafe;
   color: #1e40af;
@@ -125,7 +121,6 @@
   color: #ea580c;
 }
 
-/* Muscle Group Colors */
 .muscle-chest {
   background-color: #fee2e2;
   color: #991b1b;
@@ -166,7 +161,6 @@
   color: #374151;
 }
 
-/* Exercise Gallery Grid */
 .exercise-gallery-grid {
   display: grid;
   gap: 1.5rem;
@@ -212,7 +206,6 @@
   }
 }
 
-/* Masonry Layout */
 .masonry-layout {
   columns: 1;
   column-gap: 1.5rem;
@@ -241,7 +234,6 @@
   margin-bottom: 1.5rem;
 }
 
-/* Filter Styles */
 .filter-chip {
   transition: all 0.2s ease;
 }
@@ -255,7 +247,6 @@
   color: white;
 }
 
-/* Search Input */
 .search-input {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -265,7 +256,6 @@
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
-/* Tab Navigation */
 .tab-nav {
   border-bottom: 2px solid #e5e7eb;
 }
@@ -284,7 +274,6 @@
   color: #10b981;
 }
 
-/* Exercise Steps */
 .exercise-step {
   counter-increment: step-counter;
 }
@@ -304,13 +293,11 @@
   margin-right: 0.75rem;
 }
 
-/* Progress Indicators */
 .progress-bar {
   background: linear-gradient(90deg, #10b981 0%, #059669 100%);
   transition: width 0.3s ease;
 }
 
-/* Animation Classes */
 .fade-in {
   animation: fadeIn 0.3s ease-in;
 }
@@ -356,7 +343,6 @@
   }
 }
 
-/* Responsive Utilities */
 @media (max-width: 640px) {
   .mobile-hidden {
     display: none;
@@ -373,7 +359,6 @@
   }
 }
 
-/* Print Styles */
 @media print {
   .no-print {
     display: none !important;

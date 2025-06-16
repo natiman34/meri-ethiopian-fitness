@@ -21,11 +21,9 @@ const Exercise: React.FC<ExerciseProps> = ({
 }) => {
   const [imageError, setImageError] = useState(false);
 
-  // Determine which image source to use - prefer GIF if available
   const displayImageSrc = gifUrl || image;
   const isGif = displayImageSrc.toLowerCase().endsWith('.gif') || (gifUrl && gifUrl.length > 0);
 
-  // Normalize paths
   const normalizedImage = normalizePath(image);
   const normalizedGif = gifUrl ? normalizePath(gifUrl) : '';
 
@@ -40,7 +38,7 @@ const Exercise: React.FC<ExerciseProps> = ({
             <AnimatedGif 
               src={normalizedGif} 
               alt={name} 
-              staticImageSrc={normalizedImage} // Pass the static image as fallback
+              staticImageSrc={normalizedImage} 
               className="w-full h-full object-contain"
             />
           ) : (

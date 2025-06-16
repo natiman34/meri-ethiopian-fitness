@@ -60,12 +60,20 @@ export class Admin extends User {
   }
 
   // Static factory method to create Admin from plain object
-  static fromObject(obj: any): Admin {
-    return new Admin(obj.id, obj.name, obj.email, obj.role, obj.createdAt, obj.lastLogin, obj.adminLevel)
+  static fromObject(obj: Record<string, unknown>): Admin {
+    return new Admin(
+      obj.id as string,
+      obj.name as string,
+      obj.email as string,
+      obj.role as UserRole,
+      obj.createdAt as string,
+      obj.lastLogin as string,
+      obj.adminLevel as string
+    )
   }
 
   // Override toObject to include admin-specific properties
-  override toObject(): any {
+  override toObject(): Record<string, unknown> {
     return {
       ...super.toObject(),
       adminLevel: this._adminLevel,

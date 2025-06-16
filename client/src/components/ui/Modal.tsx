@@ -25,7 +25,7 @@ const Modal: React.FC<ModalProps> = ({
   closeOnBackdrop = true,
   closeOnEscape = true
 }) => {
-  // Handle escape key
+  
   useEffect(() => {
     if (!closeOnEscape || !isOpen) return
 
@@ -39,7 +39,7 @@ const Modal: React.FC<ModalProps> = ({
     return () => document.removeEventListener("keydown", handleEscape)
   }, [isOpen, onClose, closeOnEscape])
 
-  // Prevent body scroll when modal is open
+  
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden"
@@ -79,6 +79,9 @@ const Modal: React.FC<ModalProps> = ({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 transition-opacity duration-300"
       onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={title ? "modal-title" : undefined}
     >
       <div
         className={`
@@ -87,12 +90,13 @@ const Modal: React.FC<ModalProps> = ({
           ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}
         `}
         onClick={(e) => e.stopPropagation()}
+        role="document"
       >
         {/* Header */}
         {(title || showCloseButton) && (
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             {title && (
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 id="modal-title" className="text-lg font-semibold text-gray-900">
                 {title}
               </h3>
             )}
@@ -100,6 +104,7 @@ const Modal: React.FC<ModalProps> = ({
               <button
                 onClick={onClose}
                 className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 rounded-md p-1"
+                aria-label="Close modal"
               >
                 <X size={20} />
               </button>
@@ -116,7 +121,7 @@ const Modal: React.FC<ModalProps> = ({
   )
 }
 
-// Error Modal Component
+
 interface ErrorModalProps {
   isOpen: boolean
   onClose: () => void
@@ -163,7 +168,7 @@ export const ErrorModal: React.FC<ErrorModalProps> = ({
   )
 }
 
-// Success Modal Component
+
 interface SuccessModalProps {
   isOpen: boolean
   onClose: () => void

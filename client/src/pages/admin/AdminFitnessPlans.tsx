@@ -3,18 +3,31 @@
 import { useState, useEffect } from "react"
 import Card from "../../components/ui/Card"
 import Button from "../../components/ui/Button"
-import { Plus, Edit, Trash2, Save, X, Dumbbell, UtensilsCrossed } from "lucide-react"
+import {
+  Plus, Edit, Trash2, Save, X, Dumbbell, Upload, Link as LinkIcon,
+  Image as ImageIcon, Play, Eye, Calendar, Clock, Target, Users,
+  FileText, BarChart3, Settings, AlertCircle, CheckCircle
+} from "lucide-react"
 import { FitnessPlanService } from "../../services/FitnessPlanService"
-import { FitnessPlan, FitnessCategory, FitnessLevel } from "../../types/content"
+import { FitnessPlan, FitnessCategory, FitnessLevel, Exercise, DaySchedule } from "../../types/content"
 import { useAuth } from "../../contexts/AuthContext"
+import { supabase } from "../../lib/supabase"
 
 const AdminFitnessPlans = () => {
   const [plans, setPlans] = useState<FitnessPlan[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [currentPlan, setCurrentPlan] = useState<Omit<FitnessPlan, 'id' | 'created_at'> | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState<'overview' | 'create' | 'manage'>('overview')
+  const [uploadingFile, setUploadingFile] = useState<'image' | 'thumbnail' | 'full' | null>(null)
+  const [previewUrls, setPreviewUrls] = useState<{
+    image?: string;
+    thumbnail?: string;
+    full?: string;
+  }>({})
   const { user } = useAuth()
 
   const fitnessPlanService = FitnessPlanService.getInstance()
@@ -27,8 +40,16 @@ const AdminFitnessPlans = () => {
     setIsLoading(true)
     setError(null)
     try {
-      const fetchedPlans = await fitnessPlanService.getFitnessPlans()
-      setPlans(fetchedPlans)
+      // Try to fetch from Supabase database first
+      try {
+        const databasePlans = await fitnessPlanService.getFitnessPlansFromDatabase()
+        setPlans(databasePlans)
+      } catch (dbError) {
+        console.warn("Database fetch failed, using local data:", dbError)
+        // Fallback to local data if database is not available
+        const localPlans = await fitnessPlanService.getFitnessPlans()
+        setPlans(localPlans)
+      }
     } catch (err: any) {
       console.error("Error fetching fitness plans:", err)
       setError("Failed to load fitness plans: " + err.message)
@@ -45,6 +66,69 @@ const AdminFitnessPlans = () => {
     }))
   }
 
+  // File upload handlers
+  const handleFileUpload = async (file: File, type: 'image' | 'thumbnail' | 'full') => {
+    if (!currentPlan) return
+
+    setUploadingFile(type)
+    setError(null)
+
+    try {
+      // Validate file
+      if (type === 'image' && !file.type.startsWith('image/')) {
+        throw new Error('Please select an image file')
+      }
+      if ((type === 'thumbnail' || type === 'full') && !file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+        throw new Error('Please select an image or GIF file')
+      }
+
+      // Check file size (max 10MB for GIFs, 5MB for images)
+      const maxSize = (type === 'thumbnail' || type === 'full') ? 10 * 1024 * 1024 : 5 * 1024 * 1024
+      if (file.size > maxSize) {
+        throw new Error(`File size must be less than ${maxSize / (1024 * 1024)}MB`)
+      }
+
+      const planId = currentPlan.title.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now()
+      let uploadedUrl: string
+
+      if (type === 'image') {
+        uploadedUrl = await fitnessPlanService.uploadImage(file, planId)
+        setCurrentPlan(prev => ({ ...prev!, image_url: uploadedUrl }))
+      } else if (type === 'thumbnail') {
+        uploadedUrl = await fitnessPlanService.uploadGif(file, planId, 'thumbnail')
+        setCurrentPlan(prev => ({ ...prev!, thumbnail_gif_url: uploadedUrl }))
+      } else {
+        uploadedUrl = await fitnessPlanService.uploadGif(file, planId, 'full')
+        setCurrentPlan(prev => ({ ...prev!, full_gif_url: uploadedUrl }))
+      }
+
+      // Create preview URL for immediate display
+      const previewUrl = URL.createObjectURL(file)
+      setPreviewUrls(prev => ({ ...prev, [type]: previewUrl }))
+
+      setSuccess(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully!`)
+    } catch (err: any) {
+      console.error(`Error uploading ${type}:`, err)
+      setError(`Failed to upload ${type}: ${err.message}`)
+    } finally {
+      setUploadingFile(null)
+    }
+  }
+
+  const handleUrlInput = (url: string, type: 'image' | 'thumbnail' | 'full') => {
+    if (!currentPlan) return
+
+    if (type === 'image') {
+      setCurrentPlan(prev => ({ ...prev!, image_url: url }))
+    } else if (type === 'thumbnail') {
+      setCurrentPlan(prev => ({ ...prev!, thumbnail_gif_url: url }))
+    } else {
+      setCurrentPlan(prev => ({ ...prev!, full_gif_url: url }))
+    }
+
+    setPreviewUrls(prev => ({ ...prev, [type]: url }))
+  }
+
   const handleAddClick = () => {
     setCurrentPlan(new FitnessPlan({
       user_id: user?.id || null,
@@ -52,9 +136,9 @@ const AdminFitnessPlans = () => {
       description: "",
       category: "weight-loss", // Default category
       level: "beginner",      // Default level
-      duration: 0,            // Default duration as number
-      weekly_workouts: 0,
-      difficulty: 0,
+      duration: 4,            // Default duration as number
+      weekly_workouts: 3,
+      difficulty: 1,
       prerequisites: [],
       equipment: [],
       goals: [],
@@ -67,6 +151,8 @@ const AdminFitnessPlans = () => {
       intensity: "low",
       created_at: new Date().toISOString(),
     }))
+    setPreviewUrls({})
+    setActiveTab('create')
     setShowAddForm(true)
   }
 
@@ -94,6 +180,15 @@ const AdminFitnessPlans = () => {
       intensity: plan.intensity || "low",
       created_at: plan.created_at || new Date().toISOString(),
     }))
+
+    // Set preview URLs for existing media
+    setPreviewUrls({
+      image: plan.image_url,
+      thumbnail: plan.thumbnail_gif_url,
+      full: plan.full_gif_url
+    })
+
+    setActiveTab('create')
     setShowAddForm(true)
   }
 
@@ -103,20 +198,39 @@ const AdminFitnessPlans = () => {
 
     setIsSaving(true)
     setError(null)
+    setSuccess(null)
+
     try {
       if ('id' in currentPlan && currentPlan.id) {
-        // Update existing plan
-        await fitnessPlanService.updateFitnessPlan(currentPlan.id as string, currentPlan)
+        // Update existing plan - try database first, fallback to local
+        try {
+          await fitnessPlanService.updateFitnessPlanInDatabase(currentPlan.id as string, currentPlan)
+          setSuccess("Fitness plan updated successfully in database!")
+        } catch (dbError) {
+          console.warn("Database update failed, using local update:", dbError)
+          await fitnessPlanService.updateFitnessPlan(currentPlan.id as string, currentPlan)
+          setSuccess("Fitness plan updated successfully locally!")
+        }
       } else {
-        // Create new plan
-        const newPlanInstance = new FitnessPlan({
-          ...currentPlan,
-          user_id: user?.id || null, // Ensure user_id is set
-          created_at: new Date().toISOString(), // Ensure created_at is set for new plans
-        })
-        await fitnessPlanService.createFitnessPlan(newPlanInstance)
+        // Create new plan - try database first, fallback to local
+        try {
+          await fitnessPlanService.createFitnessPlanInDatabase(currentPlan)
+          setSuccess("Fitness plan created successfully in database!")
+        } catch (dbError) {
+          console.warn("Database create failed, using local create:", dbError)
+          const newPlanInstance = new FitnessPlan({
+            ...currentPlan,
+            user_id: user?.id || null,
+            created_at: new Date().toISOString(),
+          })
+          await fitnessPlanService.createFitnessPlan(newPlanInstance)
+          setSuccess("Fitness plan created successfully locally!")
+        }
       }
+
       setShowAddForm(false)
+      setActiveTab('overview')
+      setPreviewUrls({})
       await fetchPlans() // Re-fetch to show updated list
     } catch (err: any) {
       console.error("Error saving fitness plan:", err)
@@ -127,12 +241,23 @@ const AdminFitnessPlans = () => {
   }
 
   const handleDelete = async (planId: string) => {
-    if (!confirm("Are you sure you want to delete this fitness plan?")) return
+    if (!confirm("Are you sure you want to delete this fitness plan? This action cannot be undone.")) return
 
-    setIsLoading(true) // Use global loading for delete
+    setIsLoading(true)
     setError(null)
+    setSuccess(null)
+
     try {
-      await fitnessPlanService.deleteFitnessPlan(planId)
+      // Try database delete first, fallback to local
+      try {
+        await fitnessPlanService.deleteFitnessPlanFromDatabase(planId)
+        setSuccess("Fitness plan deleted successfully from database!")
+      } catch (dbError) {
+        console.warn("Database delete failed, using local delete:", dbError)
+        await fitnessPlanService.deleteFitnessPlan(planId)
+        setSuccess("Fitness plan deleted successfully locally!")
+      }
+
       setPlans(plans.filter((plan) => plan.id !== planId)) // Optimistic update
     } catch (err: any) {
       console.error("Error deleting fitness plan:", err)
@@ -144,20 +269,76 @@ const AdminFitnessPlans = () => {
 
   return (
     <div className="min-h-screen">
+      {/* Enhanced Header */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-gray-900">Fitness Plans Management</h2>
-        <Button onClick={handleAddClick} leftIcon={<Plus size={16} />}>
-          Add New Plan
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+            <Dumbbell className="h-6 w-6 text-green-600 mr-3" />
+            Admin Fitness Dashboard
+          </h2>
+          <p className="text-gray-600 mt-1">Manage fitness plans with Supabase integration and GIF uploads</p>
+        </div>
+        <Button
+          onClick={handleAddClick}
+          leftIcon={<Plus size={16} />}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          Create New Plan
         </Button>
       </div>
 
+      {/* Tab Navigation */}
+      <div className="flex border-b border-gray-200 mb-6">
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`flex items-center px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'overview'
+              ? 'border-green-500 text-green-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4 mr-2" />
+          Overview
+        </button>
+        <button
+          onClick={() => setActiveTab('create')}
+          className={`flex items-center px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'create'
+              ? 'border-green-500 text-green-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          }`}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Create Plan
+        </button>
+        <button
+          onClick={() => setActiveTab('manage')}
+          className={`flex items-center px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'manage'
+              ? 'border-green-500 text-green-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          }`}
+        >
+          <Settings className="w-4 h-4 mr-2" />
+          Manage Plans
+        </button>
+      </div>
+
+      {/* Status Messages */}
       {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center">
+          <AlertCircle className="h-5 w-5 mr-2" />
           {error}
         </div>
       )}
-      {isLoading && (
-        <div className="mb-4 p-3 bg-blue-50 text-blue-700 rounded-md">
+      {success && (
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center">
+          <CheckCircle className="h-5 w-5 mr-2" />
+          {success}
+        </div>
+      )}
+      {isLoading && activeTab === 'overview' && (
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg">
           Loading fitness plans...
         </div>
       )}

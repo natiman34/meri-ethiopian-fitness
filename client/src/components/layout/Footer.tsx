@@ -6,7 +6,6 @@ const Footer: React.FC = () => {
     <footer className="bg-gray-900 text-white">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Brand and Description */}
           <div className="mb-6 md:mb-0">
             <Link to="/" className="flex items-center mb-4">
               <div className="font-bold text-xl flex items-center">
@@ -22,7 +21,6 @@ const Footer: React.FC = () => {
             </p>
           </div>
 
-          {/* Quick Links */}
           <div>
             <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
             <ul className="space-y-2">

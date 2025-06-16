@@ -1,4 +1,3 @@
-// Motivational quotes and content for the fitness application
 
 export interface MotivationalQuote {
   id: string
@@ -111,7 +110,6 @@ export const getRandomQuoteByCategory = (category: MotivationalQuote['category']
   return categoryQuotes[randomIndex] || motivationalQuotes[0]
 }
 
-// Fitness tips and strategies
 export interface FitnessTip {
   id: string
   title: string

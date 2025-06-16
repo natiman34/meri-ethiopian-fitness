@@ -1,9 +1,9 @@
+/* Import exercise UI styles */
+@import './components/exercise-ui.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import exercise UI styles */
-@import './components/exercise-ui.css';
 
 :root {
   --primary: #4caf50;

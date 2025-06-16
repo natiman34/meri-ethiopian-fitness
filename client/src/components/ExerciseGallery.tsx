@@ -24,12 +24,10 @@ const ExerciseGallery: React.FC<ExerciseGalleryProps> = ({
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Get unique values for filters
   const difficulties = useMemo(() => ['all', ...Array.from(new Set(exercises.map(e => e.difficulty)))], [exercises]);
   const categories = useMemo(() => ['all', ...Array.from(new Set(exercises.map(e => e.category)))], [exercises]);
   const muscleGroups = useMemo(() => ['all', ...Array.from(new Set(exercises.map(e => e.muscleGroup)))], [exercises]);
 
-  // Filter exercises
   const filteredExercises = useMemo(() => {
     return exercises.filter(exercise => {
       const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

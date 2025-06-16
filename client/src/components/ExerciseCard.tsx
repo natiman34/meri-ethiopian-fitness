@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Exercise } from '../types/content';
-import { Play, Pause, Info, Target, Clock, Dumbbell } from 'lucide-react';
+import { Play, Pause, Info, Target, Clock } from 'lucide-react';
 import ImageWithFallback from './ImageWithFallback';
 
 interface ExerciseCardProps {
@@ -40,9 +40,18 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
 
   if (variant === 'compact') {
     return (
-      <div 
+      <div
         className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer overflow-hidden"
         onClick={onClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if ((e.key === 'Enter' || e.key === ' ') && onClick) {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+        aria-label={`View details for ${exercise.name} exercise`}
       >
         <div className="relative h-32">
           <ImageWithFallback
@@ -133,6 +142,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                 setIsPlaying(!isPlaying);
               }}
               className="bg-white/90 backdrop-blur-sm rounded-full p-2 hover:bg-white transition-colors"
+              aria-label={isPlaying ? 'Pause exercise animation' : 'Play exercise animation'}
             >
               {isPlaying ? (
                 <Pause className="h-4 w-4 text-gray-700" />
@@ -151,6 +161,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
             <button
               onClick={onClick}
               className="text-green-600 hover:text-green-700 transition-colors"
+              aria-label={`View more details about ${exercise.name}`}
             >
               <Info className="h-5 w-5" />
             </button>

@@ -1,8 +1,8 @@
 "use client"
 
 import React, { useState } from "react"
-import { Link } from "react-router-dom"
-import { useAuth } from "../../contexts/AuthContext"
+import { Link, useNavigate } from "react-router-dom"
+import { supabase } from "../../lib/supabase"
 import Button from "../../components/ui/Button"
 import Card from "../../components/ui/Card"
 import { Mail, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react"
@@ -12,8 +12,9 @@ const ResetPassword: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState("")
+  const [resetMethod, setResetMethod] = useState<'otp' | 'email'>('otp')
 
-  const { resetPassword, authError } = useAuth()
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -28,18 +29,49 @@ const ResetPassword: React.FC = () => {
         return
       }
 
-      // Send password reset email using AuthContext
-      await resetPassword(email)
+      console.log("Sending password reset OTP to email:", email)
 
+      // Use resetPasswordForEmail with OTP-based recovery
+      // This is the correct method for password reset, not signInWithOtp
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/verify-reset-otp?email=${encodeURIComponent(email)}&type=recovery`
+      })
+
+      if (error) {
+        console.error("Password reset error:", error)
+
+        // Provide user-friendly error messages
+        if (error.message?.includes("User not found") ||
+            error.message?.includes("not found") ||
+            error.message?.includes("Unable to validate email address") ||
+            error.message?.includes("Invalid email")) {
+          setError("No account found with this email address. Please check your email or create a new account.")
+        } else if (error.message?.includes("rate limit") || error.message?.includes("Too many")) {
+          setError("Too many password reset requests. Please wait a few minutes before trying again.")
+        } else if (error.message?.includes("Email rate limit")) {
+          setError("Too many emails sent. Please wait before requesting another password reset.")
+        } else {
+          // For security, don't reveal if email exists or not
+          setError("If an account with this email exists, you will receive a password reset code.")
+        }
+        return
+      }
+
+      console.log("Password reset OTP sent successfully:", data)
+      setResetMethod('otp')
       setIsSuccess(true)
+
     } catch (err: any) {
       console.error("Password reset error:", err)
-
-      // Use the error message from the AuthContext or provide a fallback
-      setError(err.message || "Failed to send password reset email. Please try again.")
+      setError("If an account with this email exists, you will receive a password reset code.")
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const proceedToVerification = () => {
+    // Navigate to OTP verification page with email
+    navigate("/verify-reset-otp", { state: { email, type: 'recovery' } })
   }
 
   if (isSuccess) {
@@ -61,14 +93,59 @@ const ResetPassword: React.FC = () => {
             <Card.Body>
               <div className="text-center">
                 <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Check your email</h2>
-                <p className="text-gray-600 mb-6">
-                  We've sent a password reset link to <strong>{email}</strong>
-                </p>
-                <p className="text-sm text-gray-500 mb-6">
-                  Click the link in the email to reset your password. The link will expire in 1 hour.
-                </p>
-                <div className="space-y-3">
+                {resetMethod === 'otp' ? (
+                  <>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">OTP Sent!</h2>
+                    <p className="text-gray-600 mb-4">
+                      We've sent a 6-digit verification code to:
+                    </p>
+                    <p className="font-medium text-gray-900 mb-6">{email}</p>
+                    <p className="text-sm text-gray-500 mb-6">
+                      The code will expire in 1 hour. Please check your email for the 6-digit code and enter it on the next page.
+                    </p>
+
+                    <div className="space-y-4">
+                      <Button
+                        onClick={proceedToVerification}
+                        variant="primary"
+                        fullWidth
+                      >
+                        Enter Verification Code
+                      </Button>
+
+                      <Button
+                        onClick={() => setIsSuccess(false)}
+                        variant="outline"
+                        fullWidth
+                      >
+                        Send Another Code
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Check your email</h2>
+                    <p className="text-gray-600 mb-4">
+                      We've sent a password reset link to:
+                    </p>
+                    <p className="font-medium text-gray-900 mb-6">{email}</p>
+                    <p className="text-sm text-gray-500 mb-6">
+                      Click the link in the email to reset your password. The link will expire in 1 hour.
+                    </p>
+
+                    <div className="space-y-4">
+                      <Button
+                        onClick={() => setIsSuccess(false)}
+                        variant="outline"
+                        fullWidth
+                      >
+                        Send Another Email
+                      </Button>
+                    </div>
+                  </>
+                )}
+
+                <div className="mt-6">
                   <Link
                     to="/login"
                     className="inline-flex items-center text-sm text-green-600 hover:text-green-500"
@@ -99,7 +176,7 @@ const ResetPassword: React.FC = () => {
           </Link>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Reset your password</h2>
           <p className="mt-2 text-sm text-gray-600">
-            Enter your email address and we'll send you a link to reset your password.
+            Enter your email address and we'll send you a verification code to reset your password.
           </p>
         </div>
 
@@ -136,7 +213,7 @@ const ResetPassword: React.FC = () => {
 
               <div>
                 <Button type="submit" variant="primary" fullWidth isLoading={isLoading}>
-                  Send reset link
+                  Send Verification Code
                 </Button>
               </div>
 

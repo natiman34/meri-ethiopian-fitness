@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FitnessPlan, FitnessCategory, FitnessLevel, NutritionPlan, NutritionCategory } from "../../types/content";
 import { getAllFitnessPlans, getFeaturedFitnessPlans } from "../../data/fitnessPlans";
+import { FitnessPlanService } from "../../services/FitnessPlanService";
 import { nutritionPlanService } from "../../services/NutritionPlanService";
 import { getAllNutritionPlans as getLocalAllNutritionPlans, getFeaturedNutritionPlans as getLocalFeaturedNutritionPlans } from "../../data/nutritionPlans";
 import { Loader2, AlertCircle, Dumbbell, Utensils, Star, Clock, Target, TrendingUp, Globe } from "lucide-react";
@@ -144,8 +145,12 @@ const FitnessAndNutritionPlans: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        // Use the new fitness plans data
-        const allFitnessPlans = getAllFitnessPlans();
+        // Use enhanced fitness plan service that combines local and database plans
+        const fitnessPlanService = FitnessPlanService.getInstance();
+        console.log('Fetching published fitness plans...')
+        const allFitnessPlans = await fitnessPlanService.getFitnessPlans('published');
+        console.log('Fetched fitness plans:', allFitnessPlans.length, 'plans')
+        console.log('Fitness plans data:', allFitnessPlans)
         setFitnessPlans(allFitnessPlans);
 
         // Fetch nutrition plans from enhanced service (includes database + local data)
@@ -154,6 +159,14 @@ const FitnessAndNutritionPlans: React.FC = () => {
       } catch (err) {
         console.error("Failed to fetch plans:", err);
         setError("Failed to load plans. Please try again later.");
+
+        // Fallback to local data if service fails
+        try {
+          const localFitnessPlans = getAllFitnessPlans().filter(plan => plan.status === 'published');
+          setFitnessPlans(localFitnessPlans);
+        } catch (fallbackErr) {
+          console.error("Fallback also failed:", fallbackErr);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -166,6 +179,12 @@ const FitnessAndNutritionPlans: React.FC = () => {
     (selectedFitnessCategory === 'all' || plan.category === selectedFitnessCategory) &&
     (selectedFitnessLevel === 'all' || plan.level === selectedFitnessLevel)
   );
+
+  // Debug logging
+  console.log('All fitness plans:', fitnessPlans.length, fitnessPlans)
+  console.log('Filtered fitness plans:', filteredFitnessPlans.length, filteredFitnessPlans)
+  console.log('Weight loss plans:', filteredFitnessPlans.filter(plan => plan.category === 'weight-loss'))
+  console.log('Selected category:', selectedFitnessCategory, 'Selected level:', selectedFitnessLevel)
 
 
 
@@ -199,7 +218,15 @@ const FitnessAndNutritionPlans: React.FC = () => {
     <div className="pt-24 pb-16">
       <div className="container mx-auto px-4">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Fitness and Nutrition Plans</h1>
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-4xl font-bold text-gray-900">Fitness and Nutrition Plans</h1>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
+            >
+              🔄 Refresh Plans
+            </button>
+          </div>
           <p className="text-lg text-gray-600 mb-8">
             Comprehensive plans combining workout routines and meal plans to help you achieve your health and fitness goals.
           </p>

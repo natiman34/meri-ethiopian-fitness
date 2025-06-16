@@ -1,7 +1,54 @@
 import { Exercise, SetType } from '../types/content';
 import { getExerciseImage } from './imageAssets';
 
-export const exercises: Exercise[] = [
+// Helper function to create complete exercise objects with default values
+const createExercise = (exercise: Partial<Exercise> & { id: string; name: string; description: string }): Exercise => {
+  return {
+    instructions: exercise.instructions || [],
+    tips: exercise.tips || [],
+    commonMistakes: exercise.commonMistakes || [],
+    variations: exercise.variations || [],
+    ...exercise,
+    image: exercise.image || getExerciseImage(exercise.id, 'image'),
+    gifUrl: exercise.gifUrl || `/images/exercises/${exercise.id}.gif`,
+    videoUrl: exercise.videoUrl || getExerciseImage(exercise.id, 'video'),
+    steps: exercise.steps || [],
+    sets: exercise.sets || [],
+    equipment: exercise.equipment || [],
+    targetMuscles: exercise.targetMuscles || [],
+    secondaryMuscles: exercise.secondaryMuscles || [],
+    difficulty: exercise.difficulty || 'intermediate',
+    category: exercise.category || 'strength',
+    estimatedTime: exercise.estimatedTime || 10,
+    caloriesBurn: exercise.caloriesBurn || 50,
+    muscleGroup: exercise.muscleGroup || 'full-body'
+  } as Exercise;
+};
+
+const addMissingProps = (exercise: any): Exercise => {
+  return {
+    instructions: [],
+    tips: [],
+    commonMistakes: [],
+    variations: [],
+    ...exercise,
+    image: exercise.image || getExerciseImage(exercise.id, 'image'),
+    gifUrl: exercise.gifUrl || `/images/exercises/${exercise.id}.gif`,
+    videoUrl: exercise.videoUrl || getExerciseImage(exercise.id, 'video'),
+    steps: exercise.steps || [],
+    sets: exercise.sets || [],
+    equipment: exercise.equipment || [],
+    targetMuscles: exercise.targetMuscles || [],
+    secondaryMuscles: exercise.secondaryMuscles || [],
+    difficulty: exercise.difficulty || 'intermediate',
+    category: exercise.category || 'strength',
+    estimatedTime: exercise.estimatedTime || 10,
+    caloriesBurn: exercise.caloriesBurn || 50,
+    muscleGroup: exercise.muscleGroup || 'full-body'
+  } as Exercise;
+};
+
+const rawExercises = [
   {
     id: 'bench-press',
     name: 'Bench Press',
@@ -114,6 +161,10 @@ export const exercises: Exercise[] = [
     secondaryMuscles: ['shoulders', 'triceps'],
     difficulty: 'intermediate',
     category: 'strength',
+    instructions: [],
+    tips: [],
+    commonMistakes: [],
+    variations: [],
     estimatedTime: 10,
     caloriesBurn: 70,
     muscleGroup: 'chest'
@@ -159,6 +210,10 @@ export const exercises: Exercise[] = [
     secondaryMuscles: ['triceps', 'upper chest'],
     difficulty: 'intermediate',
     category: 'strength',
+    instructions: [],
+    tips: [],
+    commonMistakes: [],
+    variations: [],
     estimatedTime: 10,
     caloriesBurn: 65,
     muscleGroup: 'shoulders'
@@ -204,6 +259,10 @@ export const exercises: Exercise[] = [
     secondaryMuscles: ['trapezius'],
     difficulty: 'intermediate',
     category: 'strength',
+    instructions: [],
+    tips: [],
+    commonMistakes: [],
+    variations: [],
     estimatedTime: 8,
     caloriesBurn: 50,
     muscleGroup: 'shoulders'
@@ -249,9 +308,31 @@ export const exercises: Exercise[] = [
     secondaryMuscles: ['chest', 'shoulders'],
     difficulty: 'intermediate',
     category: 'strength',
+    instructions: [
+      'Keep your body upright throughout the movement',
+      'Lower yourself until elbows reach 90 degrees',
+      'Push through your palms to return to start',
+      'Keep elbows close to your body'
+    ],
+    tips: [
+      'Use assistance bands or machine if needed',
+      'Focus on controlled movement',
+      'Keep shoulders down and back'
+    ],
+    commonMistakes: [
+      'Going too low and straining shoulders',
+      'Flaring elbows out too wide',
+      'Using momentum to bounce up'
+    ],
+    variations: [
+      'Assisted dips',
+      'Weighted dips',
+      'Bench dips',
+      'Ring dips'
+    ],
     estimatedTime: 10,
     caloriesBurn: 70,
-    muscleGroup: 'arms'
+    muscleGroup: 'triceps'
   },
   {
     id: 'skull-crushers',
@@ -294,9 +375,29 @@ export const exercises: Exercise[] = [
     secondaryMuscles: [],
     difficulty: 'intermediate',
     category: 'strength',
+    instructions: [
+      'Keep upper arms stationary throughout the movement',
+      'Control the weight on both the lowering and lifting phases',
+      'Don\'t let the weight actually touch your forehead'
+    ],
+    tips: [
+      'Use an EZ bar to reduce wrist strain',
+      'Focus on feeling the stretch in your triceps',
+      'Keep your core engaged for stability'
+    ],
+    commonMistakes: [
+      'Moving the upper arms during the exercise',
+      'Lowering the weight too fast',
+      'Using too much weight'
+    ],
+    variations: [
+      'Dumbbell skull crushers',
+      'Incline skull crushers',
+      'Cable skull crushers'
+    ],
     estimatedTime: 10,
     caloriesBurn: 60,
-    muscleGroup: 'arms'
+    muscleGroup: 'triceps'
   },
   {
     id: 'light-jogging-rowing',
@@ -323,6 +424,27 @@ export const exercises: Exercise[] = [
     secondaryMuscles: ['legs', 'core', 'arms'],
     difficulty: 'intermediate',
     category: 'cardio',
+    instructions: [
+      'Maintain steady breathing throughout',
+      'Keep a conversational pace',
+      'Focus on proper form over speed'
+    ],
+    tips: [
+      'Start slow and gradually increase intensity',
+      'Stay hydrated during the exercise',
+      'Listen to your body and adjust pace as needed'
+    ],
+    commonMistakes: [
+      'Starting too fast',
+      'Poor posture during exercise',
+      'Not maintaining consistent pace'
+    ],
+    variations: [
+      'Treadmill jogging',
+      'Outdoor jogging',
+      'Rowing machine',
+      'Stationary bike'
+    ],
     estimatedTime: 15,
     caloriesBurn: 100,
     muscleGroup: 'full-body'
@@ -809,7 +931,6 @@ export const exercises: Exercise[] = [
     caloriesBurn: 12,
     muscleGroup: 'legs'
   },
-  // Additional exercises for comprehensive fitness plans
   {
     id: 'romanian-deadlift',
     name: 'Romanian Deadlift',
@@ -851,6 +972,27 @@ export const exercises: Exercise[] = [
     secondaryMuscles: ['lower back', 'core'],
     difficulty: 'intermediate',
     category: 'strength',
+    instructions: [
+      'Keep the bar close to your body',
+      'Hinge at the hips, not the knees',
+      'Maintain a neutral spine',
+      'Feel the stretch in your hamstrings'
+    ],
+    tips: [
+      'Start with lighter weight to master the movement',
+      'Focus on the hip hinge pattern',
+      'Keep your chest up and shoulders back'
+    ],
+    commonMistakes: [
+      'Squatting instead of hinging at hips',
+      'Rounding the back',
+      'Going too low without flexibility'
+    ],
+    variations: [
+      'Single-leg Romanian deadlift',
+      'Dumbbell Romanian deadlift',
+      'Stiff-leg deadlift'
+    ],
     estimatedTime: 12,
     caloriesBurn: 80,
     muscleGroup: 'legs'
@@ -1376,7 +1518,7 @@ export const exercises: Exercise[] = [
     muscleGroup: 'abs'
   },
   // Additional exercises for Day 5-7 weight gain plan
-  {
+  createExercise({
     id: 'dumbbell-snatch',
     name: 'Dumbbell Snatch',
     description: 'Explosive full-body movement for power development.',
@@ -1417,11 +1559,32 @@ export const exercises: Exercise[] = [
     secondaryMuscles: ['shoulders', 'legs', 'core'],
     difficulty: 'advanced',
     category: 'power',
+    instructions: [
+      'Keep the dumbbell close to your body',
+      'Use explosive hip drive',
+      'Catch with arm fully extended',
+      'Control the descent'
+    ],
+    tips: [
+      'Start with lighter weight to learn the movement',
+      'Focus on explosive power from hips',
+      'Practice the catch position'
+    ],
+    commonMistakes: [
+      'Using arms instead of hips for power',
+      'Poor catch position',
+      'Not controlling the descent'
+    ],
+    variations: [
+      'Single-arm dumbbell snatch',
+      'Kettlebell snatch',
+      'Barbell snatch'
+    ],
     estimatedTime: 12,
     caloriesBurn: 100,
     muscleGroup: 'full-body'
-  },
-  {
+  }),
+  createExercise({
     id: 'kettlebell-swings',
     name: 'Kettlebell Swings',
     description: 'Dynamic hip-hinge movement for power and conditioning.',
@@ -1462,11 +1625,32 @@ export const exercises: Exercise[] = [
     secondaryMuscles: ['core', 'shoulders'],
     difficulty: 'intermediate',
     category: 'power',
+    instructions: [
+      'Hinge at hips, not knees',
+      'Drive power from hips',
+      'Keep core engaged',
+      'Let gravity bring kettlebell down'
+    ],
+    tips: [
+      'Start with lighter weight',
+      'Focus on hip snap',
+      'Keep shoulders back'
+    ],
+    commonMistakes: [
+      'Squatting instead of hinging',
+      'Using arms to lift',
+      'Going too high with swing'
+    ],
+    variations: [
+      'Single-arm kettlebell swing',
+      'American kettlebell swing',
+      'Alternating kettlebell swing'
+    ],
     estimatedTime: 10,
     caloriesBurn: 90,
     muscleGroup: 'legs'
-  },
-  {
+  }),
+  createExercise({
     id: 'box-jumps',
     name: 'Box Jumps',
     description: 'Explosive jumping exercise for lower body power.',
@@ -1507,10 +1691,31 @@ export const exercises: Exercise[] = [
     secondaryMuscles: ['core', 'calves'],
     difficulty: 'intermediate',
     category: 'plyometric',
+    instructions: [
+      'Land softly on the box',
+      'Step down, don\'t jump down',
+      'Use arms for momentum',
+      'Keep knees aligned with toes'
+    ],
+    tips: [
+      'Start with lower box height',
+      'Focus on landing technique',
+      'Rest between reps if needed'
+    ],
+    commonMistakes: [
+      'Jumping down from box',
+      'Landing with straight legs',
+      'Using box that\'s too high'
+    ],
+    variations: [
+      'Single-leg box jumps',
+      'Lateral box jumps',
+      'Box step-ups'
+    ],
     estimatedTime: 10,
     caloriesBurn: 80,
     muscleGroup: 'legs'
-  },
+  }),
   {
     id: 'battle-ropes',
     name: 'Battle Ropes',
@@ -2003,6 +2208,9 @@ export const exercises: Exercise[] = [
     muscleGroup: 'full-body'
   }
 ];
+
+// Apply missing properties to all exercises
+export const exercises: Exercise[] = rawExercises.map(exercise => addMissingProps(exercise));
 
 // Helper function to get an exercise by ID
 export const getExerciseById = (id: string): Exercise | undefined => {

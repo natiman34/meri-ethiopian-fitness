@@ -18,9 +18,38 @@ const SetNewPassword: React.FC = () => {
   const [isValidToken, setIsValidToken] = useState(false)
   const [isCheckingToken, setIsCheckingToken] = useState(true)
   const [resetTokens, setResetTokens] = useState<{accessToken: string, refreshToken: string | null}>({accessToken: '', refreshToken: null})
+  const [tokenExpiryWarning, setTokenExpiryWarning] = useState("")
 
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+
+  // Helper function to check token expiration
+  const checkTokenExpiry = (token: string): { isExpired: boolean, expiresIn: number, warning: string } => {
+    try {
+      const tokenParts = token.split('.');
+      if (tokenParts.length !== 3) return { isExpired: true, expiresIn: 0, warning: "" };
+
+      const payload = JSON.parse(atob(tokenParts[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      const expiryTime = payload.exp;
+
+      if (!expiryTime) return { isExpired: false, expiresIn: Infinity, warning: "" };
+
+      const expiresIn = expiryTime - currentTime;
+      const isExpired = expiresIn <= 0;
+
+      let warning = "";
+      if (!isExpired && expiresIn < 300) { // Less than 5 minutes
+        const minutes = Math.floor(expiresIn / 60);
+        warning = `Your password reset link will expire in ${minutes < 1 ? 'less than 1 minute' : `${minutes} minute${minutes > 1 ? 's' : ''}`}. Please complete the password reset quickly.`;
+      }
+
+      return { isExpired, expiresIn, warning };
+    } catch (error) {
+      console.error("Error checking token expiry:", error);
+      return { isExpired: false, expiresIn: 0, warning: "" };
+    }
+  }
 
   useEffect(() => {
     console.log("Current window.location:", {
@@ -86,11 +115,39 @@ const SetNewPassword: React.FC = () => {
           if (accessToken.length > 20 && accessToken.startsWith('eyJ')) {
             console.log("Reset tokens appear valid (JWT format)");
 
-            // Additional security: Validate token without creating session
+            // Additional security: Validate token structure and basic JWT format
             try {
               // Test token validity by attempting to decode (basic validation)
               const tokenParts = accessToken.split('.');
               if (tokenParts.length === 3) {
+                // Check token expiration and validity
+                const { isExpired, warning } = checkTokenExpiry(accessToken);
+
+                if (isExpired) {
+                  console.warn("Token has expired");
+                  setError("Your password reset link has expired. Please request a new password reset.");
+                  return;
+                }
+
+                if (warning) {
+                  setTokenExpiryWarning(warning);
+                  console.warn("Token expiry warning:", warning);
+                }
+
+                // Try to decode the payload for additional validation
+                try {
+                  const payload = JSON.parse(atob(tokenParts[1]));
+
+                  // Check if it's a recovery token
+                  if (payload.aud !== 'authenticated' && !payload.recovery_sent_at) {
+                    console.warn("Token doesn't appear to be a valid recovery token");
+                  }
+
+                  console.log("Token structure validation passed");
+                } catch (decodeError) {
+                  console.warn("Could not decode token payload, but proceeding with basic validation");
+                }
+
                 // Store tokens for password update but don't create session yet
                 setResetTokens({ accessToken, refreshToken });
                 setIsValidToken(true);
@@ -108,6 +165,50 @@ const SetNewPassword: React.FC = () => {
           }
         } else {
           console.log("No valid reset tokens found in URL - type:", type, "accessToken:", !!accessToken);
+
+          // Check sessionStorage for tokens from OTP flow
+          console.log("Checking sessionStorage for OTP tokens...");
+          const storedTokens = sessionStorage.getItem('password_reset_tokens');
+          if (storedTokens) {
+            try {
+              const parsedTokens = JSON.parse(storedTokens);
+              console.log("Found tokens in sessionStorage:", {
+                hasTokens: !!parsedTokens.accessToken,
+                tokenLength: parsedTokens.accessToken?.length || 0,
+                hasRefreshToken: !!parsedTokens.refreshToken,
+                email: parsedTokens.email,
+                userId: parsedTokens.userId
+              });
+
+              if (parsedTokens.accessToken) {
+                // Validate the stored token
+                const { isExpired, warning } = checkTokenExpiry(parsedTokens.accessToken);
+
+                if (isExpired) {
+                  console.warn("Stored OTP token has expired");
+                  setError("Your password reset session has expired. Please request a new password reset.");
+                  return;
+                }
+
+                if (warning) {
+                  setTokenExpiryWarning(warning);
+                  console.warn("OTP token expiry warning:", warning);
+                }
+
+                setResetTokens({
+                  accessToken: parsedTokens.accessToken,
+                  refreshToken: parsedTokens.refreshToken || null
+                });
+                setIsValidToken(true);
+                console.log("OTP tokens validated successfully");
+                return; // Exit early, tokens are valid
+              }
+            } catch (error) {
+              console.error("Error parsing stored tokens:", error);
+              sessionStorage.removeItem('password_reset_tokens'); // Clean up invalid tokens
+            }
+          }
+
           setError("Invalid or missing reset token. Please request a new password reset.");
         }
       } catch (err) {
@@ -140,7 +241,7 @@ const SetNewPassword: React.FC = () => {
     const hasUpperCase = /[A-Z]/.test(password)
     const hasLowerCase = /[a-z]/.test(password)
     const hasNumbers = /\d/.test(password)
-    
+
     if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
       setError("Password must contain at least one uppercase letter, one lowercase letter, and one number.")
       return
@@ -155,65 +256,140 @@ const SetNewPassword: React.FC = () => {
         throw new Error("No reset tokens available. Please request a new password reset.");
       }
 
-      // Enhanced security: Validate tokens before using them
-      console.log("Validating reset tokens before password update...");
+      // Enhanced approach: Handle valid recovery tokens properly
+      console.log("Attempting password update with reset tokens...");
 
-      // First, verify the token is still valid without creating a persistent session
-      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-        access_token: resetTokens.accessToken,
-        refresh_token: resetTokens.refreshToken || '',
+      const storedTokens = sessionStorage.getItem('password_reset_tokens');
+      const isFromOTP = !!storedTokens;
+
+      console.log("Token details:", {
+        hasAccessToken: !!resetTokens.accessToken,
+        hasRefreshToken: !!resetTokens.refreshToken,
+        accessTokenLength: resetTokens.accessToken?.length || 0,
+        tokenPrefix: resetTokens.accessToken?.substring(0, 20) + "...",
+        isFromOTP,
+        storedTokensExist: !!storedTokens
       });
 
-      if (sessionError) {
-        console.error("Failed to establish session for password update:", sessionError);
+      let sessionData = null;
+      let sessionError = null;
 
-        // Provide specific error messages based on error type
-        if (sessionError.message?.includes("expired")) {
-          throw new Error("Reset link has expired. Please request a new password reset.");
-        } else if (sessionError.message?.includes("invalid")) {
-          throw new Error("Invalid reset link. Please request a new password reset.");
+      if (isFromOTP) {
+        // For OTP-based reset, the session might already be active
+        console.log("OTP-based reset detected, checking current session...");
+
+        const { data: currentSession } = await supabase.auth.getSession();
+
+        if (currentSession.session && currentSession.session.user) {
+          console.log("Valid session already exists from OTP verification");
+          sessionData = currentSession;
         } else {
-          throw new Error("Reset session could not be established. Please request a new password reset.");
+          console.log("No active session, attempting to restore from tokens...");
+
+          // Try to restore the session from stored tokens
+          const { data: restoredSession, error: restoreError } = await supabase.auth.setSession({
+            access_token: resetTokens.accessToken,
+            refresh_token: resetTokens.refreshToken || '',
+          });
+
+          sessionData = restoredSession;
+          sessionError = restoreError;
+        }
+      } else {
+        // For URL-based reset, establish session normally
+        console.log("URL-based reset, establishing session...");
+
+        const { data: urlSession, error: urlError } = await supabase.auth.setSession({
+          access_token: resetTokens.accessToken,
+          refresh_token: resetTokens.refreshToken || '',
+        });
+
+        sessionData = urlSession;
+        sessionError = urlError;
+      }
+
+      if (sessionError) {
+        console.error("Failed to establish reset session:", sessionError);
+        console.error("Session error details:", {
+          message: sessionError.message,
+          status: sessionError.status,
+          name: sessionError.name,
+          __isAuthError: sessionError.__isAuthError
+        });
+
+        // Handle specific error cases with more detailed logging
+        if (sessionError.message?.includes("expired") || sessionError.message?.includes("JWT expired")) {
+          throw new Error("Your password reset link has expired. Please request a new password reset.");
+        } else if (sessionError.message?.includes("invalid") || sessionError.message?.includes("Invalid JWT")) {
+          throw new Error("Invalid password reset link. Please request a new password reset.");
+        } else if (sessionError.message?.includes("403") || sessionError.message?.includes("Forbidden")) {
+          throw new Error("Password reset authorization failed. The reset link may be invalid or expired. Please request a new password reset.");
+        } else if (sessionError.message?.includes("session missing") || sessionError.message?.includes("Auth session missing")) {
+          throw new Error("Password reset session could not be established. Please request a new password reset.");
+        } else {
+          console.error("Unexpected session error:", sessionError);
+          throw new Error(`Unable to verify password reset authorization: ${sessionError.message || 'Unknown error'}. Please request a new password reset.`);
         }
       }
 
-      if (!sessionData.session) {
-        console.error("No session established from reset tokens");
-        throw new Error("Invalid reset tokens. Please request a new password reset.");
+      if (!sessionData?.session?.user) {
+        console.error("No valid session or user from reset tokens");
+        console.error("Session data:", sessionData);
+        throw new Error("Invalid password reset authorization. Please request a new password reset.");
       }
 
-      console.log("Session established successfully, updating password...");
+      console.log("Reset session established successfully. User:", {
+        id: sessionData.session.user.id,
+        email: sessionData.session.user.email,
+        role: sessionData.session.user.role
+      });
 
       // Update the password
-      const { data, error } = await supabase.auth.updateUser({
+      console.log("Updating password...");
+      const { data: updateData, error: updateError } = await supabase.auth.updateUser({
         password: password
       });
 
-      if (error) {
-        console.error("Password update error:", error);
+      // Check if password update was successful
+      if (updateError) {
+        console.error("Password update error:", updateError);
+        console.error("Update error details:", {
+          message: updateError.message,
+          status: updateError.status,
+          name: updateError.name,
+          __isAuthError: updateError.__isAuthError
+        });
 
-        // Provide specific error messages
-        if (error.message?.includes("weak")) {
-          throw new Error("Password is too weak. Please choose a stronger password.");
-        } else if (error.message?.includes("same")) {
+        // Handle specific password update errors
+        if (updateError.message?.includes("weak") || updateError.message?.includes("password")) {
+          throw new Error("Password is too weak. Please choose a stronger password with at least 8 characters.");
+        } else if (updateError.message?.includes("same")) {
           throw new Error("New password must be different from your current password.");
+        } else if (updateError.message?.includes("session") || updateError.message?.includes("auth")) {
+          throw new Error("Password reset session expired. Please request a new password reset.");
         } else {
-          throw error;
+          throw new Error(`Failed to update password: ${updateError.message || 'Unknown error'}. Please try again or request a new password reset.`);
         }
       }
 
-      console.log("Password updated successfully:", data);
+      if (!updateData) {
+        console.warn("Password update completed but no confirmation data received");
+        // Don't throw an error here, as the update might have succeeded
+      }
 
-      // CRITICAL SECURITY: Immediately sign out the user after password reset
-      // This prevents automatic login and forces user to log in with new password
-      console.log("Signing out user after password reset for security...");
+      console.log("Password updated successfully:", updateData);
+
+      // CRITICAL SECURITY: Immediately clear all sessions and tokens
+      console.log("Clearing all sessions for security...");
+
+      // Sign out to clear the reset session
       await supabase.auth.signOut();
 
-      // Clear any local storage or session data
-      localStorage.removeItem('supabase.auth.token');
+      // Clear all local storage and session data
+      localStorage.clear();
       sessionStorage.clear();
 
-      console.log("User signed out successfully. Password reset complete.");
+      console.log("All sessions cleared. Password reset complete.");
 
       setIsSuccess(true);
 
@@ -226,18 +402,23 @@ const SetNewPassword: React.FC = () => {
           }
         });
       }, 3000);
+
     } catch (err: any) {
       console.error("Password update error:", err)
-      
-      // Provide specific error messages
-      if (err.message?.includes("weak")) {
+
+      // Provide user-friendly error messages
+      if (err.message?.includes("weak") || err.message?.includes("password")) {
         setError("Password is too weak. Please choose a stronger password with at least 8 characters, including uppercase, lowercase, numbers, and special characters.")
-      } else if (err.message?.includes("session")) {
-        setError("Your session has expired. Please request a new password reset.")
-      } else if (err.message?.includes("network")) {
+      } else if (err.message?.includes("expired")) {
+        setError("Your password reset link has expired. Please request a new password reset.")
+      } else if (err.message?.includes("invalid") || err.message?.includes("Invalid")) {
+        setError("Invalid password reset link. Please request a new password reset.")
+      } else if (err.message?.includes("session") || err.message?.includes("auth")) {
+        setError("Your password reset session has expired. Please request a new password reset.")
+      } else if (err.message?.includes("network") || err.message?.includes("fetch")) {
         setError("Network error. Please check your internet connection and try again.")
       } else {
-        setError(err.message || "Failed to update password. Please try again.")
+        setError(err.message || "Failed to update password. Please request a new password reset if the problem persists.")
       }
     } finally {
       setIsLoading(false)
@@ -342,16 +523,24 @@ const SetNewPassword: React.FC = () => {
             <Card.Body>
               <div className="text-center">
                 <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Invalid Reset Link</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Password Reset Issue</h2>
                 <p className="text-gray-600 mb-6">
                   {error}
                 </p>
-                <Link
-                  to="/reset-password"
-                  className="inline-flex items-center text-sm text-green-600 hover:text-green-500"
-                >
-                  Request a new password reset
-                </Link>
+                <div className="space-y-3">
+                  <Link
+                    to="/reset-password"
+                    className="inline-flex items-center justify-center w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  >
+                    Request New Password Reset
+                  </Link>
+                  <Link
+                    to="/login"
+                    className="inline-flex items-center justify-center w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                  >
+                    Back to Login
+                  </Link>
+                </div>
               </div>
             </Card.Body>
           </Card>
@@ -385,6 +574,17 @@ const SetNewPassword: React.FC = () => {
                 {error}
               </div>
             )}
+
+            {tokenExpiryWarning && (
+              <div className="mb-4 p-3 bg-yellow-50 text-yellow-700 rounded-md text-sm">
+                <div className="flex items-center">
+                  <AlertCircle className="h-4 w-4 mr-2" />
+                  {tokenExpiryWarning}
+                </div>
+              </div>
+            )}
+
+
 
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>

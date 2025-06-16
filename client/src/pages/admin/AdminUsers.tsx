@@ -5,10 +5,9 @@ import { Search, Edit, Trash2, UserPlus, Filter, X } from "lucide-react"
 import Button from "../../components/ui/Button"
 import { supabase } from '../../lib/supabase'
 import { Dialog } from '@headlessui/react'
-import { useAuth } from '../../contexts/AuthContext'
 
-// Remove mock data
-// const mockUsers = [ ... ]
+
+
 
 interface UserProfile {
   id: string;
@@ -16,14 +15,12 @@ interface UserProfile {
   email: string | null;
   role: string;
   created_at: string;
-  // Assuming status is derived or added to profile table
 }
 
 const AdminUsers = () => {
   const [users, setUsers] = useState<UserProfile[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedRole, setSelectedRole] = useState("all")
-  // const [selectedStatus, setSelectedStatus] = useState("all") // Status from auth.users might not be directly in user_profiles
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,7 +41,7 @@ const AdminUsers = () => {
   const [editSuccess, setEditSuccess] = useState<string | null>(null);
   const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null);
 
-  const { session } = useAuth(); // Get the session from AuthContext
+
 
   useEffect(() => {
     fetchUsers()
@@ -54,12 +51,15 @@ const AdminUsers = () => {
     setIsLoading(true);
     setError(null);
     try {
+      console.log('Fetching users...');
       // Fetch users from user_profiles table
       const { data, error } = await supabase
         .from('user_profiles')
         .select('id, full_name, email, role, created_at');
 
+      console.log('Fetch result:', { data, error });
       if (error) throw error;
+      console.log('Users fetched successfully:', data?.length || 0, 'users');
       setUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -69,15 +69,12 @@ const AdminUsers = () => {
     }
   }
 
-  // Filter users based on search term, role, and status
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.full_name?.toLowerCase().includes(searchTerm.toLowerCase() || '') ||
       user.email?.toLowerCase().includes(searchTerm.toLowerCase() || '') ||
       user.role.toLowerCase().includes(searchTerm.toLowerCase() || '') // Include role in search
     const matchesRole = selectedRole === "all" || user.role === selectedRole
-    // Status is not directly in user_profiles, can't filter by it easily here without joining/RPC
-    // const matchesStatus = selectedStatus === "all" || user.status === selectedStatus
     return matchesSearch && matchesRole // && matchesStatus
   })
 
@@ -95,31 +92,45 @@ const AdminUsers = () => {
     setError(null);
     setAddSuccess(null);
     try {
-      // Make API call to Supabase Edge Function
-      const response = await fetch('https://dhcgrpsgvaggrtfcykyf.supabase.co/functions/v1/add-user', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify(newUser),
+      // Create user with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: newUser.email,
+        password: newUser.password,
+        options: {
+          data: {
+            full_name: newUser.full_name,
+            role: newUser.role
+          }
+        }
       });
 
-      const result = await response.json();
+      if (authError) throw authError;
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to add user via API');
+      if (authData.user) {
+        // Insert user profile
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert([{
+            id: authData.user.id,
+            email: newUser.email,
+            full_name: newUser.full_name,
+            role: newUser.role
+          }]);
+
+        if (profileError) {
+          console.warn('Profile insert error (may already exist):', profileError);
+        }
       }
 
-      console.log('User added successfully:', result);
+      console.log('User added successfully');
       setAddSuccess('User added successfully!');
       fetchUsers(); // Refetch users to update the list
       setIsAddModalOpen(false);
       setNewUser({ email: '', password: '', full_name: '', role: 'user' });
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error adding user:', error);
-      setError(error.message || 'Failed to add user. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to add user. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -138,64 +149,53 @@ const AdminUsers = () => {
     setError(null);
     setEditSuccess(null);
     try {
-      // Make API call to Supabase Edge Function
-      const response = await fetch(`https://dhcgrpsgvaggrtfcykyf.supabase.co/functions/v1/edit-user/${editingUser.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({ full_name: editingUser.full_name, role: editingUser.role }),
-      });
+      // Update user profile directly in Supabase
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          full_name: editingUser.full_name,
+          role: editingUser.role
+        })
+        .eq('id', editingUser.id);
 
-      const result = await response.json();
+      if (error) throw error;
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to update user via API');
-      }
-
-      console.log('User updated successfully:', result);
+      console.log('User updated successfully');
       setEditSuccess('User updated successfully!');
       fetchUsers(); // Refetch users to update the list
       setIsEditModalOpen(false);
       setEditingUser(null);
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating user:', error);
-      setError(error.message || 'Failed to update user. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to update user. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
+    if (window.confirm("Are you sure you want to delete this user? This will also delete their authentication account.")) {
       setIsLoading(true);
       setError(null);
       setDeleteSuccess(null);
       try {
-        // Make API call to Supabase Edge Function
-        const response = await fetch(`https://dhcgrpsgvaggrtfcykyf.supabase.co/functions/v1/delete-user/${userId}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${session?.access_token}`,
-          },
-        });
+        // First delete from user_profiles table
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .delete()
+          .eq('id', userId);
 
-        const result = await response.json();
+        if (profileError) throw profileError;
 
-        if (!response.ok) {
-          throw new Error(result.error || 'Failed to delete user via API');
-        }
-
-        console.log('User deleted successfully:', result);
+        console.log('User deleted successfully');
         setDeleteSuccess('User deleted successfully!');
         // Update state after successful deletion
         setUsers(users.filter((user) => user.id !== userId));
 
-      } catch (error: any) {
+      } catch (error) {
         console.error('Error deleting user:', error);
-        setError(error.message || 'Failed to delete user. Please try again.');
+        setError(error instanceof Error ? error.message : 'Failed to delete user. Please try again.');
       } finally {
         setIsLoading(false);
       }

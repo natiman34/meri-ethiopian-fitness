@@ -4,40 +4,20 @@ import { useState } from "react"
 import { Search, Edit, Trash2, Plus, Filter } from "lucide-react"
 import Button from "../../components/ui/Button"
 
-// Mock data for content
-const mockContent = [
-  {
-    id: 1,
-    title: "Sample Educational Article",
-    type: "educational",
-    category: "fitness",
-    author: "Admin User",
-    publishedDate: "2023-10-26",
-    status: "published",
-  },
-  {
-    id: 2,
-    title: "Motivational Workout Tips",
-    type: "motivational",
-    category: "mindset",
-    author: "Admin User",
-    publishedDate: "2023-10-20",
-    status: "published",
-  },
-  {
-    id: 3,
-    title: "Draft Nutrition Guide",
-    type: "educational",
-    category: "nutrition",
-    author: "Admin User",
-    publishedDate: "",
-    status: "draft",
-  },
-];
+// Content will be loaded from Supabase database
 
+interface ContentItem {
+  id: number;
+  title: string;
+  type: string;
+  category: string;
+  author: string;
+  publishedDate: string;
+  status: string;
+}
 
 const AdminContent = () => {
-  const [content, setContent] = useState(mockContent)
+  const [content, setContent] = useState<ContentItem[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedType, setSelectedType] = useState("all")
   const [selectedCategory, setSelectedCategory] = useState("all")

@@ -115,6 +115,24 @@ export interface ProgressTracking {
   recorded_date: string;
 }
 
+export interface Activity {
+  id: string;
+  user_id: string;
+  date: string; // 'yyyy-MM-dd' format
+  type: 'workout' | 'cardio' | 'strength' | 'flexibility' | 'custom' | 'manual';
+  details: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserActivityProgress {
+  id: string;
+  user_id: string;
+  selected_dates: string[]; // Array of date strings in 'yyyy-MM-dd' format
+  created_at: string;
+  updated_at: string;
+}
+
 export interface MealDB {
   id: string;
   name: string;
@@ -164,6 +182,16 @@ export interface Database {
         Row: NutritionPlan;
         Insert: Omit<NutritionPlan, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<NutritionPlan, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      activities: {
+        Row: Activity;
+        Insert: Omit<Activity, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Activity, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      user_activity_progress: {
+        Row: UserActivityProgress;
+        Insert: Omit<UserActivityProgress, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<UserActivityProgress, 'id' | 'created_at' | 'updated_at'>>;
       };
       meals: {
         Row: MealDB;

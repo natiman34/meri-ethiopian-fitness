@@ -22,11 +22,11 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
   loadingComponent,
   errorComponent
 }) => {
-  // If src is undefined, use fallback immediately
+  
   const initialSrc = src || fallbackSrc;
   const [imageSrc, setImageSrc] = useState(initialSrc);
-  const [isLoading, setIsLoading] = useState(!!initialSrc); // Only show loading if we have a source
-  const [hasError, setHasError] = useState(!initialSrc); // Show error if no source is provided
+  const [isLoading, setIsLoading] = useState(!!initialSrc); 
+  const [hasError, setHasError] = useState(!initialSrc); 
 
   const handleLoad = () => {
     setIsLoading(false);
@@ -37,11 +37,11 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
   const handleError = () => {
     setIsLoading(false);
     if (imageSrc === src && fallbackSrc) {
-      // If the original src failed, try the fallback
+     
       setImageSrc(fallbackSrc);
-      setHasError(false); // Reset error state to try loading fallback
+      setHasError(false);
     } else {
-      // If fallback also failed, or no fallback was provided, set error
+     
       setHasError(true);
     }
     onError?.();

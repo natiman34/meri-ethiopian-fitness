@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Auth Users</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            width: 250px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Auth Users & Password Reset</h1>
+    
+    <div class="test-section info">
+        <h2>Test Configuration</h2>
+        <p><strong>Local Supabase URL:</strong> http://127.0.0.1:54321</p>
+        <p>This test will check if users exist and test the password reset functionality.</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Email for Password Reset</h2>
+        <input type="email" id="testEmail" placeholder="Enter email to test" value="nati737313@gmail.com">
+        <br>
+        <button onclick="testSignInWithOtp()">Test signInWithOtp</button>
+        <button onclick="testResetPasswordForEmail()">Test resetPasswordForEmail</button>
+        <button onclick="listAllUsers()">List All Users (Admin)</button>
+        <button onclick="clearLogs()">Clear Logs</button>
+        <div id="testLog" class="log"></div>
+    </div>
+
+    <script>
+        // Initialize Supabase client with local development settings
+        const supabaseUrl = 'http://127.0.0.1:54321'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+        const serviceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey)
+        const supabaseAdmin = window.supabase.createClient(supabaseUrl, serviceKey)
+
+        function log(message) {
+            const logElement = document.getElementById('testLog')
+            const timestamp = new Date().toLocaleTimeString()
+            logElement.textContent += `[${timestamp}] ${message}\n`
+            logElement.scrollTop = logElement.scrollHeight
+        }
+
+        function clearLogs() {
+            document.getElementById('testLog').textContent = ''
+        }
+
+        async function testSignInWithOtp() {
+            const email = document.getElementById('testEmail').value
+            if (!email) {
+                log('❌ Please enter an email address')
+                return
+            }
+
+            log(`🧪 Testing signInWithOtp for: ${email}`)
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        shouldCreateUser: false,
+                        emailRedirectTo: `${window.location.origin}/verify-reset-otp?email=${encodeURIComponent(email)}&type=recovery`
+                    }
+                })
+
+                if (error) {
+                    log(`❌ signInWithOtp ERROR: ${error.message}`)
+                    log(`   Error details: ${JSON.stringify(error, null, 2)}`)
+                } else {
+                    log('✅ signInWithOtp SUCCESS!')
+                    log(`   Data: ${JSON.stringify(data, null, 2)}`)
+                    log('📧 Check Inbucket at http://127.0.0.1:54324 for the OTP email')
+                }
+            } catch (error) {
+                log(`❌ signInWithOtp EXCEPTION: ${error.message}`)
+            }
+        }
+
+        async function testResetPasswordForEmail() {
+            const email = document.getElementById('testEmail').value
+            if (!email) {
+                log('❌ Please enter an email address')
+                return
+            }
+
+            log(`🧪 Testing resetPasswordForEmail for: ${email}`)
+            
+            try {
+                const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/set-new-password`
+                })
+
+                if (error) {
+                    log(`❌ resetPasswordForEmail ERROR: ${error.message}`)
+                    log(`   Error details: ${JSON.stringify(error, null, 2)}`)
+                } else {
+                    log('✅ resetPasswordForEmail SUCCESS!')
+                    log(`   Data: ${JSON.stringify(data, null, 2)}`)
+                    log('📧 Check Inbucket at http://127.0.0.1:54324 for the reset email')
+                }
+            } catch (error) {
+                log(`❌ resetPasswordForEmail EXCEPTION: ${error.message}`)
+            }
+        }
+
+        async function listAllUsers() {
+            log('🧪 Listing all users (using admin client)...')
+            
+            try {
+                const { data, error } = await supabaseAdmin.auth.admin.listUsers()
+
+                if (error) {
+                    log(`❌ listUsers ERROR: ${error.message}`)
+                    log(`   Error details: ${JSON.stringify(error, null, 2)}`)
+                } else {
+                    log('✅ listUsers SUCCESS!')
+                    log(`   Found ${data.users.length} users:`)
+                    data.users.forEach((user, index) => {
+                        log(`   ${index + 1}. ${user.email} (ID: ${user.id})`)
+                        log(`      Created: ${user.created_at}`)
+                        log(`      Confirmed: ${user.email_confirmed_at ? 'Yes' : 'No'}`)
+                    })
+                }
+            } catch (error) {
+                log(`❌ listUsers EXCEPTION: ${error.message}`)
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Auth users test page loaded')
+            log('📡 Supabase client initialized')
+            log(`🔗 Connected to: ${supabaseUrl}`)
+            log('🔑 Using local development keys')
+            log('')
+            log('Instructions:')
+            log('1. Enter an email address to test')
+            log('2. Click "List All Users" to see existing users')
+            log('3. Test password reset methods')
+            log('4. Check Inbucket at http://127.0.0.1:54324 for emails')
+        })
+    </script>
+</body>
+</html>

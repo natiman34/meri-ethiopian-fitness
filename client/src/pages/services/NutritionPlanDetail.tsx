@@ -151,12 +151,14 @@ const NutritionPlanDetail: React.FC = () => {
                     currentDayMeals.breakfast.map((meal, index) => (
                       <div key={index} className="bg-white p-3 rounded border-l-4 border-orange-400">
                         <p className="font-medium text-gray-800">{meal.name}</p>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {meal.nutritionInfo.calories} cal |
-                          {meal.nutritionInfo.protein}g protein |
-                          {meal.nutritionInfo.fat}g fat |
-                          {meal.nutritionInfo.carbs}g carbs
-                        </p>
+                        {meal.nutritionInfo.calories > 0 && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            {meal.nutritionInfo.calories} cal |
+                            {meal.nutritionInfo.protein}g protein |
+                            {meal.nutritionInfo.fat}g fat |
+                            {meal.nutritionInfo.carbs}g carbs
+                          </p>
+                        )}
                         {meal.description && (
                           <p className="text-sm text-gray-500 mt-1">{meal.description}</p>
                         )}
@@ -178,12 +180,14 @@ const NutritionPlanDetail: React.FC = () => {
                     currentDayMeals.lunch.map((meal, index) => (
                       <div key={index} className="bg-white p-3 rounded border-l-4 border-green-400">
                         <p className="font-medium text-gray-800">{meal.name}</p>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {meal.nutritionInfo.calories} cal |
-                          {meal.nutritionInfo.protein}g protein |
-                          {meal.nutritionInfo.fat}g fat |
-                          {meal.nutritionInfo.carbs}g carbs
-                        </p>
+                        {meal.nutritionInfo.calories > 0 && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            {meal.nutritionInfo.calories} cal |
+                            {meal.nutritionInfo.protein}g protein |
+                            {meal.nutritionInfo.fat}g fat |
+                            {meal.nutritionInfo.carbs}g carbs
+                          </p>
+                        )}
                         {meal.description && (
                           <p className="text-sm text-gray-500 mt-1">{meal.description}</p>
                         )}
@@ -205,12 +209,14 @@ const NutritionPlanDetail: React.FC = () => {
                     currentDayMeals.dinner.map((meal, index) => (
                       <div key={index} className="bg-white p-3 rounded border-l-4 border-blue-400">
                         <p className="font-medium text-gray-800">{meal.name}</p>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {meal.nutritionInfo.calories} cal |
-                          {meal.nutritionInfo.protein}g protein |
-                          {meal.nutritionInfo.fat}g fat |
-                          {meal.nutritionInfo.carbs}g carbs
-                        </p>
+                        {meal.nutritionInfo.calories > 0 && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            {meal.nutritionInfo.calories} cal |
+                            {meal.nutritionInfo.protein}g protein |
+                            {meal.nutritionInfo.fat}g fat |
+                            {meal.nutritionInfo.carbs}g carbs
+                          </p>
+                        )}
                         {meal.description && (
                           <p className="text-sm text-gray-500 mt-1">{meal.description}</p>
                         )}
@@ -233,12 +239,14 @@ const NutritionPlanDetail: React.FC = () => {
                       currentDayMeals.snacks.map((meal, index) => (
                         <div key={index} className="bg-white p-3 rounded border-l-4 border-purple-400">
                           <p className="font-medium text-gray-800">{meal.name}</p>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {meal.nutritionInfo.calories} cal |
-                            {meal.nutritionInfo.protein}g protein |
-                            {meal.nutritionInfo.fat}g fat |
-                            {meal.nutritionInfo.carbs}g carbs
-                          </p>
+                          {meal.nutritionInfo.calories > 0 && (
+                            <p className="text-sm text-gray-600 mt-1">
+                              {meal.nutritionInfo.calories} cal |
+                              {meal.nutritionInfo.protein}g protein |
+                              {meal.nutritionInfo.fat}g fat |
+                              {meal.nutritionInfo.carbs}g carbs
+                            </p>
+                          )}
                           {meal.description && (
                             <p className="text-sm text-gray-500 mt-1">{meal.description}</p>
                           )}

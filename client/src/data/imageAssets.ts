@@ -1,8 +1,7 @@
-// Image Assets for the Fitness Application
-// This file contains URLs for all images and GIFs used throughout the application
+
 
 export const imageAssets = {
-  // Workout Plan Images
+  
   workoutPlans: {
     intermediate: {
       muscleBuilding: "/images/plans/intermediate-muscle-building.jpg",
@@ -20,7 +19,7 @@ export const imageAssets = {
     }
   },
 
-  // Exercise GIFs and Images (using local paths now)
+ 
   exercises: {
     pushUp: {
       gif: "/images/exercises/push-up.gif",
@@ -73,7 +72,7 @@ export const imageAssets = {
     plyometric: "/images/categories/plyometric.jpg"
   },
 
-  // New Fitness Category Images (for Jefit-like display)
+  
   fitnessCategories: {
     home: "/images/categories/jefit-home.jpg",
     gym: "/images/categories/jefit-gym.jpg",
@@ -81,7 +80,7 @@ export const imageAssets = {
     "muscle-building": "/images/categories/jefit-muscle-building.jpg",
     "fat-burning": "/images/categories/jefit-fat-burning.jpg",
     leg: "/images/categories/jefit-leg.jpg",
-    // Add other categories as needed based on your FitnessCategory type
+    
   },
 
   fitnessPlansCategories: {
@@ -89,7 +88,7 @@ export const imageAssets = {
     "weight-loss-workout": "/images/categories/weight-loss-workout.jpg",
   },
 
-  // Muscle Group Images
+  
   muscleGroups: {
     chest: "/images/muscle-groups/chest.jpg",
     back: "/images/muscle-groups/back.jpg",
@@ -101,7 +100,7 @@ export const imageAssets = {
     'full-body': "/images/muscle-groups/full-body.jpg"
   },
 
-  // Equipment Images
+  
   equipment: {
     bodyweight: "/images/equipment/bodyweight.jpg",
     dumbbell: "/images/equipment/dumbbell.jpg",
@@ -110,7 +109,7 @@ export const imageAssets = {
     yogaMat: "/images/equipment/yoga-mat.jpg"
   },
 
-  // Placeholder Images
+  
   placeholders: {
     exercise: "/images/placeholders/exercise.jpg",
     workout: "/images/placeholders/workout.jpg",
@@ -118,13 +117,12 @@ export const imageAssets = {
     category: "/images/placeholders/category.jpg"
   },
 
-  // Hero Images
   hero: {
     workoutPlans: "/images/hero/workout-plans.jpg",
     nutrition: "/images/hero/nutrition.jpg"
   },
 
-  // Ethiopian Traditional Dishes
+  
   ethiopianDishes: {
     genfo: "/images/ethiopian-dishes/genfo.jpg",
     injera: "/images/ethiopian-dishes/injera.jpg",
@@ -147,7 +145,7 @@ export const imageAssets = {
   }
 };
 
-// Helper function to get exercise image
+
 export const getExerciseImage = (exerciseId: string, type: 'gif' | 'image' | 'video' = 'image'): string => {
   const exercise = imageAssets.exercises[exerciseId as keyof typeof imageAssets.exercises];
   if (exercise) {
@@ -156,17 +154,16 @@ export const getExerciseImage = (exerciseId: string, type: 'gif' | 'image' | 'vi
   return imageAssets.placeholders.exercise;
 };
 
-// Helper function to get category image
+
 export const getCategoryImage = (category: string): string => {
   return imageAssets.categories[category as keyof typeof imageAssets.categories] || imageAssets.placeholders.category;
 };
 
-// Helper function to get muscle group image
+
 export const getMuscleGroupImage = (muscleGroup: string): string => {
   return imageAssets.muscleGroups[muscleGroup as keyof typeof imageAssets.muscleGroups] || imageAssets.placeholders.exercise;
 };
 
-// Helper function to get workout plan image
 export const getWorkoutPlanImage = (level: string, category: string): string => {
   const levelPlans = imageAssets.workoutPlans[level as keyof typeof imageAssets.workoutPlans];
   if (levelPlans) {
@@ -179,7 +176,7 @@ export const getWorkoutPlanImage = (level: string, category: string): string => 
   return imageUrl;
 };
 
-// Helper function to get Ethiopian dish image
+
 export const getEthiopianDishImage = (dishName: string): string => {
   return imageAssets.ethiopianDishes[dishName as keyof typeof imageAssets.ethiopianDishes] || imageAssets.placeholders.plan;
 };

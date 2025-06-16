@@ -4,12 +4,14 @@ interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
   color?: 'primary' | 'white' | 'gray';
   className?: string;
+  label?: string;
 }
 
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  size = 'md', 
+const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  size = 'md',
   color = 'primary',
-  className = '' 
+  className = '',
+  label = 'Loading...'
 }) => {
   const sizeClasses = {
     sm: 'h-4 w-4',
@@ -24,12 +26,13 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   };
 
   return (
-    <div className={`inline-block ${className}`}>
+    <div className={`inline-block ${className}`} role="status" aria-label={label}>
       <svg
         className={`animate-spin ${sizeClasses[size]} ${colorClasses[color]}`}
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
+        aria-hidden="true"
       >
         <circle
           className="opacity-25"

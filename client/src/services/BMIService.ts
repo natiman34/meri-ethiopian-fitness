@@ -32,21 +32,12 @@ export class BMIService {
   }
 
   // Save BMI result to the backend
-  private async saveBMIResult(bmi: BMI): Promise<void> {
+  private async saveBMIResult(_bmi: BMI): Promise<void> {
     try {
-      // In a real implementation, this would make an API call to the backend
-      const response = await fetch("/api/bmi", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(bmi.toObject()),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Failed to save BMI result")
-      }
+      // BMI data is now saved through AuthContext.updateProfile with Supabase
+      // This method is kept for backward compatibility but doesn't perform actual save
+      console.warn("BMIService.saveBMIResult is deprecated. BMI data is saved through user profile updates.");
+      // No-op - BMI saving is handled elsewhere
     } catch (error) {
       console.error("Save BMI error:", error)
       throw error
@@ -54,20 +45,12 @@ export class BMIService {
   }
 
   // Get BMI history for a user
-  public async getBMIHistory(userId: string): Promise<BMI[]> {
+  public async getBMIHistory(_userId: string): Promise<BMI[]> {
     try {
-      // In a real implementation, this would make an API call to the backend
-      const response = await fetch(`/api/bmi/history/${userId}`)
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Failed to get BMI history")
-      }
-
-      const bmiData = await response.json()
-
-      // Convert the data to BMI objects
-      return bmiData.map((data: any) => BMI.fromObject(data))
+      // This service method is deprecated - BMI history is now accessed through user profile data
+      // This method is kept for backward compatibility but should not be used
+      console.warn("BMIService.getBMIHistory is deprecated. BMI history is available through user profile.");
+      return [];
     } catch (error) {
       console.error("Get BMI history error:", error)
       throw error

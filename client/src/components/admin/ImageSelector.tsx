@@ -8,6 +8,7 @@ interface ImageSelectorProps {
   isEthiopian?: boolean;
   onImageSelect: (imageUrl: string) => void;
   onImageClear: () => void;
+  onError?: (message: string) => void;
 }
 
 const ImageSelector: React.FC<ImageSelectorProps> = ({
@@ -15,12 +16,11 @@ const ImageSelector: React.FC<ImageSelectorProps> = ({
   mealName,
   isEthiopian = false,
   onImageSelect,
-  onImageClear
+  onImageClear,
+  onError
 }) => {
   const [mode, setMode] = useState<'url' | 'upload'>('url');
   const [customUrl, setCustomUrl] = useState('');
-  const [isValidating, setIsValidating] = useState(false);
-  const [urlValid, setUrlValid] = useState<boolean | null>(null);
 
   const handleAutoSuggest = () => {
     const suggestedImage = imageService.suggestImage(mealName, isEthiopian);
@@ -32,7 +32,6 @@ const ImageSelector: React.FC<ImageSelectorProps> = ({
 
     onImageSelect(customUrl);
     setCustomUrl('');
-    setUrlValid(null);
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,24 +40,23 @@ const ImageSelector: React.FC<ImageSelectorProps> = ({
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      onError?.('Please select an image file');
       return;
     }
 
-    // Validate file size (max 5MB)
+    // Validate file size
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size must be less than 5MB');
+      onError?.('Image size must be less than 5MB');
       return;
     }
 
     try {
-      // For now, create a local URL for preview
-      // In production, this would upload to Supabase Storage
+      // Create local URL for preview
       const localUrl = URL.createObjectURL(file);
       onImageSelect(localUrl);
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Failed to upload image');
+      onError?.('Failed to upload image');
     }
   };
 
@@ -117,6 +115,7 @@ const ImageSelector: React.FC<ImageSelectorProps> = ({
             type="button"
             onClick={onImageClear}
             className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+            aria-label="Remove current image"
           >
             <X className="h-3 w-3" />
           </button>

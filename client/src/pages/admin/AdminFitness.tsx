@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react"
 import { Search, Edit, Trash2, Plus, Filter, X } from "lucide-react"
 import Button from "../../components/ui/Button"
-import { FitnessPlan as IFitnessPlan, FitnessCategory, FitnessLevel, DaySchedule, Exercise, ExerciseSet } from '../../types/content'
-import { FitnessPlan } from '../../types/content'
+import { FitnessPlan, FitnessCategory, FitnessLevel, DaySchedule, Exercise, ExerciseSet } from '../../types/content'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { Dialog } from '@headlessui/react'
@@ -24,7 +23,7 @@ const AdminFitness = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editingPlan, setEditingPlan] = useState<FitnessPlan | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [newPlan, setNewPlan] = useState<Partial<IFitnessPlan>>({
+  const [newPlan, setNewPlan] = useState<Partial<FitnessPlan>>({
     title: '',
     description: '',
     category: 'weight-loss',
@@ -66,12 +65,12 @@ const AdminFitness = () => {
         const from = (currentPage - 1) * itemsPerPage;
         const to = from + itemsPerPage - 1;
 
-      const { data: countData, error: countError, count } = await supabase
+        const { data: countData, error: countError, count } = await supabase
           .from('fitness_plans')
           .select('id', { count: 'exact' });
 
         if (countError) throw countError;
-      setTotalPages(Math.ceil((count || 0) / itemsPerPage));
+        setTotalPages(Math.ceil((count || 0) / itemsPerPage));
 
         const { data, error } = await supabase
           .from('fitness_plans')
@@ -80,7 +79,28 @@ const AdminFitness = () => {
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setPlans((data || []).map(planData => new FitnessPlan(planData as IFitnessPlan)));
+
+        // Transform database data to frontend format
+        const transformedPlans = (data || []).map(planData => {
+          // Create a new FitnessPlan instance with proper field mapping
+          return new FitnessPlan({
+            ...planData,
+            // Map database fields to frontend fields
+            user_id: planData.planner_id || planData.user_id,
+            title: planData.title || planData.name,
+            category: planData.category || planData.plan_type,
+            level: planData.level || planData.difficulty_level,
+            schedule: planData.schedule || planData.exercise_list || [],
+            muscleGroups: planData.muscle_groups || [],
+            equipmentRequired: planData.equipment_required || [],
+            timeOfDay: planData.time_of_day,
+            reviewCount: planData.review_count,
+            completionRate: planData.completion_rate,
+            averageWorkoutTime: planData.average_workout_time,
+          });
+        });
+
+        setPlans(transformedPlans);
       } catch (error) {
         console.error('Error fetching fitness plans:', error);
         setError('Failed to load fitness plans');
@@ -98,19 +118,20 @@ const AdminFitness = () => {
     return matchesSearch && matchesCategory && matchesLevel && matchesStatus
   })
 
-  const validateForm = (plan: Partial<IFitnessPlan>) => {
+  const validateForm = (plan: Partial<FitnessPlan>) => {
     const errors: {[key: string]: string} = {}
     if (!plan.title?.trim()) errors.title = 'Title is required'
     if (!plan.description?.trim()) errors.description = 'Description is required'
     if (!plan.category) errors.category = 'Category is required'
     if (!plan.level) errors.level = 'Level is required'
-    if (plan.duration === undefined || plan.duration < 1) errors.duration = 'Duration must be at least 1 minute'
+    if (plan.duration === undefined || plan.duration < 1) errors.duration = 'Duration must be at least 1 week'
     if (plan.weekly_workouts === undefined || plan.weekly_workouts < 1) errors.weekly_workouts = 'Weekly workouts must be at least 1'
     if (plan.difficulty === undefined || plan.difficulty < 1 || plan.difficulty > 5) errors.difficulty = 'Difficulty must be between 1 and 5'
-    if (!plan.prerequisites?.length) errors.prerequisites = 'At least one prerequisite is required'
-    if (!plan.equipment?.length) errors.equipment = 'At least one equipment item is required'
-    if (!plan.goals?.length) errors.goals = 'At least one goal is required'
-    if (!plan.schedule?.length) errors.schedule = 'At least one day of schedule is required'
+    // Make these fields optional for now to allow basic plan creation
+    // if (!plan.prerequisites?.length) errors.prerequisites = 'At least one prerequisite is required'
+    // if (!plan.equipment?.length) errors.equipment = 'At least one equipment item is required'
+    // if (!plan.goals?.length) errors.goals = 'At least one goal is required'
+    // if (!plan.schedule?.length) errors.schedule = 'At least one day of schedule is required'
     return errors
   }
 
@@ -124,12 +145,34 @@ const AdminFitness = () => {
     setIsLoading(true)
     setError(null)
     try {
-      const planToInsert = new FitnessPlan({
-        ...newPlan,
-        user_id: user?.id || null,
+      // Transform frontend data to database format
+      const planToInsert = {
+        planner_id: user?.id || null,
+        name: newPlan.title || '',
+        title: newPlan.title || '',
+        description: newPlan.description || '',
+        duration: newPlan.duration?.toString() || '30',
+        plan_type: newPlan.category || 'weight-loss',
+        category: newPlan.category || 'weight-loss',
+        difficulty_level: newPlan.level || 'beginner',
+        level: newPlan.level || 'beginner',
+        exercise_list: newPlan.schedule || [],
+        schedule: newPlan.schedule || [],
+        weekly_workouts: newPlan.weekly_workouts || 3,
+        difficulty: newPlan.difficulty || 1,
+        prerequisites: newPlan.prerequisites || [],
+        equipment: newPlan.equipment || [],
+        goals: newPlan.goals || [],
+        status: newPlan.status || 'draft',
+        tags: newPlan.tags || [],
+        featured: newPlan.featured || false,
+        muscle_groups: newPlan.muscleGroups || [],
+        equipment_required: newPlan.equipmentRequired || [],
+        time_of_day: newPlan.timeOfDay || 'any',
+        location: newPlan.location || 'any',
+        intensity: newPlan.intensity || 'low',
         created_at: new Date().toISOString(),
-        // All other properties are already part of newPlan and will be handled by the constructor
-      });
+      };
 
       const { data, error } = await supabase
         .from('fitness_plans')
@@ -186,16 +229,45 @@ const AdminFitness = () => {
     setIsLoading(true)
     setError(null)
     try {
+      // Transform frontend data to database format
+      const planToUpdate = {
+        planner_id: plan.user_id,
+        name: plan.title,
+        title: plan.title,
+        description: plan.description,
+        duration: plan.duration?.toString() || '30',
+        plan_type: plan.category,
+        category: plan.category,
+        difficulty_level: plan.level,
+        level: plan.level,
+        exercise_list: plan.schedule,
+        schedule: plan.schedule,
+        weekly_workouts: plan.weekly_workouts,
+        difficulty: plan.difficulty,
+        prerequisites: plan.prerequisites,
+        equipment: plan.equipment,
+        goals: plan.goals,
+        status: plan.status,
+        tags: plan.tags,
+        featured: plan.featured,
+        muscle_groups: plan.muscleGroups,
+        equipment_required: plan.equipmentRequired,
+        time_of_day: plan.timeOfDay,
+        location: plan.location,
+        intensity: plan.intensity,
+        updated_at: new Date().toISOString(),
+      };
+
       const { data, error } = await supabase
         .from('fitness_plans')
-        .update(plan.toObject())
+        .update(planToUpdate)
         .eq('id', plan.id)
         .select()
         .single();
 
       if (error) throw error
       if (data) {
-        setPlans(plans.map(p => p.id === plan.id ? new FitnessPlan(data as IFitnessPlan) : p));
+        setPlans(plans.map(p => p.id === plan.id ? new FitnessPlan(data) : p));
       }
       setIsEditModalOpen(false)
       setEditingPlan(null)
@@ -234,7 +306,6 @@ const AdminFitness = () => {
     }
   };
 
-  // Handlers for schedule
   const handleAddDay = (planType: 'new' | 'edit') => {
     const newDay: DaySchedule = {
       day: planType === 'new' 
@@ -249,7 +320,7 @@ const AdminFitness = () => {
     }
 
     if (planType === 'new') {
-      setNewPlan(prev => ({
+      setNewPlan((prev: Partial<FitnessPlan>) => ({
         ...prev,
         schedule: [...(prev?.schedule || []), newDay]
       }))
@@ -266,7 +337,7 @@ const AdminFitness = () => {
 
   const handleRemoveDay = (planType: 'new' | 'edit', dayIndex: number) => {
     if (planType === 'new') {
-      setNewPlan(prev => ({
+      setNewPlan((prev: Partial<FitnessPlan>) => ({
         ...prev,
         schedule: (prev?.schedule || []).filter((_, i) => i !== dayIndex)
       }))
@@ -305,10 +376,10 @@ const AdminFitness = () => {
       muscleGroup: 'full-body',
     };
     if (planType === 'new') {
-      setNewPlan(prev => ({
+      setNewPlan((prev: Partial<FitnessPlan>) => ({
         ...prev,
         schedule: (prev?.schedule || []).map((day, i) =>
-          i === dayIndex 
+          i === dayIndex
             ? { ...day, exercises: [...day.exercises, newExercise] }
             : day
         )
@@ -330,10 +401,10 @@ const AdminFitness = () => {
 
   const handleRemoveExercise = (planType: 'new' | 'edit', dayIndex: number, exerciseIndex: number) => {
     if (planType === 'new') {
-      setNewPlan(prev => ({
+      setNewPlan((prev: Partial<FitnessPlan>) => ({
         ...prev,
         schedule: (prev?.schedule || []).map((day, i) =>
-          i === dayIndex 
+          i === dayIndex
             ? { ...day, exercises: day.exercises.filter((_, j) => j !== exerciseIndex) }
             : day
         )
@@ -361,10 +432,10 @@ const AdminFitness = () => {
     value: any
   ) => {
     if (planType === 'new') {
-      setNewPlan(prev => ({
+      setNewPlan((prev: Partial<FitnessPlan>) => ({
         ...prev,
         schedule: (prev?.schedule || []).map((day, i) =>
-          i === dayIndex 
+          i === dayIndex
             ? { ...day, exercises: day.exercises.map((exercise, j) =>
                 j === exerciseIndex ? { ...exercise, [field]: value } : exercise
               ) }
@@ -905,9 +976,11 @@ const AdminFitness = () => {
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                     >
                       <option value="weight-loss">Weight Loss</option>
-                      <option value="muscle-gain">Muscle Gain</option>
-                      <option value="endurance">Endurance</option>
+                      <option value="weight-gain">Weight Gain</option>
+                      <option value="maintenance">Maintenance</option>
+                      <option value="strength">Strength</option>
                       <option value="flexibility">Flexibility</option>
+                      <option value="endurance">Endurance</option>
                     </select>
                     {formErrors.category && <p className="mt-1 text-sm text-red-600">{formErrors.category}</p>}
                   </div>

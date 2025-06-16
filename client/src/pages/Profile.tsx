@@ -10,6 +10,7 @@ import { User, Mail, Edit2, Save, X, Ruler, Scale, ChevronLeft, ChevronRight, Ro
 import ProfileNavigation, { ProfileSection } from "../components/profile/ProfileNavigation"
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, parse } from 'date-fns'
 import { supabase } from '../lib/supabase'
+import { activityProgressService } from '../services/ActivityProgressService'
 
 const getCalendarDays = (date: Date) => {
   const start = startOfMonth(date)
@@ -45,6 +46,8 @@ const Profile: React.FC = () => {
 
   // State for manually selected activity days (separate from database activities)
   const [selectedDays, setSelectedDays] = useState<Set<string>>(new Set())
+  const [isSavingProgress, setIsSavingProgress] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
 
 
@@ -125,25 +128,64 @@ const Profile: React.FC = () => {
     })
   }
 
-  const handleDayClick = (day: Date) => {
+  // Function to save selected days to database
+  const saveSelectedDays = useCallback(async (newSelectedDays: Set<string>) => {
+    if (!user?.id) {
+      console.log('No user ID available for saving selected days')
+      return
+    }
+
+    console.log('Saving selected days for user:', user.id, 'Days:', Array.from(newSelectedDays))
+    setIsSavingProgress(true)
+    setSaveError(null)
+
+    try {
+      await activityProgressService.saveSelectedDates(user.id, newSelectedDays)
+      console.log('Successfully saved activity progress to database')
+    } catch (error) {
+      console.error('Failed to save activity progress:', error)
+      setSaveError(error instanceof Error ? error.message : 'Failed to save activity progress')
+    } finally {
+      setIsSavingProgress(false)
+    }
+  }, [user?.id])
+
+  const handleDayClick = async (day: Date) => {
     const dayString = format(day, 'yyyy-MM-dd')
+    console.log('Day clicked:', dayString)
 
     setSelectedDays(prev => {
       const newSet = new Set(prev)
-      if (newSet.has(dayString)) {
+      const wasSelected = newSet.has(dayString)
+
+      if (wasSelected) {
         // Day is already selected, remove it (toggle off)
         newSet.delete(dayString)
+        console.log('Removed day from selection:', dayString)
       } else {
         // Day is not selected, add it (toggle on)
         newSet.add(dayString)
+        console.log('Added day to selection:', dayString)
       }
+
+      console.log('New selected days:', Array.from(newSet))
+
+      // Save to database immediately after updating state
+      saveSelectedDays(newSet)
+
       return newSet
     })
   }
 
   // Function to reset all manually selected days
-  const handleResetSelectedDays = () => {
-    setSelectedDays(new Set())
+  const handleResetSelectedDays = async () => {
+    const emptySet = new Set<string>()
+    setSelectedDays(emptySet)
+
+    // Save empty set to database
+    if (user?.id) {
+      await saveSelectedDays(emptySet)
+    }
   }
 
   // Function to fetch activities for the current month
@@ -188,6 +230,31 @@ const Profile: React.FC = () => {
       setIsLoadingActivities(false)
     }
   }, [currentMonth, user])
+
+  // Load selected days from database when user changes
+  useEffect(() => {
+    const loadSelectedDays = async () => {
+      if (!user?.id) {
+        console.log('No user ID available for loading selected days')
+        return
+      }
+
+      console.log('Loading selected days for user:', user.id)
+      try {
+        const savedSelectedDays = await activityProgressService.loadSelectedDates(user.id)
+        setSelectedDays(savedSelectedDays)
+        console.log('Successfully loaded selected days from database:', Array.from(savedSelectedDays))
+      } catch (error) {
+        console.error('Failed to load selected days:', error)
+        // Don't show error to user, just use empty set
+        setSelectedDays(new Set())
+      }
+    }
+
+    if (user?.id) {
+      loadSelectedDays()
+    }
+  }, [user?.id])
 
   // Effect to fetch activities when the component mounts, month, or user changes
   useEffect(() => {
@@ -354,14 +421,27 @@ const Profile: React.FC = () => {
         <Card.Body className="p-6 md:p-8">
           {/* Activity Header */}
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Activity</h2>
+            <div className="flex items-center space-x-3">
+              <h2 className="text-xl font-semibold text-gray-900">Activity</h2>
+              {isSavingProgress && (
+                <div className="flex items-center space-x-2 text-sm text-blue-600">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <span>Saving...</span>
+                </div>
+              )}
+              {saveError && (
+                <div className="text-sm text-red-600">
+                  Failed to save
+                </div>
+              )}
+            </div>
             <Button
               variant="outline"
               size="sm"
               onClick={handleResetSelectedDays}
               leftIcon={<RotateCcw size={16} />}
               className="text-gray-600 hover:bg-gray-100"
-              disabled={selectedDays.size === 0}
+              disabled={selectedDays.size === 0 || isSavingProgress}
             >
               Reset
             </Button>

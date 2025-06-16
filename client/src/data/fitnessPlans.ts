@@ -83,12 +83,12 @@ This comprehensive program is designed for individuals looking to build muscle m
         title: 'Day 3: Upper Body (Pull - Back & Biceps)',
         description: 'Pulling movements focusing on back development and bicep strength with cardio finish.',
         exercises: [
-          exercises.find(ex => ex.id === 'romanian-deadlift'), // Using Romanian Deadlift as substitute for Deadlift
-          exercises.find(ex => ex.id === 'push-up'), // Using Push-up as substitute for Pull-ups (will note modification needed)
-          exercises.find(ex => ex.id === 'burpee'), // Using Burpee as substitute for Bent-over Rows
-          exercises.find(ex => ex.id === 'lateral-raises'), // Using Lateral Raises as substitute for Face Pulls
-          exercises.find(ex => ex.id === 'triceps-dips'), // Using Triceps Dips as substitute for Bicep Curls
-          exercises.find(ex => ex.id === 'skull-crushers'), // Using Skull Crushers as substitute for Hammer Curls
+          exercises.find(ex => ex.id === 'romanian-deadlift'), 
+          exercises.find(ex => ex.id === 'push-up'), 
+          exercises.find(ex => ex.id === 'burpee'), 
+          exercises.find(ex => ex.id === 'lateral-raises'), 
+          exercises.find(ex => ex.id === 'triceps-dips'), 
+          exercises.find(ex => ex.id === 'skull-crushers'), 
           exercises.find(ex => ex.id === 'light-jogging-rowing'),
         ].filter(Boolean) as Exercise[],
         totalEstimatedTime: 75,
@@ -333,7 +333,7 @@ This comprehensive fat loss program combines high-intensity interval training wi
     tags: ['weight loss', 'cardio', 'strength', 'fat burning', 'intermediate', 'HIIT', 'endurance'],
     featured: true,
     rating: 4.7,
-    reviewCount: 143,
+    reviewCount: 142,
     completionRate: 85,
     averageWorkoutTime: 55,
     muscleGroups: ['full-body', 'legs', 'core', 'upper body', 'cardiovascular'],
@@ -344,27 +344,22 @@ This comprehensive fat loss program combines high-intensity interval training wi
   }),
 ];
 
-// Helper function to get a fitness plan by ID
 export const getFitnessPlanById = (id: string): FitnessPlan | undefined => {
   return fitnessPlans.find(plan => plan.id === id);
 };
 
-// Helper function to get all fitness plans
 export const getAllFitnessPlans = (): FitnessPlan[] => {
   return fitnessPlans;
 };
 
-// Helper function to get featured fitness plans
 export const getFeaturedFitnessPlans = (): FitnessPlan[] => {
   return fitnessPlans.filter(plan => plan.featured);
 };
 
-// Helper function to get fitness plans by level
 export const getFitnessPlansByLevel = (level: string): FitnessPlan[] => {
   return fitnessPlans.filter(plan => plan.level === level);
 };
 
-// Helper function to get fitness plans by category
 export const getFitnessPlansByCategory = (category: string): FitnessPlan[] => {
   return fitnessPlans.filter(plan => plan.category === category);
 }; 

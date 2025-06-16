@@ -25,18 +25,19 @@ export interface Exercise {
   targetMuscles: string[];
   secondaryMuscles: string[];
   difficulty: 'beginner' | 'intermediate' | 'advanced';
-  category: 'strength' | 'cardio' | 'flexibility' | 'balance' | 'plyometric';
+  category: 'strength' | 'cardio' | 'flexibility' | 'balance' | 'plyometric' | 'power';
   instructions: string[];
   tips: string[];
   commonMistakes: string[];
   variations: string[];
   estimatedTime: number; // in minutes
   caloriesBurn?: number; // per set
-  muscleGroup: 'chest' | 'back' | 'shoulders' | 'biceps' | 'triceps' | 'legs' | 'abs' | 'glutes' | 'full-body';
+  muscleGroup: 'chest' | 'back' | 'shoulders' | 'biceps' | 'triceps' | 'legs' | 'abs' | 'glutes' | 'full-body' | 'arms';
 }
 
 export interface DaySchedule {
   day: number;
+  title?: string;
   restDay: boolean;
   exercises: Exercise[];
   totalEstimatedTime: number; // in minutes
@@ -99,14 +100,14 @@ export class FitnessPlan {
   location?: 'gym' | 'home' | 'outdoor' | 'any';
   intensity: 'low' | 'moderate' | 'high' | 'very-high';
 
-  constructor(data: Partial<FitnessPlan>) {
+  constructor(data: Partial<FitnessPlan> & any) {
     this.id = data.id || Date.now().toString();
-    this.user_id = data.user_id !== undefined ? data.user_id : null; // Ensure user_id is explicitly set or null
-    this.title = data.title || '';
+    this.user_id = data.user_id || data.planner_id || null; // Handle both user_id and planner_id
+    this.title = data.title || data.name || ''; // Handle both title and name
     this.description = data.description || '';
-    this.category = data.category || 'maintenance';
-    this.level = data.level || 'beginner';
-    this.duration = data.duration || 0;
+    this.category = data.category || data.plan_type || 'maintenance'; // Handle both category and plan_type
+    this.level = data.level || data.difficulty_level || 'beginner'; // Handle both level and difficulty_level
+    this.duration = typeof data.duration === 'string' ? parseInt(data.duration) : (data.duration || 0); // Handle string duration
     this.image_url = data.image_url;
     this.thumbnail_gif_url = data.thumbnail_gif_url;
     this.full_gif_url = data.full_gif_url;
@@ -117,18 +118,19 @@ export class FitnessPlan {
     this.prerequisites = data.prerequisites || [];
     this.equipment = data.equipment || [];
     this.goals = data.goals || [];
-    this.schedule = data.schedule || [];
+    this.schedule = data.schedule || data.exercise_list || []; // Handle both schedule and exercise_list
     this.status = data.status || 'draft';
     this.created_at = data.created_at || new Date().toISOString();
     this.tags = data.tags || [];
     this.featured = data.featured || false;
     this.rating = data.rating;
-    this.reviewCount = data.reviewCount;
-    this.completionRate = data.completionRate;
-    this.averageWorkoutTime = data.averageWorkoutTime;
-    this.muscleGroups = data.muscleGroups || [];
-    this.equipmentRequired = data.equipmentRequired || [];
-    this.timeOfDay = data.timeOfDay;
+    this.reviewCount = data.reviewCount || data.review_count;
+    this.completionRate = data.completionRate || data.completion_rate;
+    this.averageWorkoutTime = data.averageWorkoutTime || data.average_workout_time;
+    // Handle both camelCase and snake_case for database compatibility
+    this.muscleGroups = data.muscleGroups || data.muscle_groups || [];
+    this.equipmentRequired = data.equipmentRequired || data.equipment_required || [];
+    this.timeOfDay = data.timeOfDay || data.time_of_day;
     this.location = data.location;
     this.intensity = data.intensity || 'low';
   }

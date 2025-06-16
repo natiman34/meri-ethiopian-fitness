@@ -172,7 +172,7 @@ export class BMI {
   }
 
   // Convert to a format suitable for storage
-  toObject(): any {
+  toObject(): Record<string, unknown> {
     return {
       userId: this._userId,
       height: this._height,
@@ -184,8 +184,11 @@ export class BMI {
   }
 
   // Static factory method to create BMI from plain object
-  static fromObject(obj: any): BMI {
-    const bmi = new BMI(obj.height, obj.weight, obj.userId)
+  static fromObject(obj: Record<string, unknown>): BMI {
+    const bmi = new BMI(obj.height as number, obj.weight as number, obj.userId as string)
+    if (obj.date) {
+      bmi._date = new Date(obj.date as string)
+    }
     return bmi
   }
 }

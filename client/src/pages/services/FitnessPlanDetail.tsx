@@ -365,120 +365,239 @@ const FitnessPlanDetail: React.FC = () => {
             </Card.Body>
           </Card>
           
-          <Card>
-            <Card.Body>
-              
-              <h3 className="font-semibold text-lg mb-4">🥘 Ethiopian Meal Plan for Weight Gain</h3>
-              <p className="text-gray-700 mb-4">
-                For optimal results with this fitness plan, consider these nutrition plans using 
-                 Ethiopian foods:
-              </p>
-              <h2 className="font-semibold text-lg mb-4">🌅 Breakfast (High Protein & Healthy Fats)</h2>
-              <ul className="space-y-3">
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2">•</span>
-                  <span className="text-gray-700">Kinche (Cracked wheat porridge) + Milk + Honey</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2">•</span>
-                  <span className="text-gray-700">	Scrambled Eggs with Kocho (False Banana Bread) & Avocado</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2">•</span>
-                  <span className="text-gray-700">Fetira (Ethiopian Crepe) with Peanut Butter & Honey</span>
-                </li>
-              </ul>
+          {/* Ethiopian Meal Plan - Conditional based on fitness plan category */}
+          {(plan.category === 'weight-loss' || plan.category === 'weight-gain') && (
+            <Card>
+              <Card.Body>
+                {plan.category === 'weight-loss' ? (
+                  <>
+                    <h3 className="font-semibold text-lg mb-4">🥘 Ethiopian Meal Plan for Weight Loss</h3>
+                    <p className="text-gray-700 mb-4">
+                      The focus is on high-protein, fiber-rich, and balanced meals while controlling calorie intake.
+                    </p>
+                    <h2 className="font-semibold text-lg mb-4">🌅 Breakfast (High Protein & Fiber)</h2>
+                    <ul className="space-y-3">
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Kinche (Cracked wheat) + Low-fat yogurt</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Fetira (Ethiopian Crepe) with boiled eggs (without butter)</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Shiro Firfir (Chickpea stew with small Injera pieces)</span>
+                      </li>
+                    </ul>
 
-               <h2 className="font-semibold text-lg mb-4">🍛 Lunch (High Carb & Protein)</h2>
-              <ul className="space-y-3">
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2">•</span>
-                  <span className="text-gray-700">Tibs (Beef or Lamb Stir-fry) with Injera & Gomen (Collard Greens)</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2">•</span>
-                  <span className="text-gray-700">	Shiro (Chickpea Stew) with Injera & Avocado</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2">•</span>
-                  <span className="text-gray-700">	Doro Wat (Spicy Chicken Stew) with Rice or Injera</span>
-                </li>
-                
-              </ul>
-              <h2 className="font-semibold text-lg mb-4">🍴 Snack (High Calories & Protein)</h2>
-              <ul className="space-y-3">
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2">•</span>
-                  <span className="text-gray-700">Roasted Chickpeas + Yogurt</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2">•</span>
-                  <span className="text-gray-700">	Atmit (Oatmeal with Milk & Honey)</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2">•</span>
-                  <span className="text-gray-700">		Peanut Butter & Banana Smoothie</span>
-                </li>
-                
-              </ul>
-               <h2 className="font-semibold text-lg mb-4">🥘 Dinner (Balanced Meal)</h2>
-              <ul className="space-y-3">
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2">•</span>
-                  <span className="text-gray-700">Firfir (Injera pieces soaked in spicy stew) with Eggs</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2">•</span>
-                  <span className="text-gray-700">	Gored Gored (Raw Beef Cubes) with Injera & Berbere Sauce</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2">•</span>
-                  <span className="text-gray-700">			Genfo (Barley Porridge) with Butter & Honey</span>
-                </li>
-              </ul>
-              <h2 className="font-semibold text-lg mb-4">🍹 Post-Workout (Protein & Carbs)</h2>
-              <ul className="space-y-3">
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2">•</span>
-                  <span className="text-gray-700">Milk & Dates Smoothie</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2">•</span>
-                  <span className="text-gray-700">		Avocado Juice with Peanut Butter & Honey</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2">•</span>
-                  <span className="text-gray-700">	Boiled Eggs & Roasted Sweet Potatoes</span>
-                </li>
-              </ul>
-              <h2 className="font-semibold text-lg mb-4">🔥 Additional Tips for Weight Gain</h2>
-              <ul className="space-y-3">
-                <li className="flex items-start">
-              
-                  <span className="text-gray-700">✅ Increase Calories: Eat more frequently (every 3-4 hours).</span>
-                </li>
-                <li className="flex items-start">
-                 
-                  <span className="text-gray-700">		✅ Protein Intake: At least 1.6-2.2g per kg of body weight.</span>
-                </li>
-                <li className="flex items-start">
-                  
-                  <span className="text-gray-700">	✅ Healthy Fats: Add avocado, peanut butter, olive oil, and butter.s</span>
-                </li>
-                <li className="flex items-start">
-                  
-                  <span className="text-gray-700">	✅ Hydration: Drink at least 3L of water daily.</span>
-                </li>
-                <li className="flex items-start">
-                  
-                  <span className="text-gray-700">	✅ Sleep: Aim for 7-9 hours per night for muscle recovery.✅ Healthy Fats: Add avocado, peanut butter, olive oil, and butter.s</span>
-                </li>
-              </ul>
-              <Link to="/services/nutrition" className="text-green-600 hover:underline inline-block mt-4 text-sm">
-                View our Ethiopian meal plans →
-              </Link>
-            </Card.Body>
-          </Card>
+                    <h2 className="font-semibold text-lg mb-4">🍛 Lunch (Protein & Healthy Carbs)</h2>
+                    <ul className="space-y-3">
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Tibs (Lean beef or chicken) with lots of vegetables & small Injera</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Doro Wat (Spicy Chicken Stew) with brown rice</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Lentil Stew with Cabbage & Carrots</span>
+                      </li>
+                    </ul>
+
+                    <h2 className="font-semibold text-lg mb-4">🍴 Snack (Healthy & Filling)</h2>
+                    <ul className="space-y-3">
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Avocado & Lemon Juice (No sugar)</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Boiled Eggs & Roasted Chickpeas</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Atmit (Oatmeal with Cinnamon & No Sugar)</span>
+                      </li>
+                    </ul>
+
+                    <h2 className="font-semibold text-lg mb-4">🥘 Dinner (Light & Nutritious)</h2>
+                    <ul className="space-y-3">
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Gomen (Collard Greens) with a small portion of Tibs</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Shiro with a small Injera & side salad</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Firfir with Berbere & Tomato Sauce</span>
+                      </li>
+                    </ul>
+
+                    <h2 className="font-semibold text-lg mb-4">🍹 Post-Workout (Low-Calorie Protein Boost)</h2>
+                    <ul className="space-y-3">
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Greek Yogurt with Flaxseeds</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Smoothie with Spinach, Avocado, & Banana</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Boiled Sweet Potatoes & Lentils</span>
+                      </li>
+                    </ul>
+
+                    <h2 className="font-semibold text-lg mb-4">🔥 Additional Tips for Weight Loss</h2>
+                    <ul className="space-y-3">
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">✅ Calorie Deficit: Eat slightly fewer calories than you burn</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">✅ Protein Intake: At least 1.2-1.6g per kg of body weight</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">✅ Fiber-Rich Foods: More vegetables, lentils, and whole grains</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">✅ Healthy Fats: Use olive oil, nuts, and seeds</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">✅ Hydration: Drink at least 3-4L of water daily</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">✅ Sleep: Aim for 7-9 hours per night for fat loss</span>
+                      </li>
+                    </ul>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="font-semibold text-lg mb-4">🥘 Ethiopian Meal Plan for Weight Gain</h3>
+                    <p className="text-gray-700 mb-4">
+                      For optimal results with this fitness plan, consider these nutrition plans using
+                       Ethiopian foods:
+                    </p>
+                    <h2 className="font-semibold text-lg mb-4">🌅 Breakfast (High Protein & Healthy Fats)</h2>
+                    <ul className="space-y-3">
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Kinche (Cracked wheat porridge) + Milk + Honey</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Scrambled Eggs with Kocho (False Banana Bread) & Avocado</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Fetira (Ethiopian Crepe) with Peanut Butter & Honey</span>
+                      </li>
+                    </ul>
+
+                     <h2 className="font-semibold text-lg mb-4">🍛 Lunch (High Carb & Protein)</h2>
+                    <ul className="space-y-3">
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Tibs (Beef or Lamb Stir-fry) with Injera & Gomen (Collard Greens)</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Shiro (Chickpea Stew) with Injera & Avocado</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Doro Wat (Spicy Chicken Stew) with Rice or Injera</span>
+                      </li>
+                    </ul>
+
+                    <h2 className="font-semibold text-lg mb-4">🍴 Snack (High Calories & Protein)</h2>
+                    <ul className="space-y-3">
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Roasted Chickpeas + Yogurt</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Atmit (Oatmeal with Milk & Honey)</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Peanut Butter & Banana Smoothie</span>
+                      </li>
+                    </ul>
+
+                     <h2 className="font-semibold text-lg mb-4">🥘 Dinner (Balanced Meal)</h2>
+                    <ul className="space-y-3">
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Firfir (Injera pieces soaked in spicy stew) with Eggs</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Gored Gored (Raw Beef Cubes) with Injera & Berbere Sauce</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Genfo (Barley Porridge) with Butter & Honey</span>
+                      </li>
+                    </ul>
+
+                    <h2 className="font-semibold text-lg mb-4">🍹 Post-Workout (Protein & Carbs)</h2>
+                    <ul className="space-y-3">
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Milk & Dates Smoothie</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Avocado Juice with Peanut Butter & Honey</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">Boiled Eggs & Roasted Sweet Potatoes</span>
+                      </li>
+                    </ul>
+
+                    <h2 className="font-semibold text-lg mb-4">🔥 Additional Tips for Weight Gain</h2>
+                    <ul className="space-y-3">
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">✅ Increase Calories: Eat more frequently (every 3-4 hours)</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">✅ Protein Intake: At least 1.6-2.2g per kg of body weight</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">✅ Healthy Fats: Add avocado, peanut butter, olive oil, and butter</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">✅ Hydration: Drink at least 3L of water daily</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-gray-700">✅ Sleep: Aim for 7-9 hours per night for muscle recovery</span>
+                      </li>
+                    </ul>
+                  </>
+                )}
+              </Card.Body>
+            </Card>
+          )}
         </div>
       </div>
     </div>

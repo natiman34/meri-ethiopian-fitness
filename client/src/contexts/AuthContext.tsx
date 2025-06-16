@@ -4,10 +4,8 @@ import React, { createContext, useState, useContext, useEffect, useCallback, Rea
 import { supabase } from "../lib/supabase"
 import { Session, User as SupabaseUser } from "@supabase/supabase-js"
 
-// Define types for roles
 type UserRole = "user" | "admin_super" | "admin_nutritionist" | "admin_fitness" | "nutritionist" | "planner"
 
-// Define our custom User type with role
 export interface User {
   id: string
   email: string
@@ -18,7 +16,6 @@ export interface User {
   bmi?: number | null;    // Add BMI field
 }
 
-// Auth context type
 interface AuthContextType {
   session: Session | null
   user: User | null
@@ -39,7 +36,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Export hook for using auth context
 export const useAuth = () => {
   const context = useContext(AuthContext)
   if (!context) {
@@ -61,7 +57,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [authError, setAuthError] = useState<Error | null>(null) // Track auth errors
   const [isPasswordResetMode, setIsPasswordResetMode] = useState(false) // Track password reset mode
 
-  // Ensure user profile exists in user_profiles table
+
   const ensureProfile = useCallback(async (sessionUser: SupabaseUser): Promise<User> => {
     if (!sessionUser?.id) {
       console.error("ensureProfile: Invalid session user data provided.", sessionUser);
@@ -76,46 +72,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       console.log("ensureProfile: Starting profile check for user ID:", userId)
 
-      // Attempt to select profile with a retry for initial load/timing issues
       let existingProfile = null;
       let selectError = null;
-      const maxRetries = 3;
-      const retryDelay = 100; // milliseconds
 
-      for (let i = 0; i < maxRetries; i++) {
-        console.log(`ensureProfile: Attempt ${i + 1} to select profile for user ID: ${userId}...`);
-        const { data, error } = await supabase
+      // Simplified profile fetch with better error handling
+      console.log(`ensureProfile: Attempting to select profile for user ID: ${userId}...`);
+      const { data, error } = await supabase
         .from("user_profiles")
-          .select("id, full_name, email, role, height, weight, bmi")
-          .eq("id", userId)
+        .select("id, full_name, email, role, height, weight, bmi")
+        .eq("id", userId)
         .single();
 
-        if (!error || error.code === "PGRST116") {
-          // Success or Profile not found (expected for new users)
-          existingProfile = data;
+      if (error) {
+        if (error.code === "PGRST116") {
+          console.log(`ensureProfile: Profile not found (PGRST116) - will create new profile.`);
+          existingProfile = null;
           selectError = error;
-          if (error?.code === "PGRST116") {
-             console.log(`ensureProfile: Profile not found on attempt ${i + 1} (PGRST116).`);
-          } else if (existingProfile) {
-             console.log(`ensureProfile: Profile found on attempt ${i + 1}.`);
-          }
-          break; // Exit loop on success or expected not found error
         } else {
-          console.warn(`ensureProfile: Select profile error on attempt ${i + 1}:`, error);
-          // Retry only on specific potential timing/RLS errors, or general network errors
-          if (error.code === '406' || error.code === '401' || error.code === 'JWT') { // Include common RLS/Auth related error codes
-             console.warn(`ensureProfile: Retrying select after potential RLS/Auth error or timing issue.`);
-             await new Promise(resolve => setTimeout(resolve, retryDelay * (i + 1))); // Exponential backoff
-          } else {
-            // Unhandled error, re-throw immediately
-            console.error(`ensureProfile: Unhandled select error on attempt ${i + 1}, throwing:`, error);
-            throw error;
-          }
+          console.error(`ensureProfile: Database error:`, error);
+          throw error;
         }
+      } else {
+        console.log(`ensureProfile: Profile found successfully.`);
+        existingProfile = data;
+        selectError = null;
       }
 
       if (selectError && selectError.code !== "PGRST116") {
-         // If loop finished due to persistent unhandled error
          console.error("ensureProfile: Select profile failed after retries with unhandled error:", selectError);
          throw selectError;
       }
@@ -125,38 +108,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             return {
                 id: userId,
           name: existingProfile.full_name || "",
-          email: existingProfile.email || sessionUser.email || "", // Prioritize DB email, fallback to session
+          email: existingProfile.email || sessionUser.email || "", 
           role: (existingProfile.role || sessionUser.user_metadata?.role || "user") as UserRole,
-          height: existingProfile.height || null, // Include height
-          weight: existingProfile.weight || null, // Include weight
-          bmi: existingProfile.bmi || null,       // Include bmi
+          height: existingProfile.height || null, 
+          weight: existingProfile.weight || null, 
+          bmi: existingProfile.bmi || null,      
         }
       }
 
-      // Create new profile if none found after retries (only if select returned no profile and error was PGRST116)
       console.log("ensureProfile: No existing profile found after select attempts, attempting to create new profile.")
       const newProfile = {
         id: userId,
-        email: sessionUser.email || "", // Use session email as primary source for creation
+        email: sessionUser.email || "", 
         full_name: sessionUser.user_metadata?.full_name || "",
                 role: (sessionUser.user_metadata?.role || "user") as UserRole,
       }
 
-      // Attempt insert with retry for conflict
       const { data: insertedProfile, error: insertError } = await supabase
         .from("user_profiles")
         .insert([newProfile])
-        .select("id, full_name, email, role, height, weight, bmi") // Ensure height, weight, bmi are selected on insert
-        .single(); // Use single() here as well to get the inserted row
+        .select("id, full_name, email, role, height, weight, bmi") 
+        .single(); 
 
       if (insertError) {
         console.error("ensureProfile: Insert profile error:", insertError);
-        // If insert fails with conflict (409 / 23505), try fetching again in case of a race condition
         if (insertError.code === '23505') { 
           console.warn("ensureProfile: Insert conflict (profile likely already exists), attempting to fetch profile again after insert failure.")
           const { data: profileAfterConflict, error: selectAfterConflictError } = await supabase
             .from("user_profiles")
-            .select("id, full_name, email, role, height, weight, bmi") // Ensure height, weight, bmi are selected after conflict
+            .select("id, full_name, email, role, height, weight, bmi") 
             .eq("id", userId)
             .single();
           
@@ -173,16 +153,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
           } else {
              console.error("ensureProfile: Failed to fetch profile after insert conflict:", selectAfterConflictError)
-             // If we can't fetch after a conflict, something is wrong. Re-throw the original insert error.
              throw insertError 
           }
         } else {
-          // Handle other insert errors
           throw insertError
         }
       }
 
-      // If insert was successful, the data object from insert contains the new profile
       if (insertedProfile) { // 'insertedProfile' here is from the insert operation with single()
          console.log("ensureProfile: Successfully created new profile and received data:", insertedProfile);
          return {
@@ -195,7 +172,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           bmi: insertedProfile.bmi || null,       // Include bmi
         }
       } else {
-        // This case should ideally not be reached if insert is successful with single(), but as a fallback:
          console.warn("ensureProfile: Insert seemed successful, but no data returned. Attempting to fetch profile after insert.");
           const { data: profileAfterInsert, error: selectAfterInsertError } = await supabase
             .from("user_profiles")
@@ -216,7 +192,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
           } else {
              console.error("ensureProfile: Failed to fetch profile after insert:", selectAfterInsertError)
-             // If we can't fetch after a successful insert (no data), throw a generic error
              throw new Error("Failed to retrieve profile after successful creation.")
           }
       }
@@ -231,13 +206,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [])
 
-  // Handle auth state changes
   useEffect(() => {
     console.log("AUTH_PROVIDER: Setting up auth state change handler")
     let isMounted = true
     let authChangeTimeout: NodeJS.Timeout
 
-    // This function runs once on mount to get the initial session
     const initializeAuth = async () => {
       try {
         console.log("AUTH_PROVIDER: Initializing auth state.");
@@ -293,24 +266,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     };
 
-    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         console.log(`AUTH_PROVIDER: onAuthStateChange event: ${event}`, newSession ? 'Session data received' : 'No session data');
         
-        // Clear any existing timeout if event occurs before debounce finishes
         if (authChangeTimeout) {
             clearTimeout(authChangeTimeout);
         }
 
-        // Debounce the auth state change to prevent rapid state updates, 
-        // but process SIGNED_OUT immediately for faster UX
         const delay = (event === "SIGNED_OUT") ? 0 : 100; // Process sign out immediately
 
         authChangeTimeout = setTimeout(async () => {
           if (!isMounted) return
 
-          // Handle sign out specifically first
           if (event === "SIGNED_OUT") {
             console.log("AUTH_PROVIDER: User signed out - clearing states.")
             setSession(null);
@@ -321,25 +289,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             return;
           }
 
-          // CRITICAL SECURITY FIX: Check password reset mode BEFORE any session handling
           if (isPasswordResetMode && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED")) {
-            console.log(`AUTH_PROVIDER: SECURITY - Blocking ${event} event during password reset mode`);
-            console.log("AUTH_PROVIDER: SECURITY - No session or user will be set during password reset");
-            // Completely block any authentication state changes during password reset
-            // Don't set session, don't load profile, don't update any auth state
+            console.log(`AUTH_PROVIDER: Password reset mode - handling ${event} event`);
 
-            // ADDITIONAL SECURITY: Force immediate signout if session was created
-            if (newSession) {
-              console.log("AUTH_PROVIDER: SECURITY - Force signing out session created during password reset");
-              setTimeout(async () => {
-                await supabase.auth.signOut();
-              }, 0);
+            // Check if this is a legitimate password reset session
+            const isPasswordResetSession = sessionStorage.getItem('password_reset_tokens');
+            const isOnPasswordResetPage = window.location.pathname.includes('set-new-password');
+
+            if (isPasswordResetSession && isOnPasswordResetPage) {
+              console.log("AUTH_PROVIDER: Allowing password reset session to proceed");
+              // Allow the session for password reset, but don't set user state
+              setSession(newSession);
+              return;
+            } else {
+              console.log("AUTH_PROVIDER: SECURITY - Blocking non-password-reset session during reset mode");
+              if (newSession) {
+                console.log("AUTH_PROVIDER: SECURITY - Force signing out unauthorized session");
+                setTimeout(async () => {
+                  await supabase.auth.signOut();
+                }, 0);
+              }
+              return;
             }
-
-            return;
           }
 
-          // For SIGNED_IN or other events with a session (only if NOT in password reset mode)
           setSession(newSession);
           setAuthError(null); // Clear previous errors on a new auth event
 
@@ -347,7 +320,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.log("AUTH_PROVIDER: Auth state changed (SIGNED_IN or other), ensuring profile...");
              try {
                 setIsProfileLoading(true);
-                // Use ensureProfile to get the user data after a state change
                 const userProfile = await ensureProfile(newSession.user);
                 if (isMounted) {
                     setUser(userProfile);
@@ -370,15 +342,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   setUser(null);
               }
           }
-          // isLoading might already be false from initAuth or sign out, 
-          // but ensure it's false after processing a potential sign-in
+          
           if (isMounted && isLoading) setIsLoading(false);
 
         }, delay); // Apply debounce delay
       }
     );
 
-    // Start the initial auth check
     initializeAuth();
 
     return () => {
@@ -395,7 +365,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, [ensureProfile]); // Removed isLoading from dependencies
 
-  // Login function with improved error handling
   const login = useCallback(async (email: string, password: string): Promise<void> => {
     setIsLoading(true)
     setAuthError(null)
@@ -410,7 +379,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (error) {
         console.error("Sign in error:", error)
 
-        // Create more specific error messages
         let errorMessage = "Login failed. Please try again."
 
         if (error.message?.includes("Invalid login credentials")) {
@@ -436,7 +404,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw err
       }
 
-      // Session is handled by auth state change listener
       console.log("Login successful for user:", data.user.email)
     } catch (error) {
       const err = error instanceof Error ? error : new Error("Login failed")
@@ -447,10 +414,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [])
 
-  // Logout function with immediate state clearing
   const logout = useCallback(async (): Promise<void> => {
     try {
-      // Clear states immediately for better UX
       setUser(null)
       setSession(null)
       setAuthError(null)
@@ -466,42 +431,139 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [])
 
-  // Register function
   const register = useCallback(async (name: string, email: string, password: string): Promise<"success" | "confirm_email" | "existing_user"> => {
     setIsLoading(true)
     try {
-      // Check if user already exists
-      const { data: existingUsers } = await supabase
-        .from("user_profiles")
-        .select("email")
-        .eq("email", email)
-      
-      if (existingUsers && existingUsers.length > 0) {
-        return "existing_user"
+      // Normalize email input
+      const normalizedEmail = email.toLowerCase().trim()
+      const trimmedName = name.trim()
+
+      // Validate inputs
+      if (!normalizedEmail || !trimmedName || !password) {
+        throw new Error("All fields are required")
       }
-      
-      // Register the user
+
+      // Enhanced duplicate user check using secure database function
+      console.log("Checking for existing user with email:", normalizedEmail);
+
+      // Use the secure email_exists function to check for duplicates
+      // This bypasses RLS policies while maintaining security
+      try {
+        console.log("Calling email_exists RPC function...");
+        const { data: emailExistsResult, error: emailCheckError } = await supabase
+          .rpc('email_exists', { email_to_check: normalizedEmail });
+
+        console.log("RPC result:", { emailExistsResult, emailCheckError });
+
+        if (emailCheckError) {
+          console.warn("Error checking email existence:", emailCheckError);
+          console.log("RPC function may not exist or be accessible, falling back to direct check...");
+
+          // Fallback: Try direct table check with service role if possible
+          const { data: existingProfiles, error: profileCheckError } = await supabase
+            .from("user_profiles")
+            .select("email")
+            .eq("email", normalizedEmail)
+            .limit(1);
+
+          console.log("Direct check result:", { existingProfiles, profileCheckError });
+
+          if (profileCheckError) {
+            console.warn("Direct table check also failed:", profileCheckError);
+            console.log("RLS policies may be blocking access. This is expected during registration.");
+            console.log("Proceeding with registration - database constraints will prevent duplicates");
+          } else if (existingProfiles && existingProfiles.length > 0) {
+            console.log("User already exists (found via direct table check)");
+            return "existing_user";
+          }
+        } else if (emailExistsResult === true) {
+          console.log("User already exists (found via email_exists RPC function)");
+          return "existing_user";
+        } else {
+          console.log("Email is available for registration (RPC function returned false)");
+        }
+      } catch (checkError) {
+        console.warn("Email existence check failed with exception:", checkError);
+        console.log("Proceeding with registration - database constraints and trigger will prevent duplicates");
+      }
+
+      // Attempt to register the user with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: normalizedEmail,
         password,
         options: {
           data: {
-            full_name: name,
+            full_name: trimmedName,
             role: "user" // Default role for new registrations
           }
         }
       })
-      
-      if (error) throw error
-      
+
+      if (error) {
+        console.error("Supabase Auth signUp error:", error)
+
+        // Handle specific Supabase Auth errors that indicate existing user
+        if (error.message.includes('User already registered') ||
+            error.message.includes('already been registered') ||
+            error.message.includes('Email address already registered') ||
+            error.message.includes('email address is already registered') ||
+            error.message.includes('duplicate key value') ||
+            error.code === '23505' || // PostgreSQL unique constraint violation
+            error.status === 422) {
+          console.log("Registration failed: User already exists in auth system")
+          return "existing_user"
+        }
+
+        // Handle rate limiting
+        if (error.message.includes('rate limit') || error.status === 429) {
+          throw new Error("Too many registration attempts. Please try again later.")
+        }
+
+        // Handle database constraint violations (from our new unique constraint)
+        if (error.message.includes('user_profiles_email_unique') ||
+            error.message.includes('violates unique constraint')) {
+          console.log("Registration failed: Email already exists (database constraint)")
+          return "existing_user"
+        }
+
+        throw error
+      }
+
+      // Check if user was created successfully
+      if (!data?.user) {
+        throw new Error("User registration failed: No user data returned")
+      }
+
+      console.log("User registration successful:", {
+        userId: data.user.id,
+        email: data.user.email,
+        emailConfirmed: !!data.user.email_confirmed_at
+      })
+
       // Check if email confirmation is required
-      if (data?.user && !data.user.email_confirmed_at) {
+      if (data.user && !data.user.email_confirmed_at) {
+        console.log("Registration successful, email confirmation required")
         return "confirm_email"
       }
-      
+
+      console.log("Registration successful and user is immediately confirmed")
       return "success"
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration error:", error)
+
+      // Handle specific error cases that indicate existing user
+      if (error?.message?.includes('User already registered') ||
+          error?.message?.includes('already been registered') ||
+          error?.message?.includes('Email address already registered') ||
+          error?.message?.includes('email address is already registered') ||
+          error?.message?.includes('duplicate key value') ||
+          error?.message?.includes('user_profiles_email_unique') ||
+          error?.message?.includes('violates unique constraint') ||
+          error?.code === '23505') { // PostgreSQL unique constraint violation
+        console.log("Registration error indicates existing user:", error.message);
+        return "existing_user"
+      }
+
       throw error
     } finally {
       setIsLoading(false)
@@ -531,6 +593,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Also log the port for debugging
       console.log("Current port:", window.location.port);
+
+      // Note: We don't check user existence beforehand for security reasons
+      // Supabase will handle user validation internally and only send emails to existing users
+
+      // Check if we're in local development
+      const isLocalDevelopment = origin.includes('localhost') || origin.includes('127.0.0.1');
+
+      if (isLocalDevelopment) {
+        console.log("Local development detected - email service not available");
+        console.log("For local testing, please use the OTP reset method or check the browser console for reset instructions");
+
+        // For local development, provide instructions
+        throw new Error("Email service not available in local development. Please use the 'Reset with OTP' option or contact support.");
+      }
 
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,

@@ -24,6 +24,7 @@ import Profile from "../Profile"
 import AdminOverview from "./AdminOverview"
 import AdminUsers from "./AdminUsers"
 import AdminFitness from "./AdminFitness"
+import EnhancedFitnessDashboard from "./EnhancedFitnessDashboard"
 import AdminNutrition from "./AdminNutrition"
 import AdminContent from "./AdminContent"
 import AdminFeedback from "./AdminFeedback"
@@ -108,28 +109,7 @@ const Dashboard = () => {
       {/* Navigation */}
       <nav className="flex-grow">
         <ul className="space-y-1 px-2">
-          {/* Dashboard Link - Only for fitness admin */}
-          {user?.role === "admin_fitness" && (
-          <li>
-            <Link
-              to="/admin"
-              className={`flex items-center px-4 py-3 rounded-md transition-colors ${
-                isActive("/admin") &&
-                !isActive("/admin/users") &&
-                !isActive("/admin/fitness") &&
-                !isActive("/admin/nutrition") &&
-                !isActive("/admin/content") &&
-                !isActive("/admin/feedback") &&
-                !isActive("/admin/settings")
-                  ? "bg-gray-700 text-white"
-                  : "text-gray-300 hover:bg-gray-700 hover:text-white"
-              }`}
-            >
-              <LayoutDashboard className="mr-3 h-5 w-5" />
-              Dashboard
-            </Link>
-          </li>
-          )}
+
 
           {/* Only visible to super admin */}
           {user?.role === "admin_super" && (
@@ -148,19 +128,23 @@ const Dashboard = () => {
             </li>
           )}
 
-          {/* Fitness Plans Link - Only visible to fitness admin */}
+
+
+
+
+          {/* Enhanced Fitness Dashboard - Only visible to fitness admin */}
           {user?.role === "admin_fitness" && (
             <li>
               <Link
-                to="/admin/fitness"
+                to="/admin/fitness-dashboard"
                 className={`flex items-center px-4 py-3 rounded-md transition-colors ${
-                  isActive("/admin/fitness")
+                  isActive("/admin/fitness-dashboard")
                     ? "bg-gray-700 text-white"
                     : "text-gray-300 hover:bg-gray-700 hover:text-white"
                 }`}
               >
                 <Dumbbell className="mr-3 h-5 w-5" />
-                Fitness Plans
+                Enhanced Fitness Dashboard
               </Link>
             </li>
           )}
@@ -182,22 +166,7 @@ const Dashboard = () => {
             </li>
           )}
 
-          {/* Content Management Link - Only for fitness admin */}
-          {user?.role === "admin_fitness" && (
-          <li>
-            <Link
-              to="/admin/content"
-              className={`flex items-center px-4 py-3 rounded-md transition-colors ${
-                isActive("/admin/content")
-                  ? "bg-gray-700 text-white"
-                  : "text-gray-300 hover:bg-gray-700 hover:text-white"
-              }`}
-            >
-              <BookOpen className="mr-3 h-5 w-5" />
-              Content Management
-            </Link>
-          </li>
-          )}
+
 
           {/* Only visible to super admin */}
           {user?.role === "admin_super" && (
@@ -254,6 +223,8 @@ const Dashboard = () => {
         return "Users Management"
       case "/admin/fitness":
         return "Fitness Plans"
+      case "/admin/fitness-dashboard":
+        return "Enhanced Fitness Dashboard"
       case "/admin/nutrition":
         return "Nutrition Plans"
       case "/admin/content":
@@ -300,10 +271,12 @@ const Dashboard = () => {
               </button>
 
               <h1 className="text-xl font-bold text-gray-900">
-                {location.pathname === "/admin" && user?.role === "admin_fitness" && "Dashboard"}
-                {location.pathname === "/admin" && user?.role === "admin_nutritionist" && "Nutrition Management"}
+                {location.pathname === "/admin" && user?.role === "admin_super" && "Super Admin Dashboard"}
+                {location.pathname === "/admin" && user?.role === "admin_fitness" && "Fitness Admin Dashboard"}
+                {location.pathname === "/admin" && user?.role === "admin_nutritionist" && "Nutrition Admin Dashboard"}
                 {location.pathname === "/admin/users" && "Users Management"}
                 {location.pathname === "/admin/fitness" && "Fitness Plans"}
+                {location.pathname === "/admin/fitness-dashboard" && "Enhanced Fitness Dashboard"}
                 {location.pathname === "/admin/nutrition" && "Nutrition Plans"}
                 {location.pathname === "/admin/content" && "Content Management"}
                 {location.pathname === "/admin/feedback" && "User Feedback"}
@@ -341,13 +314,21 @@ const Dashboard = () => {
                   </ProtectedRoute>
                 } 
               />
-              <Route 
-                path="/fitness" 
+              <Route
+                path="/fitness"
                 element={
                   <ProtectedRoute>
                     <AdminFitness />
                   </ProtectedRoute>
-                } 
+                }
+              />
+              <Route
+                path="/fitness-dashboard"
+                element={
+                  <ProtectedRoute>
+                    <EnhancedFitnessDashboard />
+                  </ProtectedRoute>
+                }
               />
               <Route 
                 path="/nutrition" 

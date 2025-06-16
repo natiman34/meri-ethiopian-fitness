@@ -56,16 +56,17 @@ const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="exercise-modal-title">
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         {/* Background overlay */}
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-75 transition-opacity"
           onClick={onClose}
+          aria-hidden="true"
         />
 
         {/* Modal panel */}
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full" role="document">
           {/* Header */}
           <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
@@ -83,6 +84,7 @@ const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
               <button
                 onClick={onClose}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Close exercise details"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -151,7 +153,7 @@ const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
 
             {/* Exercise Info */}
             <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{exercise.name}</h2>
+              <h2 id="exercise-modal-title" className="text-2xl font-bold text-gray-900 mb-2">{exercise.name}</h2>
               <p className="text-gray-600 mb-6">{exercise.description}</p>
 
               {/* Quick Stats */}
@@ -193,7 +195,7 @@ const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
                     return (
                       <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id as any)}
+                        onClick={() => setActiveTab(tab.id as 'overview' | 'instructions' | 'tips' | 'variations')}
                         className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-1 ${
                           activeTab === tab.id
                             ? 'border-green-500 text-green-600'
