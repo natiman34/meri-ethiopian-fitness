@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react"
 import {
   Plus, Edit, Trash2, Save, X, Dumbbell, Upload,
-  Image as ImageIcon, Play, Eye, Calendar, Clock,
+  Image as ImageIcon, Eye, Calendar, Clock,
   Target, Users, FileText, BarChart3, Settings,
-  AlertCircle, CheckCircle, Link as LinkIcon, Search,
+  AlertCircle, CheckCircle, Search,
   Filter, RefreshCw, ExternalLink, Copy, Download
 } from "lucide-react"
 import { FitnessPlan } from "../../types/content"
@@ -18,6 +18,7 @@ import { useAuth } from "../../contexts/AuthContext"
 import Button from "../../components/ui/Button"
 import Card from "../../components/ui/Card"
 import { Dialog } from "@headlessui/react"
+import { ActivityLogService } from "../../services/ActivityLogService"
 
 const EnhancedFitnessDashboard = () => {
   const [plans, setPlans] = useState<FitnessPlan[]>([])
@@ -30,18 +31,13 @@ const EnhancedFitnessDashboard = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [currentPlan, setCurrentPlan] = useState<Partial<FitnessPlan> | null>(null)
   const [planToDelete, setPlanToDelete] = useState<string | null>(null)
-  const [uploadingFile, setUploadingFile] = useState<'image' | 'thumbnail' | 'full' | null>(null)
+  const [uploadingFile, setUploadingFile] = useState<'image' | null>(null)
   const [previewUrls, setPreviewUrls] = useState<{
     image?: string;
-    thumbnail?: string;
-    full?: string;
   }>({})
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published'>('all')
   const [categoryFilter, setCategoryFilter] = useState<'all' | FitnessCategoryType>('all')
-  const [showGifLinkModal, setShowGifLinkModal] = useState(false)
-  const [gifLinkUrl, setGifLinkUrl] = useState('')
-  const [gifLinkType, setGifLinkType] = useState<'thumbnail' | 'full'>('thumbnail')
   const { user, isAdmin } = useAuth()
 
   useEffect(() => {
@@ -117,25 +113,9 @@ const EnhancedFitnessDashboard = () => {
     }
   }
 
-  const handleGifLink = () => {
-    if (!gifLinkUrl || !currentPlan) return
 
-    setCurrentPlan(prev => ({
-      ...prev,
-      [`${gifLinkType}_gif_url`]: gifLinkUrl
-    }))
 
-    setPreviewUrls(prev => ({
-      ...prev,
-      [gifLinkType]: gifLinkUrl
-    }))
-
-    setShowGifLinkModal(false)
-    setGifLinkUrl('')
-    setSuccess(`${gifLinkType.charAt(0).toUpperCase() + gifLinkType.slice(1)} GIF linked successfully`)
-  }
-
-  const handleFileUpload = async (file: File, type: 'image' | 'thumbnail' | 'full') => {
+  const handleFileUpload = async (file: File, type: 'image') => {
     try {
       setUploadingFile(type)
       setError(null) // Clear any previous errors
@@ -151,9 +131,9 @@ const EnhancedFitnessDashboard = () => {
       }
 
       // Check file type
-      const allowedTypes = type === 'image' ? ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'] : ['image/gif']
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
       if (!allowedTypes.includes(file.type)) {
-        throw new Error(`Invalid file type. ${type === 'image' ? 'Please select a JPEG, PNG, or WebP image' : 'Please select a GIF file'}`)
+        throw new Error('Invalid file type. Please select a JPEG, PNG, or WebP image')
       }
 
       const fileExt = file.name.split('.').pop()
@@ -215,6 +195,11 @@ const EnhancedFitnessDashboard = () => {
     setSuccess(null)
 
     try {
+      // Get current user for RLS policy compliance
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
       const planToInsert = {
         // Required fields for the existing table structure
         name: currentPlan.title, // Map title to name (required field)
@@ -243,33 +228,65 @@ const EnhancedFitnessDashboard = () => {
         location: currentPlan.location,
         intensity: currentPlan.intensity,
         image_url: currentPlan.image_url,
-        thumbnail_gif_url: currentPlan.thumbnail_gif_url,
-        full_gif_url: currentPlan.full_gif_url,
         user_id: user?.id,
         planner_id: user?.id // Map user_id to planner_id as well
       }
 
       console.log('Creating plan with data:', planToInsert)
 
-      const { data, error } = await supabase
+      // Try insert without select first (more reliable)
+      const { error: insertError } = await supabase
         .from('fitness_plans')
         .insert([planToInsert])
-        .select()
-        .single()
 
-      if (error) {
-        console.error('Supabase error:', error)
-        throw error
+      if (insertError) {
+        console.error('Supabase insert error:', insertError)
+        throw insertError
       }
 
-      if (data) {
-        console.log('Plan created successfully:', data)
-        setPlans([new FitnessPlan(data), ...plans])
-        setIsCreateModalOpen(false)
-        setCurrentPlan(null)
-        setPreviewUrls({})
-        setSuccess('Fitness plan created successfully')
+      // Insert was successful, fetch the latest plan to get the ID
+      const { data: latestPlans, error: fetchError } = await supabase
+        .from('fitness_plans')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (!fetchError && latestPlans && latestPlans.length > 0) {
+        console.log('Plan created successfully:', latestPlans[0])
+        setPlans([new FitnessPlan(latestPlans[0]), ...plans])
+      } else {
+        // Create a temporary plan object for display
+        const tempPlan = new FitnessPlan({
+          ...planToInsert,
+          id: Date.now().toString(),
+          created_at: new Date().toISOString()
+        })
+        setPlans([tempPlan, ...plans])
       }
+
+      setIsCreateModalOpen(false)
+      setCurrentPlan(null)
+      setPreviewUrls({})
+      setSuccess('Fitness plan created successfully')
+
+      // Log the activity
+      await ActivityLogService.logFitnessAction(
+        'New fitness plan created',
+        `${currentPlan.title} added`,
+        user?.id
+      )
+
+      await ActivityLogService.logAdminActivity(
+        user?.id || '',
+        'CREATE_FITNESS_PLAN',
+        {
+          resource: 'fitness_plan',
+          resourceId: latestPlans?.[0]?.id || 'unknown',
+          planTitle: currentPlan.title,
+          planCategory: currentPlan.category,
+          planLevel: currentPlan.level
+        }
+      )
     } catch (err: any) {
       console.error('Error creating fitness plan:', err)
       setError('Failed to create fitness plan: ' + (err.message || err.details || JSON.stringify(err)))
@@ -279,26 +296,47 @@ const EnhancedFitnessDashboard = () => {
   }
 
   const handleEditPlan = async () => {
-    if (!currentPlan?.id) return
+    if (!currentPlan?.id) {
+      setError('No plan selected for editing')
+      return
+    }
 
     setIsLoading(true)
     setError(null)
+    setSuccess(null)
     try {
+      // First, verify the plan exists
+      const { data: existingPlan, error: checkError } = await supabase
+        .from('fitness_plans')
+        .select('id')
+        .eq('id', currentPlan.id)
+        .single()
+
+      if (checkError || !existingPlan) {
+        throw new Error('Plan not found or multiple plans with same ID')
+      }
+
+      // Get current user for RLS policy compliance
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
+
       const planToUpdate = {
-        // Update both old and new field names for compatibility
-        name: currentPlan.title,
-        description: currentPlan.description,
+        // Core required fields
+        name: currentPlan.title || '',
+        description: currentPlan.description || '',
         duration: currentPlan.duration?.toString() || '30',
         plan_type: currentPlan.category || 'weight-loss',
         exercise_list: currentPlan.schedule || [],
         difficulty_level: currentPlan.level || 'beginner',
 
         // Additional fields
-        title: currentPlan.title,
-        category: currentPlan.category,
-        level: currentPlan.level,
-        weekly_workouts: currentPlan.weekly_workouts,
-        difficulty: currentPlan.difficulty,
+        title: currentPlan.title || '',
+        category: currentPlan.category || 'weight-loss',
+        level: currentPlan.level || 'beginner',
+        weekly_workouts: currentPlan.weekly_workouts || 3,
+        difficulty: currentPlan.difficulty || 1,
         prerequisites: currentPlan.prerequisites || [],
         equipment: currentPlan.equipment || [],
         goals: currentPlan.goals || [],
@@ -308,32 +346,66 @@ const EnhancedFitnessDashboard = () => {
         featured: currentPlan.featured || false,
         muscle_groups: currentPlan.muscle_groups || [],
         equipment_required: currentPlan.equipment_required || [],
-        time_of_day: currentPlan.time_of_day,
-        location: currentPlan.location,
-        intensity: currentPlan.intensity,
-        image_url: currentPlan.image_url,
-        thumbnail_gif_url: currentPlan.thumbnail_gif_url,
-        full_gif_url: currentPlan.full_gif_url
+        time_of_day: currentPlan.time_of_day || 'any',
+        location: currentPlan.location || 'any',
+        intensity: currentPlan.intensity || 'low',
+        image_url: currentPlan.image_url || null,
+        updated_at: new Date().toISOString(),
+        // Ensure user_id is set for RLS policy compliance
+        user_id: user.id
       }
 
-      const { data, error } = await supabase
+      // Try update without select first (more reliable)
+      const { error: updateError } = await supabase
         .from('fitness_plans')
         .update(planToUpdate)
         .eq('id', currentPlan.id)
-        .select()
+
+      if (updateError) throw updateError
+
+      // Update was successful, now fetch the updated plan
+      const { data: updatedPlan, error: fetchError } = await supabase
+        .from('fitness_plans')
+        .select('*')
+        .eq('id', currentPlan.id)
         .single()
 
-      if (error) throw error
-      if (data) {
-        setPlans(plans.map(p => p.id === currentPlan.id ? new FitnessPlan(data) : p))
-        setIsEditModalOpen(false)
-        setCurrentPlan(null)
-        setPreviewUrls({})
-        setSuccess('Fitness plan updated successfully')
+      if (fetchError) {
+        console.error('Error fetching updated plan:', fetchError)
+        // Update with merged data as fallback
+        const mergedPlan = { ...currentPlan, ...planToUpdate }
+        setPlans(plans.map(p => p.id === currentPlan.id ? new FitnessPlan(mergedPlan) : p))
+      } else {
+        // Use the fetched updated plan
+        setPlans(plans.map(p => p.id === currentPlan.id ? new FitnessPlan(updatedPlan) : p))
       }
+
+      setIsEditModalOpen(false)
+      setCurrentPlan(null)
+      setPreviewUrls({})
+      setSuccess('Fitness plan updated successfully')
+
+      // Log the activity
+      await ActivityLogService.logFitnessAction(
+        'Fitness plan updated',
+        `${currentPlan.title} modified`,
+        user?.id
+      )
+
+      await ActivityLogService.logAdminActivity(
+        user?.id || '',
+        'UPDATE_FITNESS_PLAN',
+        {
+          resource: 'fitness_plan',
+          resourceId: currentPlan.id,
+          planTitle: currentPlan.title,
+          planCategory: currentPlan.category,
+          planLevel: currentPlan.level
+        }
+      )
     } catch (err: any) {
       console.error('Error updating fitness plan:', err)
-      setError('Failed to update fitness plan: ' + err.message)
+      setError('Failed to update fitness plan: ' + (err.message || 'Unknown error'))
     } finally {
       setIsLoading(false)
     }
@@ -351,10 +423,32 @@ const EnhancedFitnessDashboard = () => {
         .eq('id', planToDelete)
 
       if (error) throw error
+
+      // Get plan details before deletion for logging
+      const deletedPlan = plans.find(p => p.id === planToDelete)
+
       setPlans(plans.filter(p => p.id !== planToDelete))
       setIsDeleteModalOpen(false)
       setPlanToDelete(null)
       setSuccess('Fitness plan deleted successfully')
+
+      // Log the activity
+      await ActivityLogService.logFitnessAction(
+        'Fitness plan deleted',
+        `${deletedPlan?.title || 'Unknown plan'} removed`,
+        user?.id
+      )
+
+      await ActivityLogService.logAdminActivity(
+        user?.id || '',
+        'DELETE_FITNESS_PLAN',
+        {
+          resource: 'fitness_plan',
+          resourceId: planToDelete,
+          planTitle: deletedPlan?.title || 'Unknown',
+          planCategory: deletedPlan?.category || 'Unknown'
+        }
+      )
     } catch (err: any) {
       console.error('Error deleting fitness plan:', err)
       setError('Failed to delete fitness plan: ' + err.message)
@@ -573,31 +667,20 @@ const EnhancedFitnessDashboard = () => {
                             <ImageIcon className="h-4 w-4" />
                           </button>
                         )}
-                        {plan.thumbnail_gif_url && (
-                          <button
-                            onClick={() => window.open(plan.thumbnail_gif_url, '_blank')}
-                            className="text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-50"
-                            title="View Thumbnail GIF"
-                          >
-                            <Play className="h-4 w-4" />
-                          </button>
-                        )}
-                        {plan.full_gif_url && (
-                          <button
-                            onClick={() => window.open(plan.full_gif_url, '_blank')}
-                            className="text-purple-600 hover:text-purple-900 p-1 rounded hover:bg-purple-50"
-                            title="View Full GIF"
-                          >
-                            <Play className="h-4 w-4 fill-current" />
-                          </button>
-                        )}
-                        {(!plan.image_url && !plan.thumbnail_gif_url && !plan.full_gif_url) && (
-                          <span className="text-gray-400 text-xs">No media</span>
+                        {!plan.image_url && (
+                          <span className="text-gray-400 text-xs">No image</span>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
+                        <button
+                          onClick={() => window.open(`/services/fitness-plans/${plan.id}?hideActions=true`, '_blank')}
+                          className="text-green-600 hover:text-green-900"
+                          title="Preview without sidebar elements"
+                        >
+                          <Eye className="h-5 w-5" />
+                        </button>
                         <button
                           onClick={() => {
                             setCurrentPlan(plan)
@@ -697,8 +780,8 @@ const EnhancedFitnessDashboard = () => {
 
                 {/* Media Upload Section */}
                 <div className="border-t border-gray-200 pt-4">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Media Uploads</h3>
-                  <div className="grid grid-cols-3 gap-4">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Media Upload</h3>
+                  <div className="grid grid-cols-1 gap-4">
                     {/* Image Upload */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Plan Image</label>
@@ -723,82 +806,6 @@ const EnhancedFitnessDashboard = () => {
                       </div>
                       {previewUrls.image && (
                         <img src={previewUrls.image} alt="Preview" className="mt-2 h-20 w-20 object-cover rounded" />
-                      )}
-                    </div>
-
-                    {/* Thumbnail GIF Upload */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Thumbnail GIF</label>
-                      <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                        <div className="space-y-1 text-center">
-                          <Play className="mx-auto h-12 w-12 text-gray-400" />
-                          <div className="flex text-sm text-gray-600">
-                            <label className="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500">
-                              <span>Upload Thumbnail</span>
-                              <input
-                                type="file"
-                                className="sr-only"
-                                accept=".gif"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0]
-                                  if (file) handleFileUpload(file, 'thumbnail')
-                                }}
-                              />
-                            </label>
-                            <span className="pl-1">or</span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setGifLinkType('thumbnail')
-                                setShowGifLinkModal(true)
-                              }}
-                              className="ml-1 font-medium text-green-600 hover:text-green-500"
-                            >
-                              link GIF
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      {previewUrls.thumbnail && (
-                        <img src={previewUrls.thumbnail} alt="Thumbnail Preview" className="mt-2 h-20 w-20 object-cover rounded" />
-                      )}
-                    </div>
-
-                    {/* Full GIF Upload */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Full GIF</label>
-                      <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                        <div className="space-y-1 text-center">
-                          <Play className="mx-auto h-12 w-12 text-gray-400" />
-                          <div className="flex text-sm text-gray-600">
-                            <label className="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500">
-                              <span>Upload Full GIF</span>
-                              <input
-                                type="file"
-                                className="sr-only"
-                                accept=".gif"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0]
-                                  if (file) handleFileUpload(file, 'full')
-                                }}
-                              />
-                            </label>
-                            <span className="pl-1">or</span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setGifLinkType('full')
-                                setShowGifLinkModal(true)
-                              }}
-                              className="ml-1 font-medium text-green-600 hover:text-green-500"
-                            >
-                              link GIF
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      {previewUrls.full && (
-                        <img src={previewUrls.full} alt="Full GIF Preview" className="mt-2 h-20 w-20 object-cover rounded" />
                       )}
                     </div>
                   </div>
@@ -905,73 +912,7 @@ const EnhancedFitnessDashboard = () => {
         </div>
       </Dialog>
 
-      {/* GIF Link Modal */}
-      <Dialog
-        open={showGifLinkModal}
-        onClose={() => setShowGifLinkModal(false)}
-        className="relative z-50"
-      >
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-md rounded bg-white p-6">
-            <div className="flex justify-between items-center mb-4">
-              <Dialog.Title className="text-lg font-medium">
-                Link {gifLinkType.charAt(0).toUpperCase() + gifLinkType.slice(1)} GIF
-              </Dialog.Title>
-              <button
-                onClick={() => {
-                  setShowGifLinkModal(false)
-                  setGifLinkUrl('')
-                }}
-                className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded p-1"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  GIF URL
-                </label>
-                <input
-                  type="url"
-                  value={gifLinkUrl}
-                  onChange={(e) => setGifLinkUrl(e.target.value)}
-                  placeholder="https://example.com/workout.gif"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                />
-              </div>
-
-              <div className="text-xs text-gray-500">
-                💡 You can link GIFs from external sources like Giphy, exercise databases, or your own hosting
-              </div>
-
-              <div className="flex justify-end space-x-2 mt-6">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    setShowGifLinkModal(false)
-                    setGifLinkUrl('')
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleGifLink}
-                  disabled={!gifLinkUrl}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <LinkIcon className="mr-2 h-4 w-4" />
-                  Link GIF
-                </Button>
-              </div>
-            </div>
-          </Dialog.Panel>
-        </div>
-      </Dialog>
     </div>
   )
 }

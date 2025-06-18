@@ -88,6 +88,7 @@ export class FitnessPlan {
   schedule: DaySchedule[];
   status: 'draft' | 'published';
   created_at: string;
+  updated_at?: string;
   tags: string[];
   featured: boolean;
   rating?: number;
@@ -99,6 +100,10 @@ export class FitnessPlan {
   timeOfDay?: 'morning' | 'afternoon' | 'evening' | 'any';
   location?: 'gym' | 'home' | 'outdoor' | 'any';
   intensity: 'low' | 'moderate' | 'high' | 'very-high';
+  // Additional database fields
+  muscle_groups?: string[];
+  equipment_required?: string[];
+  time_of_day?: string;
 
   constructor(data: Partial<FitnessPlan> & any) {
     this.id = data.id || Date.now().toString();
@@ -121,6 +126,7 @@ export class FitnessPlan {
     this.schedule = data.schedule || data.exercise_list || []; // Handle both schedule and exercise_list
     this.status = data.status || 'draft';
     this.created_at = data.created_at || new Date().toISOString();
+    this.updated_at = data.updated_at;
     this.tags = data.tags || [];
     this.featured = data.featured || false;
     this.rating = data.rating;
@@ -133,6 +139,10 @@ export class FitnessPlan {
     this.timeOfDay = data.timeOfDay || data.time_of_day;
     this.location = data.location;
     this.intensity = data.intensity || 'low';
+    // Additional database fields
+    this.muscle_groups = data.muscle_groups || data.muscleGroups || [];
+    this.equipment_required = data.equipment_required || data.equipmentRequired || [];
+    this.time_of_day = data.time_of_day || data.timeOfDay;
   }
 
   addExerciseToDay(dayIndex: number, exercise: Exercise) {
@@ -160,7 +170,7 @@ export class FitnessPlan {
     return this.schedule.filter(day => !day.restDay).length;
   }
 
-  toObject(): FitnessPlan {
+  toObject(): any {
     return { ...this };
   }
 }

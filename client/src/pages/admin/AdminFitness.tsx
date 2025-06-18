@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Search, Edit, Trash2, Plus, Filter, X } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { Search, Edit, Trash2, Plus, X } from "lucide-react"
 import Button from "../../components/ui/Button"
-import { FitnessPlan, FitnessCategory, FitnessLevel, DaySchedule, Exercise, ExerciseSet } from '../../types/content'
+import { FitnessPlan, FitnessCategory, FitnessLevel, DaySchedule, Exercise } from '../../types/content'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { Dialog } from '@headlessui/react'
@@ -54,60 +54,60 @@ const AdminFitness = () => {
 
   const { user } = useAuth()
 
+  const fetchPlans = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const from = (currentPage - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+
+      const { error: countError, count } = await supabase
+        .from('fitness_plans')
+        .select('id', { count: 'exact' });
+
+      if (countError) throw countError;
+      setTotalPages(Math.ceil((count || 0) / itemsPerPage));
+
+      const { data, error } = await supabase
+        .from('fitness_plans')
+        .select('*')
+        .range(from, to)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform database data to frontend format
+      const transformedPlans = (data || []).map(planData => {
+        // Create a new FitnessPlan instance with proper field mapping
+        return new FitnessPlan({
+          ...planData,
+          // Map database fields to frontend fields
+          user_id: planData.planner_id || planData.user_id,
+          title: planData.title || planData.name,
+          category: planData.category || planData.plan_type,
+          level: planData.level || planData.difficulty_level,
+          schedule: planData.schedule || planData.exercise_list || [],
+          muscleGroups: planData.muscle_groups || [],
+          equipmentRequired: planData.equipment_required || [],
+          timeOfDay: planData.time_of_day,
+          reviewCount: planData.review_count,
+          completionRate: planData.completion_rate,
+          averageWorkoutTime: planData.average_workout_time,
+        });
+      });
+
+      setPlans(transformedPlans);
+    } catch (error) {
+      console.error('Error fetching fitness plans:', error);
+      setError('Failed to load fitness plans');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentPage, itemsPerPage]);
+
   useEffect(() => {
     fetchPlans();
-  }, [currentPage]); // Add currentPage dependency for pagination
-
-    const fetchPlans = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const from = (currentPage - 1) * itemsPerPage;
-        const to = from + itemsPerPage - 1;
-
-        const { data: countData, error: countError, count } = await supabase
-          .from('fitness_plans')
-          .select('id', { count: 'exact' });
-
-        if (countError) throw countError;
-        setTotalPages(Math.ceil((count || 0) / itemsPerPage));
-
-        const { data, error } = await supabase
-          .from('fitness_plans')
-          .select('*')
-          .range(from, to)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        // Transform database data to frontend format
-        const transformedPlans = (data || []).map(planData => {
-          // Create a new FitnessPlan instance with proper field mapping
-          return new FitnessPlan({
-            ...planData,
-            // Map database fields to frontend fields
-            user_id: planData.planner_id || planData.user_id,
-            title: planData.title || planData.name,
-            category: planData.category || planData.plan_type,
-            level: planData.level || planData.difficulty_level,
-            schedule: planData.schedule || planData.exercise_list || [],
-            muscleGroups: planData.muscle_groups || [],
-            equipmentRequired: planData.equipment_required || [],
-            timeOfDay: planData.time_of_day,
-            reviewCount: planData.review_count,
-            completionRate: planData.completion_rate,
-            averageWorkoutTime: planData.average_workout_time,
-          });
-        });
-
-        setPlans(transformedPlans);
-      } catch (error) {
-        console.error('Error fetching fitness plans:', error);
-        setError('Failed to load fitness plans');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  }, [fetchPlans]);
 
   // Filter fitness plans based on search term, plan type, difficulty level, and status
   const filteredPlans = plans.filter((plan) => {
@@ -429,7 +429,7 @@ const AdminFitness = () => {
     dayIndex: number,
     exerciseIndex: number,
     field: keyof Exercise,
-    value: any
+    value: Exercise[keyof Exercise]
   ) => {
     if (planType === 'new') {
       setNewPlan((prev: Partial<FitnessPlan>) => ({
@@ -1101,7 +1101,7 @@ const AdminFitness = () => {
             className="flex items-center"
             onClick={() => {
               setIsCreateModalOpen(true)
-              setNewPlan(new FitnessPlan({
+              setNewPlan({
                 title: '',
                 description: '',
                 category: 'weight-loss',
@@ -1125,7 +1125,7 @@ const AdminFitness = () => {
                 timeOfDay: 'any',
                 location: 'any',
                 intensity: 'low',
-              }))
+              })
               setFormErrors({})
             }}
           >

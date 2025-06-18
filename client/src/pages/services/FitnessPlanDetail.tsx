@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import { FitnessPlan } from "../../types/content";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
@@ -12,11 +12,15 @@ import AnimatedGif from '../../components/AnimatedGif';
 
 const FitnessPlanDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const [plan, setPlan] = useState<FitnessPlan | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState(1);
   const { user } = useAuth();
+
+  // Check if this is a newly created plan (hide sidebar elements)
+  const hideActions = searchParams.get('hideActions') === 'true' || searchParams.get('preview') === 'true';
 
   console.log("FitnessPlanDetail mounted. ID from params:", id);
 
@@ -121,22 +125,24 @@ const FitnessPlanDetail: React.FC = () => {
               
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{plan.title}</h1>
               
-              <div className="flex flex-wrap gap-4 mb-6">
-                <div className="bg-black/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                  <span className="text-sm text-gray-300">Duration</span>
-                  <p className="font-semibold text-white">{plan.duration} Weeks</p>
+              {!hideActions && (
+                <div className="flex flex-wrap gap-4 mb-6">
+                  <div className="bg-black/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                    <span className="text-sm text-gray-300">Duration</span>
+                    <p className="font-semibold text-white">{plan.duration} Weeks</p>
+                  </div>
+
+                  <div className="bg-black/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                    <span className="text-sm text-gray-300">Weekly Sessions</span>
+                    <p className="font-semibold text-white">{plan.weekly_workouts} Days</p>
+                  </div>
+
+                  <div className="bg-black/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                    <span className="text-sm text-gray-300">Difficulty</span>
+                    <p className="font-semibold text-white">{plan.difficulty}/5</p>
+                  </div>
                 </div>
-                
-                <div className="bg-black/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                  <span className="text-sm text-gray-300">Weekly Sessions</span>
-                  <p className="font-semibold text-white">{plan.weekly_workouts} Days</p>
-                </div>
-                
-                <div className="bg-black/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                  <span className="text-sm text-gray-300">Difficulty</span>
-                  <p className="font-semibold text-white">{plan.difficulty}/5</p>
-                </div>
-              </div>
+              )}
               
               <p className="text-lg text-white whitespace-pre-wrap">{plan.description}</p>
             </div>
@@ -146,61 +152,63 @@ const FitnessPlanDetail: React.FC = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className={`grid grid-cols-1 ${hideActions ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-8`}>
           {/* Left Sidebar - Plan Info */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4">Plan Overview</h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium text-gray-900">Target Audience</h3>
-                  <p className="text-gray-600">{plan.target_audience}</p>
-                </div>
+          {!hideActions && (
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-semibold mb-4">Plan Overview</h2>
 
-                <div>
-                  <h3 className="font-medium text-gray-900">Prerequisites</h3>
-                  <ul className="list-disc list-inside text-gray-600">
-                    {plan.prerequisites.map((prereq, index) => (
-                      <li key={index}>{prereq}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="font-medium text-gray-900">Required Equipment</h3>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {plan.equipment.map((item, index) => (
-                      <span key={index} className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-medium text-gray-900">Goals</h3>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {plan.goals.map((goal, index) => (
-                      <span key={index} className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
-                        {goal}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {plan.estimated_calories_burn && (
+                <div className="space-y-4">
                   <div>
-                    <h3 className="font-medium text-gray-900">Estimated Weekly Calories Burn</h3>
-                    <p className="text-gray-600">{plan.estimated_calories_burn} kcal</p>
+                    <h3 className="font-medium text-gray-900">Target Audience</h3>
+                    <p className="text-gray-600">{plan.target_audience}</p>
                   </div>
-                )}
+
+                  <div>
+                    <h3 className="font-medium text-gray-900">Prerequisites</h3>
+                    <ul className="list-disc list-inside text-gray-600">
+                      {plan.prerequisites.map((prereq, index) => (
+                        <li key={index}>{prereq}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="font-medium text-gray-900">Required Equipment</h3>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {plan.equipment.map((item, index) => (
+                        <span key={index} className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-medium text-gray-900">Goals</h3>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {plan.goals.map((goal, index) => (
+                        <span key={index} className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                          {goal}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {plan.estimated_calories_burn && (
+                    <div>
+                      <h3 className="font-medium text-gray-900">Estimated Weekly Calories Burn</h3>
+                      <p className="text-gray-600">{plan.estimated_calories_burn} kcal</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Main Content - Workout Schedule */}
-          <div className="lg:col-span-2">
+          <div className={hideActions ? 'lg:col-span-1' : 'lg:col-span-2'}>
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-semibold mb-6">Workout Schedule</h2>
               
@@ -300,42 +308,43 @@ const FitnessPlanDetail: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Sidebar */}
-      <div>
-        <div className="space-y-6">
-          {!user ? (
-            <Card>
-              <Card.Body className="text-center">
-                <h3 className="font-semibold text-lg mb-2">Want to save this plan?</h3>
-                <p className="text-gray-600 mb-4">
-                  Create an account to save this plan to your profile.
-                </p>
-                <Link to="/register">
-                  <Button variant="primary" fullWidth>
-                    Sign Up Now
-                  </Button>
-                </Link>
-                <p className="mt-4 text-sm text-gray-500">
-                  Already have an account? <Link to="/login" className="text-green-600">Log in</Link>
-                </p>
-              </Card.Body>
-            </Card>
-          ) : (
-            <Card>
-              <Card.Body>
-                <h3 className="font-semibold text-lg mb-4">Plan Actions</h3>
-                <div className="space-y-3">
-                  <Button variant="primary" fullWidth>
-                    Save to My Plans
-                  </Button>
-                  <Button variant="outline" fullWidth>
-                    Download PDF
-                  </Button>
-                </div>
-              </Card.Body>
-            </Card>
-          )}
+      {!hideActions && (
+        <div>
+          <div className="space-y-6">
+            {!user ? (
+              <Card>
+                <Card.Body className="text-center">
+                  <h3 className="font-semibold text-lg mb-2">Want to save this plan?</h3>
+                  <p className="text-gray-600 mb-4">
+                    Create an account to save this plan to your profile.
+                  </p>
+                  <Link to="/register">
+                    <Button variant="primary" fullWidth>
+                      Sign Up Now
+                    </Button>
+                  </Link>
+                  <p className="mt-4 text-sm text-gray-500">
+                    Already have an account? <Link to="/login" className="text-green-600">Log in</Link>
+                  </p>
+                </Card.Body>
+              </Card>
+            ) : (
+              <Card>
+                <Card.Body>
+                  <h3 className="font-semibold text-lg mb-4">Plan Actions</h3>
+                  <div className="space-y-3">
+                    <Button variant="primary" fullWidth>
+                      Save to My Plans
+                    </Button>
+                    <Button variant="outline" fullWidth>
+                      Download PDF
+                    </Button>
+                  </div>
+                </Card.Body>
+              </Card>
+            )}
           
           <Card>
             <Card.Body>
@@ -600,6 +609,7 @@ const FitnessPlanDetail: React.FC = () => {
           )}
         </div>
       </div>
+      )}
     </div>
   );
 };

@@ -1,11 +1,11 @@
 "use client"
 
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import { FitnessPlan } from "../../types/content";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
-import ExerciseCard from "../../components/ExerciseCard";
+
 import ExerciseDetailModal from "../../components/ExerciseDetailModal";
 import { useAuth } from "../../contexts/AuthContext";
 import { FitnessPlanService } from "../../services/FitnessPlanService";
@@ -33,6 +33,7 @@ import {
 
 const EnhancedFitnessPlanDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const [plan, setPlan] = useState<FitnessPlan | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +44,9 @@ const EnhancedFitnessPlanDetail: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { user } = useAuth();
+
+  // Check if this is a newly created plan (hide sidebar elements)
+  const hideActions = searchParams.get('hideActions') === 'true' || searchParams.get('preview') === 'true';
 
   useEffect(() => {
     const fetchPlan = async () => {
@@ -205,54 +209,58 @@ const EnhancedFitnessPlanDetail: React.FC = () => {
               </div>
               
               <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">{plan.title}</h1>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-black/20 backdrop-blur-sm rounded-lg px-4 py-3">
-                  <Calendar className="h-6 w-6 text-green-400 mb-1" />
-                  <span className="text-sm text-gray-300 block">Duration</span>
-                  <p className="font-semibold text-white text-lg">{plan.duration} Weeks</p>
-                </div>
-                
-                <div className="bg-black/20 backdrop-blur-sm rounded-lg px-4 py-3">
-                  <Clock className="h-6 w-6 text-blue-400 mb-1" />
-                  <span className="text-sm text-gray-300 block">Weekly Sessions</span>
-                  <p className="font-semibold text-white text-lg">{plan.weekly_workouts} Days</p>
-                </div>
-                
-                <div className="bg-black/20 backdrop-blur-sm rounded-lg px-4 py-3">
-                  <Target className="h-6 w-6 text-purple-400 mb-1" />
-                  <span className="text-sm text-gray-300 block">Difficulty</span>
-                  <div className="flex items-center">
-                    <div className="flex mr-2">{getDifficultyStars(plan.difficulty)}</div>
-                  </div>
-                </div>
 
-                {plan.estimated_calories_burn && (
+              {!hideActions && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className="bg-black/20 backdrop-blur-sm rounded-lg px-4 py-3">
-                    <TrendingUp className="h-6 w-6 text-red-400 mb-1" />
-                    <span className="text-sm text-gray-300 block">Weekly Calories</span>
-                    <p className="font-semibold text-white text-lg">{plan.estimated_calories_burn}</p>
+                    <Calendar className="h-6 w-6 text-green-400 mb-1" />
+                    <span className="text-sm text-gray-300 block">Duration</span>
+                    <p className="font-semibold text-white text-lg">{plan.duration} Weeks</p>
                   </div>
-                )}
-              </div>
+
+                  <div className="bg-black/20 backdrop-blur-sm rounded-lg px-4 py-3">
+                    <Clock className="h-6 w-6 text-blue-400 mb-1" />
+                    <span className="text-sm text-gray-300 block">Weekly Sessions</span>
+                    <p className="font-semibold text-white text-lg">{plan.weekly_workouts} Days</p>
+                  </div>
+
+                  <div className="bg-black/20 backdrop-blur-sm rounded-lg px-4 py-3">
+                    <Target className="h-6 w-6 text-purple-400 mb-1" />
+                    <span className="text-sm text-gray-300 block">Difficulty</span>
+                    <div className="flex items-center">
+                      <div className="flex mr-2">{getDifficultyStars(plan.difficulty)}</div>
+                    </div>
+                  </div>
+
+                  {plan.estimated_calories_burn && (
+                    <div className="bg-black/20 backdrop-blur-sm rounded-lg px-4 py-3">
+                      <TrendingUp className="h-6 w-6 text-red-400 mb-1" />
+                      <span className="text-sm text-gray-300 block">Weekly Calories</span>
+                      <p className="font-semibold text-white text-lg">{plan.estimated_calories_burn}</p>
+                    </div>
+                  )}
+                </div>
+              )}
               
               <p className="text-xl text-white/90 leading-relaxed max-w-3xl">{plan.description}</p>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap gap-4 mt-8">
-                <Button variant="primary" size="lg" className="flex items-center gap-2">
-                  <Play className="h-5 w-5" />
-                  Start Plan
-                </Button>
-                <Button variant="outline" size="lg" className="flex items-center gap-2 bg-white/10 text-white border-white/20 hover:bg-white/20">
-                  <Bookmark className="h-5 w-5" />
-                  Save Plan
-                </Button>
-                <Button variant="outline" size="lg" className="flex items-center gap-2 bg-white/10 text-white border-white/20 hover:bg-white/20">
-                  <Share2 className="h-5 w-5" />
-                  Share
-                </Button>
-              </div>
+              {!hideActions && (
+                <div className="flex flex-wrap gap-4 mt-8">
+                  <Button variant="primary" size="lg" className="flex items-center gap-2">
+                    <Play className="h-5 w-5" />
+                    Start Plan
+                  </Button>
+                  <Button variant="outline" size="lg" className="flex items-center gap-2 bg-white/10 text-white border-white/20 hover:bg-white/20">
+                    <Bookmark className="h-5 w-5" />
+                    Save Plan
+                  </Button>
+                  <Button variant="outline" size="lg" className="flex items-center gap-2 bg-white/10 text-white border-white/20 hover:bg-white/20">
+                    <Share2 className="h-5 w-5" />
+                    Share
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -260,9 +268,10 @@ const EnhancedFitnessPlanDetail: React.FC = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className={`grid grid-cols-1 ${hideActions ? 'lg:grid-cols-1' : 'lg:grid-cols-4'} gap-8`}>
           {/* Left Sidebar - Plan Info */}
-          <div className="lg:col-span-1 space-y-6">
+          {!hideActions && (
+            <div className="lg:col-span-1 space-y-6">
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-xl font-semibold mb-4 flex items-center">
                 <Target className="h-5 w-5 mr-2 text-green-600" />
@@ -358,9 +367,10 @@ const EnhancedFitnessPlanDetail: React.FC = () => {
               </Card>
             )}
           </div>
+          )}
 
           {/* Main Content - Workout Schedule */}
-          <div className="lg:col-span-3">
+          <div className={hideActions ? 'lg:col-span-1' : 'lg:col-span-3'}>
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-2xl font-semibold mb-6">Workout Schedule</h2>
               

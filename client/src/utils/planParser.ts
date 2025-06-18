@@ -350,6 +350,7 @@ export function parseFitnessPlanText(
             } else {
               warnings.push(`Could not parse exercise line: ${line}`);
             }
+          }
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           errors.push(`Error parsing line "${line}": ${errorMessage}`);

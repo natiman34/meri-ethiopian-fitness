@@ -12,6 +12,15 @@ CREATE TABLE IF NOT EXISTS activities (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Create admin_logs table for admin activity tracking
+CREATE TABLE IF NOT EXISTS admin_logs (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    admin_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    action TEXT NOT NULL,
+    details JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create user_activity_progress table for manually selected activity days
 CREATE TABLE IF NOT EXISTS user_activity_progress (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -27,6 +36,11 @@ CREATE INDEX IF NOT EXISTS idx_activities_user_id ON activities(user_id);
 CREATE INDEX IF NOT EXISTS idx_activities_date ON activities(date);
 CREATE INDEX IF NOT EXISTS idx_activities_user_date ON activities(user_id, date);
 CREATE INDEX IF NOT EXISTS idx_activities_type ON activities(type);
+
+-- Create indexes for admin_logs table
+CREATE INDEX IF NOT EXISTS idx_admin_logs_admin_id ON admin_logs(admin_id);
+CREATE INDEX IF NOT EXISTS idx_admin_logs_action ON admin_logs(action);
+CREATE INDEX IF NOT EXISTS idx_admin_logs_created_at ON admin_logs(created_at);
 
 -- Create indexes for user_activity_progress table
 CREATE INDEX IF NOT EXISTS idx_user_activity_progress_user_id ON user_activity_progress(user_id);
@@ -103,6 +117,7 @@ CREATE TRIGGER update_user_activity_progress_updated_at
 ALTER TABLE fitness_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_activity_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_logs ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
 -- Allow public read access to published plans
@@ -186,6 +201,39 @@ CREATE POLICY "Admins can manage all activity progress" ON user_activity_progres
             SELECT 1 FROM user_profiles
             WHERE user_profiles.id = auth.uid()
             AND user_profiles.role LIKE 'admin_%'
+        )
+    );
+
+-- RLS Policies for admin_logs table
+-- Admins can view their own logs
+CREATE POLICY "Admins can view their own logs" ON admin_logs
+    FOR SELECT USING (
+        auth.uid() = admin_id AND
+        EXISTS (
+            SELECT 1 FROM user_profiles
+            WHERE user_profiles.id = auth.uid()
+            AND user_profiles.role LIKE 'admin_%'
+        )
+    );
+
+-- Admins can create their own logs
+CREATE POLICY "Admins can create their own logs" ON admin_logs
+    FOR INSERT WITH CHECK (
+        auth.uid() = admin_id AND
+        EXISTS (
+            SELECT 1 FROM user_profiles
+            WHERE user_profiles.id = auth.uid()
+            AND user_profiles.role LIKE 'admin_%'
+        )
+    );
+
+-- Super admins can view all logs
+CREATE POLICY "Super admins can view all logs" ON admin_logs
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM user_profiles
+            WHERE user_profiles.id = auth.uid()
+            AND user_profiles.role = 'admin_super'
         )
     );
 

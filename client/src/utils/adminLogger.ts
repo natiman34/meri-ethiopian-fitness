@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { ActivityLogService } from '../services/ActivityLogService';
 
 /**
  * Interface for admin activity log details
@@ -71,27 +71,18 @@ export const logAdminActivity = async (
   }
 
   try {
-    // Prepare log entry with timestamp
-    const logEntry: AdminLogEntry = {
-      admin_id: adminId.trim(),
-      action: action.trim().toUpperCase(),
-      details: {
-        ...details,
-        timestamp: new Date().toISOString(),
-        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
-      },
-    };
+    // Use the enhanced ActivityLogService for admin logging
+    const result = await ActivityLogService.logAdminActivity(
+      adminId.trim(),
+      action.trim(),
+      details
+    );
 
-    const { error } = await supabase
-      .from('admin_logs')
-      .insert([logEntry]);
-
-    if (error) {
-      console.warn('Failed to log admin activity:', error.message);
-      return { success: false, error: error.message };
+    if (result) {
+      return { success: true };
+    } else {
+      return { success: false, error: 'Failed to log admin activity' };
     }
-
-    return { success: true };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     console.warn('Failed to log admin activity:', errorMessage);

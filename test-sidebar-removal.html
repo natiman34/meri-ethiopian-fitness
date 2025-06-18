@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sidebar Elements Removal</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .test-link { display: inline-block; margin: 10px; padding: 10px 20px; background: #10B981; color: white; text-decoration: none; border-radius: 4px; }
+        .test-link:hover { background: #059669; }
+        .info { background: #dbeafe; color: #1e40af; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .success { background: #d1fae5; color: #065f46; padding: 15px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Test Sidebar Elements Removal</h1>
+    
+    <div class="info">
+        <strong>Test Instructions:</strong><br>
+        Click the links below to test the sidebar element removal functionality. 
+        Compare the "With Sidebar" and "Without Sidebar" versions to see the difference.
+    </div>
+    
+    <div class="test-section">
+        <h2>Fitness Plan Detail Page Tests</h2>
+        <p>Test the basic fitness plan detail page:</p>
+        
+        <a href="/services/fitness-plans/1" class="test-link" target="_blank">
+            With Sidebar (Normal View)
+        </a>
+        
+        <a href="/services/fitness-plans/1?hideActions=true" class="test-link" target="_blank">
+            Without Sidebar (hideActions=true)
+        </a>
+        
+        <a href="/services/fitness-plans/1?preview=true" class="test-link" target="_blank">
+            Without Sidebar (preview=true)
+        </a>
+    </div>
+    
+    <div class="test-section">
+        <h2>Enhanced Fitness Plan Detail Page Tests</h2>
+        <p>Test the enhanced fitness plan detail page:</p>
+        
+        <a href="/services/enhanced-fitness-plans/1" class="test-link" target="_blank">
+            Enhanced - With Sidebar (Normal View)
+        </a>
+        
+        <a href="/services/enhanced-fitness-plans/1?hideActions=true" class="test-link" target="_blank">
+            Enhanced - Without Sidebar (hideActions=true)
+        </a>
+        
+        <a href="/services/enhanced-fitness-plans/1?preview=true" class="test-link" target="_blank">
+            Enhanced - Without Sidebar (preview=true)
+        </a>
+    </div>
+    
+    <div class="test-section">
+        <h2>Admin Dashboard Preview Button</h2>
+        <p>Test the new preview button in the admin dashboard:</p>
+        
+        <a href="/admin/fitness" class="test-link" target="_blank">
+            Open Admin Dashboard
+        </a>
+        
+        <div class="info">
+            <strong>In the admin dashboard:</strong><br>
+            1. Look for the eye icon (👁️) next to each fitness plan<br>
+            2. Click the eye icon to preview the plan without sidebar elements<br>
+            3. The preview will open in a new tab with ?hideActions=true parameter
+        </div>
+    </div>
+    
+    <div class="success">
+        <h3>Elements That Should Be Hidden:</h3>
+        <ul>
+            <li><strong>Plan Actions:</strong> "Save to My Plans", "Download PDF" buttons</li>
+            <li><strong>Plan Overview:</strong> "Target Audience", "Prerequisites", "Required Equipment", "Goals"</li>
+            <li><strong>Hero Stats:</strong> "Duration", "Weekly Sessions", "Difficulty" information</li>
+            <li><strong>Action Buttons:</strong> "Start Plan", "Save Plan", "Share" buttons</li>
+            <li><strong>Entire Left Sidebar:</strong> Complete sidebar should be hidden</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>URL Parameter Testing</h2>
+        <p>You can manually test by adding these parameters to any fitness plan URL:</p>
+        
+        <div class="info">
+            <strong>Parameters:</strong><br>
+            • <code>?hideActions=true</code> - Hides all sidebar elements<br>
+            • <code>?preview=true</code> - Alternative parameter for preview mode<br><br>
+            
+            <strong>Example URLs:</strong><br>
+            • <code>/services/fitness-plans/[id]?hideActions=true</code><br>
+            • <code>/services/enhanced-fitness-plans/[id]?preview=true</code>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Layout Changes</h2>
+        <p>When sidebar elements are hidden:</p>
+        
+        <div class="success">
+            <ul>
+                <li>Grid layout changes from 3-column to 1-column (or 4-column to 1-column for enhanced)</li>
+                <li>Main content area expands to full width</li>
+                <li>All sidebar content is completely hidden</li>
+                <li>Page remains fully functional for viewing workout schedules</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // Add some basic functionality to test links
+        document.addEventListener('DOMContentLoaded', function() {
+            const links = document.querySelectorAll('.test-link');
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // Add a small delay to show the link was clicked
+                    this.style.background = '#059669';
+                    setTimeout(() => {
+                        this.style.background = '#10B981';
+                    }, 200);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

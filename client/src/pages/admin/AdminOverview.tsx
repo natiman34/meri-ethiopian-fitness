@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { Users, Dumbbell, Utensils, MessageSquare } from "lucide-react"
 import { supabase } from "../../lib/supabase"
 import { useAuth } from "../../contexts/AuthContext"
+import { ActivityLogService } from "../../services/ActivityLogService"
 
 interface DashboardStats {
   totalUsers: number
@@ -58,14 +59,8 @@ const AdminOverview = () => {
         if (growthError) throw growthError
         setGrowthData(growthData)
 
-        // Fetch recent activity
-        const { data: activityData, error: activityError } = await supabase
-          .from('activity_log')
-          .select('*')
-          .order('timestamp', { ascending: false })
-          .limit(4)
-
-        if (activityError) throw activityError
+        // Fetch recent activity using the new service
+        const activityData = await ActivityLogService.getRecentActivityLogs(4)
         setRecentActivity(activityData)
 
       } catch (err) {

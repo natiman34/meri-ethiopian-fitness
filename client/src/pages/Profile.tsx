@@ -508,33 +508,7 @@ const Profile: React.FC = () => {
                 })}
               </div>
 
-              {/* Legend */}
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">Legend:</h4>
-                <div className="flex flex-wrap gap-4 text-xs">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 rounded-full border-2 border-green-600 flex items-center justify-center">
-                      <div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>
-                    </div>
-                    <span className="text-gray-600">Database Activities</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 rounded-full bg-blue-100 border-2 border-blue-500 flex items-center justify-center">
-                      <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
-                    </div>
-                    <span className="text-gray-600">Manually Selected</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 rounded-full bg-purple-100 border-2 border-purple-500 flex items-center justify-center">
-                      <div className="flex space-x-0.5">
-                        <div className="w-1 h-1 bg-green-600 rounded-full"></div>
-                        <div className="w-1 h-1 bg-blue-600 rounded-full"></div>
-                      </div>
-                    </div>
-                    <span className="text-gray-600">Both</span>
-                  </div>
-                </div>
-              </div>
+
             </>
           )}
 

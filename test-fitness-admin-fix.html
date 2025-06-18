@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Fitness Admin Fix</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #10B981; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #059669; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .result { margin-top: 20px; padding: 10px; border-radius: 4px; }
+        .success { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
+        .error { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+        .info { background: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; }
+        .plan-item { border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Test Fitness Admin Dashboard Fix</h1>
+    <p>This page tests the fitness admin dashboard fixes for the update and create operations.</p>
+    
+    <div id="auth-section">
+        <h2>Authentication</h2>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" value="admin@test.com">
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" value="password123">
+        </div>
+        <button onclick="login()">Login</button>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <div id="test-section" style="display: none;">
+        <h2>Fitness Plan Operations</h2>
+        
+        <h3>Create Test Plan</h3>
+        <div class="form-group">
+            <label for="planTitle">Title:</label>
+            <input type="text" id="planTitle" value="Test Plan">
+        </div>
+        <div class="form-group">
+            <label for="planDescription">Description:</label>
+            <textarea id="planDescription">Test fitness plan description</textarea>
+        </div>
+        <div class="form-group">
+            <label for="planCategory">Category:</label>
+            <select id="planCategory">
+                <option value="weight-loss">Weight Loss</option>
+                <option value="weight-gain">Weight Gain</option>
+                <option value="strength">Strength</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="planLevel">Level:</label>
+            <select id="planLevel">
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+            </select>
+        </div>
+        <button onclick="createPlan()" id="createBtn">Create Plan</button>
+        
+        <h3>Existing Plans</h3>
+        <button onclick="fetchPlans()">Refresh Plans</button>
+        <div id="plans-list"></div>
+    </div>
+    
+    <div id="result"></div>
+    
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'https://dhcgrpsgvaggrtfcykyf.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRoY2dycHNndmFnZ3J0ZmN5a3lmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ1MzE5NzQsImV4cCI6MjA1MDEwNzk3NH0.Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8'
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey)
+        
+        let currentUser = null
+        let plans = []
+        
+        async function login() {
+            const email = document.getElementById('email').value
+            const password = document.getElementById('password').value
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                })
+                
+                if (error) throw error
+                
+                currentUser = data.user
+                document.getElementById('auth-section').style.display = 'none'
+                document.getElementById('test-section').style.display = 'block'
+                showResult('Logged in successfully', 'success')
+                fetchPlans()
+            } catch (error) {
+                showResult('Login failed: ' + error.message, 'error')
+            }
+        }
+        
+        async function logout() {
+            await supabase.auth.signOut()
+            currentUser = null
+            document.getElementById('auth-section').style.display = 'block'
+            document.getElementById('test-section').style.display = 'none'
+            showResult('Logged out', 'info')
+        }
+        
+        async function createPlan() {
+            if (!currentUser) {
+                showResult('Please login first', 'error')
+                return
+            }
+            
+            const title = document.getElementById('planTitle').value
+            const description = document.getElementById('planDescription').value
+            const category = document.getElementById('planCategory').value
+            const level = document.getElementById('planLevel').value
+            
+            document.getElementById('createBtn').disabled = true
+            showResult('Creating plan...', 'info')
+            
+            try {
+                const planToInsert = {
+                    name: title,
+                    description: description,
+                    duration: '30',
+                    plan_type: category,
+                    exercise_list: [],
+                    difficulty_level: level,
+                    title: title,
+                    category: category,
+                    level: level,
+                    weekly_workouts: 3,
+                    difficulty: 1,
+                    prerequisites: [],
+                    equipment: [],
+                    goals: [],
+                    schedule: [],
+                    status: 'published',
+                    tags: [],
+                    featured: false,
+                    muscle_groups: [],
+                    equipment_required: [],
+                    time_of_day: 'any',
+                    location: 'any',
+                    intensity: 'low',
+                    user_id: currentUser.id,
+                    planner_id: currentUser.id
+                }
+                
+                const { data, error } = await supabase
+                    .from('fitness_plans')
+                    .insert([planToInsert])
+                    .select()
+                
+                if (error) throw error
+                
+                if (data && data.length > 0) {
+                    showResult('Plan created successfully!', 'success')
+                    fetchPlans()
+                } else {
+                    throw new Error('No data returned from insert operation')
+                }
+            } catch (error) {
+                showResult('Failed to create plan: ' + error.message, 'error')
+            } finally {
+                document.getElementById('createBtn').disabled = false
+            }
+        }
+        
+        async function fetchPlans() {
+            showResult('Fetching plans...', 'info')
+            
+            try {
+                const { data, error } = await supabase
+                    .from('fitness_plans')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                
+                if (error) throw error
+                
+                plans = data || []
+                displayPlans()
+                showResult(`Fetched ${plans.length} plans`, 'success')
+            } catch (error) {
+                showResult('Failed to fetch plans: ' + error.message, 'error')
+            }
+        }
+        
+        async function updatePlan(planId, newTitle) {
+            showResult('Updating plan...', 'info')
+
+            try {
+                // Get current user
+                const { data: { user } } = await supabase.auth.getUser()
+                if (!user) {
+                    throw new Error('User not authenticated')
+                }
+
+                // First verify plan exists
+                const { data: existingPlan, error: checkError } = await supabase
+                    .from('fitness_plans')
+                    .select('id, user_id')
+                    .eq('id', planId)
+                    .single()
+
+                if (checkError || !existingPlan) {
+                    throw new Error('Plan not found: ' + (checkError?.message || 'No plan found'))
+                }
+
+                const planToUpdate = {
+                    name: newTitle,
+                    title: newTitle,
+                    updated_at: new Date().toISOString(),
+                    user_id: user.id // Ensure user_id is set for RLS compliance
+                }
+
+                // Try update without select first (more reliable)
+                const { error: updateError } = await supabase
+                    .from('fitness_plans')
+                    .update(planToUpdate)
+                    .eq('id', planId)
+
+                if (updateError) throw updateError
+
+                // Update was successful, fetch the updated plan
+                const { data: updatedPlan, error: fetchError } = await supabase
+                    .from('fitness_plans')
+                    .select('*')
+                    .eq('id', planId)
+                    .single()
+
+                if (fetchError) {
+                    console.warn('Could not fetch updated plan:', fetchError)
+                    showResult('Plan updated successfully (but could not fetch updated data)', 'success')
+                } else {
+                    showResult('Plan updated successfully!', 'success')
+                }
+
+                fetchPlans()
+            } catch (error) {
+                console.error('Update error:', error)
+                showResult('Failed to update plan: ' + error.message, 'error')
+            }
+        }
+        
+        function displayPlans() {
+            const plansList = document.getElementById('plans-list')
+            plansList.innerHTML = ''
+            
+            plans.forEach(plan => {
+                const planDiv = document.createElement('div')
+                planDiv.className = 'plan-item'
+                planDiv.innerHTML = `
+                    <h4>${plan.title || plan.name}</h4>
+                    <p><strong>Category:</strong> ${plan.category || plan.plan_type}</p>
+                    <p><strong>Level:</strong> ${plan.level || plan.difficulty_level}</p>
+                    <p><strong>Status:</strong> ${plan.status}</p>
+                    <button onclick="updatePlan('${plan.id}', '${(plan.title || plan.name)} - Updated')">
+                        Test Update
+                    </button>
+                `
+                plansList.appendChild(planDiv)
+            })
+        }
+        
+        function showResult(message, type) {
+            const result = document.getElementById('result')
+            result.innerHTML = `<div class="${type}">${message}</div>`
+        }
+        
+        // Check if user is already logged in
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                currentUser = session.user
+                document.getElementById('auth-section').style.display = 'none'
+                document.getElementById('test-section').style.display = 'block'
+                fetchPlans()
+            }
+        })
+    </script>
+</body>
+</html>

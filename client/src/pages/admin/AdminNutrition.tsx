@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { Dialog } from '@headlessui/react'
 import MealManager from '../../components/admin/MealManager'
+import { ActivityLogService } from '../../services/ActivityLogService'
 
 
 
@@ -216,6 +217,25 @@ const AdminNutrition = () => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         });
+
+        // Log the activity
+        await ActivityLogService.logNutritionAction(
+          'New nutrition plan created',
+          `${newPlan.title} added`,
+          user?.id
+        );
+
+        await ActivityLogService.logAdminActivity(
+          user?.id || '',
+          'CREATE_NUTRITION_PLAN',
+          {
+            resource: 'nutrition_plan',
+            resourceId: data.id,
+            planTitle: newPlan.title,
+            planCategory: newPlan.category,
+            planDuration: newPlan.duration
+          }
+        );
       }
     } catch (error) {
       console.error('Error creating nutrition plan:', error);
@@ -273,6 +293,24 @@ const AdminNutrition = () => {
       setNutritionPlans(nutritionPlans.map(p => p.id === plan.id ? plan : p));
       setIsEditModalOpen(false);
       setEditingPlan(null);
+
+      // Log the activity
+      await ActivityLogService.logNutritionAction(
+        'Nutrition plan updated',
+        `${plan.title} modified`,
+        user?.id
+      );
+
+      await ActivityLogService.logAdminActivity(
+        user?.id || '',
+        'UPDATE_NUTRITION_PLAN',
+        {
+          resource: 'nutrition_plan',
+          resourceId: plan.id,
+          planTitle: plan.title,
+          planCategory: plan.category
+        }
+      );
     } catch (error) {
       console.error('Error updating nutrition plan:', error);
       setError('Failed to update nutrition plan');
@@ -288,6 +326,9 @@ const AdminNutrition = () => {
 
   const handleDeletePlan = async (id: string) => {
     try {
+      // Get plan details before deletion for logging
+      const deletedPlan = nutritionPlans.find(p => p.id === id);
+
       const { error } = await supabase
         .from('nutrition_plans')
         .delete()
@@ -297,6 +338,24 @@ const AdminNutrition = () => {
       setNutritionPlans(nutritionPlans.filter((plan) => plan.id !== id));
       setIsDeleteModalOpen(false);
       setPlanToDelete(null);
+
+      // Log the activity
+      await ActivityLogService.logNutritionAction(
+        'Nutrition plan deleted',
+        `${deletedPlan?.title || 'Unknown plan'} removed`,
+        user?.id
+      );
+
+      await ActivityLogService.logAdminActivity(
+        user?.id || '',
+        'DELETE_NUTRITION_PLAN',
+        {
+          resource: 'nutrition_plan',
+          resourceId: id,
+          planTitle: deletedPlan?.title || 'Unknown',
+          planCategory: deletedPlan?.category || 'Unknown'
+        }
+      );
     } catch (error) {
       console.error('Error deleting nutrition plan:', error);
       setError('Failed to delete nutrition plan');
@@ -532,18 +591,21 @@ const AdminNutrition = () => {
       <Dialog open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-2xl rounded bg-white p-6">
-            <div className="flex justify-between items-center">
+          <Dialog.Panel className="w-full max-w-2xl max-h-[90vh] rounded bg-white flex flex-col">
+            {/* Fixed Header */}
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <Dialog.Title className="text-lg font-medium">Create New Nutrition Plan</Dialog.Title>
               <button onClick={() => setIsCreateModalOpen(false)}>
                 <X className="h-5 w-5 text-gray-500" />
               </button>
             </div>
 
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              handleCreatePlan();
-            }} className="mt-4 space-y-4">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                handleCreatePlan();
+              }} className="space-y-4" id="create-nutrition-plan-form">
               {/* Plan Details */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">Title</label>
@@ -737,8 +799,12 @@ const AdminNutrition = () => {
                   </button>
                 </div>
               </div>
+              </form>
+            </div>
 
-              <div className="mt-6 flex justify-end space-x-2">
+            {/* Fixed Footer */}
+            <div className="border-t border-gray-200 p-6">
+              <div className="flex justify-end space-x-2">
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
@@ -748,13 +814,14 @@ const AdminNutrition = () => {
                 </button>
                 <button
                   type="submit"
+                  form="create-nutrition-plan-form"
                   className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
                   disabled={isLoading}
                 >
                   {isLoading ? 'Creating...' : 'Create Plan'}
                 </button>
               </div>
-            </form>
+            </div>
           </Dialog.Panel>
         </div>
       </Dialog>
@@ -763,19 +830,22 @@ const AdminNutrition = () => {
       <Dialog open={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-2xl rounded bg-white p-6">
-            <div className="flex justify-between items-center">
+          <Dialog.Panel className="w-full max-w-2xl max-h-[90vh] rounded bg-white flex flex-col">
+            {/* Fixed Header */}
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <Dialog.Title className="text-lg font-medium">Edit Nutrition Plan</Dialog.Title>
               <button onClick={() => setIsEditModalOpen(false)}>
                 <X className="h-5 w-5 text-gray-500" />
               </button>
             </div>
 
-            {editingPlan && (
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                handleEditPlan(editingPlan);
-              }} className="mt-4 space-y-4">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {editingPlan && (
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  handleEditPlan(editingPlan);
+                }} className="space-y-4" id="edit-nutrition-plan-form">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Title</label>
                   <input
@@ -983,26 +1053,30 @@ const AdminNutrition = () => {
                   </button>
                 </div>
               </div>
+                </form>
+              )}
+            </div>
 
-
-                <div className="mt-6 flex justify-end space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsEditModalOpen(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Saving...' : 'Save Changes'}
-                  </button>
-                </div>
-              </form>
-            )}
+            {/* Fixed Footer */}
+            <div className="border-t border-gray-200 p-6">
+              <div className="flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  form="edit-nutrition-plan-form"
+                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
           </Dialog.Panel>
         </div>
       </Dialog>
