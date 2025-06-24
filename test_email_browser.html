@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Function Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background-color: #3498db;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .test-button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            background-color: #d5f4e6;
+            border: 1px solid #27ae60;
+            color: #27ae60;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #17a2b8;
+            color: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Email Function Test</h1>
+        <p>This page tests the email function directly from the browser.</p>
+        
+        <button class="test-button" onclick="testEmailFunction()">
+            📧 Test Reliable Email Function
+        </button>
+
+        <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p><strong>Note:</strong> Direct API testing is disabled due to CORS restrictions. The Supabase function handles API calls server-side.</p>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const supabaseUrl = 'https://dhcgrpsgvaggrtfcykyf.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRoY2dycHNndmFnZ3J0ZmN5a3lmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MjE5NzQsImV4cCI6MjA1MDE5Nzk3NH0.Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8'
+        
+        function showResult(message, type = 'info') {
+            const resultDiv = document.getElementById('result')
+            resultDiv.className = `result ${type}`
+            resultDiv.textContent = message
+        }
+        
+        async function testEmailFunction() {
+            showResult('🧪 Testing email function...', 'info')
+            
+            const testData = {
+                feedbackId: 'browser-test-123',
+                userEmail: 'nati737313@gmail.com',
+                userName: 'Browser Test User',
+                feedbackContent: 'This is a test from the browser to verify email functionality.',
+                adminReply: 'This is a test reply from the browser test. If you receive this email, the system is working!'
+            }
+            
+            try {
+                const response = await fetch(`${supabaseUrl}/functions/v1/reliable-email`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                })
+                
+                const result = await response.json()
+                
+                if (response.ok && result.success && result.data?.status === 'sent') {
+                    showResult(`🎉 EMAIL SENT SUCCESSFULLY!
+📧 Email ID: ${result.emailId}
+📬 Sent to: ${testData.userEmail}
+⏱️ Duration: ${result.data.duration}ms
+🕐 Timestamp: ${result.data.timestamp}
+
+📧 CHECK YOUR INBOX: nati737313@gmail.com`, 'success')
+                } else {
+                    showResult(`❌ EMAIL FAILED!
+Status: ${response.status}
+Success: ${result.success}
+Error: ${result.error || 'Unknown error'}
+Data: ${JSON.stringify(result.data, null, 2)}`, 'error')
+                }
+                
+            } catch (error) {
+                showResult(`💥 EXCEPTION OCCURRED!
+Error: ${error.message}
+Stack: ${error.stack}`, 'error')
+            }
+        }
+        
+        // Direct API testing removed due to CORS restrictions
+        // The Supabase function handles API calls server-side
+    </script>
+</body>
+</html>

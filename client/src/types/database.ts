@@ -84,10 +84,16 @@ export interface UserPlanSubscription {
 
 export interface Feedback {
   id: string;
-  user_id: string;
+  user_id: string | null;
+  full_name: string;
+  email: string;
   content: string;
-  rating: number;
+  rating: number | null;
+  is_resolved: boolean;
+  reply_message: string | null;
+  resolved_at: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface AdminLog {

@@ -49,9 +49,29 @@ export class EnhancedWorkoutService {
     }
 
     /**
-     * Create a custom workout plan
+     * Create a custom workout plan with duplicate checking
      */
     public async createCustomWorkoutPlan(planData: Partial<FitnessPlan>): Promise<FitnessPlan> {
+        // Check for duplicates first
+        if (planData.title) {
+            const { data: existingPlans, error: checkError } = await supabase
+                .from('fitness_plans')
+                .select('id')
+                .eq('status', 'published')
+                .ilike('title', planData.title.trim())
+                .eq('category', planData.category || 'weight-loss')
+                .eq('level', planData.level || 'beginner');
+
+            if (checkError) {
+                console.error('Error checking for duplicates:', checkError);
+                throw new Error(checkError.message || "Failed to check for duplicates.");
+            }
+
+            if (existingPlans && existingPlans.length > 0) {
+                throw new Error(`A fitness plan with the title "${planData.title}" already exists in ${planData.category} category at ${planData.level} level. Please choose a different title.`);
+            }
+        }
+
         const { data, error } = await supabase
             .from('fitness_plans')
             .insert({
@@ -64,6 +84,15 @@ export class EnhancedWorkoutService {
 
         if (error) {
             console.error("Error creating custom workout plan:", error);
+            // Handle database constraint violations
+            if (error.code === '23505') { // Unique constraint violation
+                if (error.message.includes('unique_fitness_plan_title')) {
+                    throw new Error(`A fitness plan with the title "${planData.title}" already exists. Please choose a different title.`);
+                }
+                if (error.message.includes('unique_fitness_plan_title_category_level')) {
+                    throw new Error(`A fitness plan with the title "${planData.title}" already exists in ${planData.category} category at ${planData.level} level. Please choose a different title.`);
+                }
+            }
             throw new Error(error.message || "Failed to create workout plan.");
         }
 

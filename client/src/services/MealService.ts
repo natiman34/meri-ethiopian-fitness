@@ -120,18 +120,66 @@ export class MealService {
     }
   }
 
-  // Create new meal
+  // Check if meal with same name already exists
+  public async checkMealExists(name: string, cuisineType?: string): Promise<boolean> {
+    try {
+      let query = supabase
+        .from('meals')
+        .select('id')
+        .eq('status', 'active')
+        .ilike('name', name.trim());
+
+      if (cuisineType) {
+        query = query.eq('cuisine_type', cuisineType);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      return (data && data.length > 0);
+    } catch (error) {
+      console.error('Error checking meal existence:', error);
+      throw error;
+    }
+  }
+
+  // Create new meal with duplicate checking
   public async createMeal(meal: Partial<Meal>, userId?: string): Promise<Meal> {
     try {
+      // Validate required fields
+      if (!meal.name?.trim()) {
+        throw new Error('Meal name is required');
+      }
+
+      // Check for duplicates
+      const cuisineType = meal.isEthiopian ? 'ethiopian' : 'international';
+      const exists = await this.checkMealExists(meal.name.trim(), cuisineType);
+
+      if (exists) {
+        throw new Error(`A meal with the name "${meal.name.trim()}" already exists in ${cuisineType} cuisine. Please choose a different name.`);
+      }
+
       const dbMeal = this.convertToDBMeal(meal, userId);
-      
+
       const { data, error } = await supabase
         .from('meals')
         .insert([dbMeal])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Handle database constraint violations
+        if (error.code === '23505') { // Unique constraint violation
+          if (error.message.includes('unique_meal_name')) {
+            throw new Error(`A meal with the name "${meal.name}" already exists. Please choose a different name.`);
+          }
+          if (error.message.includes('unique_meal_name_cuisine')) {
+            throw new Error(`A meal with the name "${meal.name}" already exists in ${cuisineType} cuisine. Please choose a different name.`);
+          }
+        }
+        throw error;
+      }
 
       return this.convertToMeal(data);
     } catch (error) {

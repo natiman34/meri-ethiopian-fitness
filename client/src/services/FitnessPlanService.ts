@@ -121,8 +121,115 @@ export class FitnessPlanService {
     }
   }
 
+  // Check if fitness plan with same title already exists
+  public async checkFitnessPlanExists(title: string, category?: string, level?: string): Promise<boolean> {
+    try {
+      let query = supabase
+        .from('fitness_plans')
+        .select('id')
+        .eq('status', 'published')
+        .ilike('title', title.trim());
+
+      if (category) {
+        query = query.eq('category', category);
+      }
+
+      if (level) {
+        query = query.eq('level', level);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      return (data && data.length > 0);
+    } catch (error) {
+      console.error('Error checking fitness plan existence:', error);
+      throw error;
+    }
+  }
+
   /**
-   * Creates a new fitness plan.
+   * Creates a new fitness plan in the database with duplicate checking.
+   * @param plan The fitness plan data to create.
+   * @returns A promise that resolves to the created FitnessPlan object.
+   */
+  public async createFitnessPlanInDatabase(plan: Partial<FitnessPlan>): Promise<FitnessPlan> {
+    try {
+      // Validate required fields
+      if (!plan.title?.trim()) {
+        throw new Error('Fitness plan title is required');
+      }
+
+      // Check for duplicates
+      const exists = await this.checkFitnessPlanExists(plan.title.trim(), plan.category, plan.level);
+
+      if (exists) {
+        throw new Error(`A fitness plan with the title "${plan.title.trim()}" already exists in ${plan.category} category at ${plan.level} level. Please choose a different title.`);
+      }
+
+      // Transform frontend data to database format
+      const planToInsert = {
+        title: plan.title || '',
+        description: plan.description || '',
+        category: plan.category || 'weight-loss',
+        level: plan.level || 'beginner',
+        duration: plan.duration || 30,
+        weekly_workouts: plan.weekly_workouts || 3,
+        difficulty: plan.difficulty || 1,
+        prerequisites: plan.prerequisites || [],
+        equipment: plan.equipment || [],
+        goals: plan.goals || [],
+        schedule: plan.schedule || [],
+        status: plan.status || 'draft',
+        tags: plan.tags || [],
+        featured: plan.featured || false,
+        muscle_groups: plan.muscleGroups || [],
+        equipment_required: plan.equipmentRequired || [],
+        time_of_day: plan.timeOfDay || 'any',
+        location: plan.location || 'any',
+        intensity: plan.intensity || 'low',
+        user_id: plan.user_id || null,
+        image_url: plan.image_url || null,
+        thumbnail_gif_url: plan.thumbnail_gif_url || null,
+        full_gif_url: plan.full_gif_url || null,
+        estimated_calories_burn: plan.estimated_calories_burn || null,
+        target_audience: plan.target_audience || null,
+        rating: plan.rating || null,
+        review_count: plan.reviewCount || 0,
+        completion_rate: plan.completionRate || 0,
+        average_workout_time: plan.averageWorkoutTime || null,
+        created_at: new Date().toISOString(),
+      };
+
+      const { data, error } = await supabase
+        .from('fitness_plans')
+        .insert([planToInsert])
+        .select()
+        .single();
+
+      if (error) {
+        // Handle database constraint violations
+        if (error.code === '23505') { // Unique constraint violation
+          if (error.message.includes('unique_fitness_plan_title')) {
+            throw new Error(`A fitness plan with the title "${plan.title}" already exists. Please choose a different title.`);
+          }
+          if (error.message.includes('unique_fitness_plan_title_category_level')) {
+            throw new Error(`A fitness plan with the title "${plan.title}" already exists in ${plan.category} category at ${plan.level} level. Please choose a different title.`);
+          }
+        }
+        throw error;
+      }
+
+      return new FitnessPlan(data);
+    } catch (error) {
+      console.error('Error creating fitness plan in database:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Creates a new fitness plan (local fallback).
    * @param plan The fitness plan data to create. ID and created_at will be ignored.
    * @returns A promise that resolves to the created FitnessPlan object.
    */
@@ -130,7 +237,7 @@ export class FitnessPlanService {
     try {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const newPlanData = {
         ...plan,
         id: `plan-${Date.now()}`,
@@ -159,12 +266,12 @@ export class FitnessPlanService {
         location: plan.location || undefined,
         intensity: plan.intensity || 'low',
       };
-      
+
       const newPlan = new FitnessPlan(newPlanData);
-      
+
       // In a real application, this would be saved to a database
       console.log('Created new fitness plan:', newPlan);
-      
+
       return newPlan;
     } catch (error) {
       console.error('Error creating fitness plan:', error);

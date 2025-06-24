@@ -145,6 +145,23 @@ const AdminFitness = () => {
     setIsLoading(true)
     setError(null)
     try {
+      // Use the FitnessPlanService with duplicate checking
+      const planData = {
+        ...newPlan,
+        user_id: user?.id || null,
+      };
+
+      // Check for duplicates first
+      const exists = await fitnessPlanService.checkFitnessPlanExists(
+        newPlan.title?.trim() || '',
+        newPlan.category,
+        newPlan.level
+      );
+
+      if (exists) {
+        throw new Error(`A fitness plan with the title "${newPlan.title}" already exists in ${newPlan.category} category at ${newPlan.level} level. Please choose a different title.`);
+      }
+
       // Transform frontend data to database format
       const planToInsert = {
         planner_id: user?.id || null,
@@ -180,7 +197,18 @@ const AdminFitness = () => {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        // Handle database constraint violations
+        if (error.code === '23505') { // Unique constraint violation
+          if (error.message.includes('unique_fitness_plan_title')) {
+            throw new Error(`A fitness plan with the title "${newPlan.title}" already exists. Please choose a different title.`);
+          }
+          if (error.message.includes('unique_fitness_plan_title_category_level')) {
+            throw new Error(`A fitness plan with the title "${newPlan.title}" already exists in ${newPlan.category} category at ${newPlan.level} level. Please choose a different title.`);
+          }
+        }
+        throw error;
+      }
       if (data) {
         setPlans([new FitnessPlan(data), ...plans])
         setIsCreateModalOpen(false)
@@ -211,9 +239,11 @@ const AdminFitness = () => {
         })
         setFormErrors({})
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating fitness plan:', error)
-      setError('Failed to create fitness plan')
+      // Show specific error message for duplicates or general error
+      const errorMessage = error.message || 'Failed to create fitness plan';
+      setError(errorMessage);
     } finally {
       setIsLoading(false)
     }

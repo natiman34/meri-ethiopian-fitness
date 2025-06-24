@@ -100,14 +100,17 @@ const MealManager: React.FC<MealManagerProps> = ({ onMealSelect, selectionMode =
     }
 
     setIsLoading(true);
+    setError(null);
     try {
       const createdMeal = await mealService.createMeal(newMeal, user?.id);
       setMeals([createdMeal, ...meals]);
       setIsCreateModalOpen(false);
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating meal:', error);
-      setError('Failed to create meal');
+      // Show specific error message for duplicates or general error
+      const errorMessage = error.message || 'Failed to create meal';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

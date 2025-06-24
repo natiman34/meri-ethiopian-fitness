@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Duplicate Prevention</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .test-results {
+            margin-top: 20px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Duplicate Prevention Test Suite</h1>
+        <p>This page tests the duplicate prevention functionality for meals and fitness plans.</p>
+        
+        <div class="test-section info">
+            <h3>Setup</h3>
+            <p>Make sure you're logged in as an admin user before running these tests.</p>
+            <button onclick="checkAuth()">Check Authentication</button>
+            <div id="auth-status"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 1: Meal Duplicate Prevention</h3>
+            <div class="form-group">
+                <label>Meal Name:</label>
+                <input type="text" id="meal-name" value="Test Meal" placeholder="Enter meal name">
+            </div>
+            <div class="form-group">
+                <label>Description:</label>
+                <textarea id="meal-description" placeholder="Enter meal description">A test meal for duplicate prevention</textarea>
+            </div>
+            <div class="form-group">
+                <label>Cuisine Type:</label>
+                <select id="meal-cuisine">
+                    <option value="international">International</option>
+                    <option value="ethiopian">Ethiopian</option>
+                </select>
+            </div>
+            <button onclick="testMealDuplicatePrevention()">Test Meal Duplicate Prevention</button>
+            <div id="meal-test-results" class="test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 2: Fitness Plan Duplicate Prevention</h3>
+            <div class="form-group">
+                <label>Plan Title:</label>
+                <input type="text" id="plan-title" value="Test Fitness Plan" placeholder="Enter plan title">
+            </div>
+            <div class="form-group">
+                <label>Description:</label>
+                <textarea id="plan-description" placeholder="Enter plan description">A test fitness plan for duplicate prevention</textarea>
+            </div>
+            <div class="form-group">
+                <label>Category:</label>
+                <select id="plan-category">
+                    <option value="weight-loss">Weight Loss</option>
+                    <option value="weight-gain">Weight Gain</option>
+                    <option value="strength">Strength</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Level:</label>
+                <select id="plan-level">
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                </select>
+            </div>
+            <button onclick="testFitnessPlanDuplicatePrevention()">Test Fitness Plan Duplicate Prevention</button>
+            <div id="fitness-test-results" class="test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 3: Database Constraint Testing</h3>
+            <p>This test attempts to create duplicates directly in the database to verify constraints work.</p>
+            <button onclick="testDatabaseConstraints()">Test Database Constraints</button>
+            <div id="constraint-test-results" class="test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test Results Summary</h3>
+            <div id="summary-results" class="test-results"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'http://127.0.0.1:54321';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        let currentUser = null;
+        let testResults = [];
+
+        async function checkAuth() {
+            const authStatus = document.getElementById('auth-status');
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                if (error) throw error;
+                
+                if (user) {
+                    currentUser = user;
+                    authStatus.innerHTML = `<div class="test-result success">✓ Authenticated as: ${user.email}</div>`;
+                } else {
+                    authStatus.innerHTML = `<div class="test-result error">✗ Not authenticated. Please log in first.</div>`;
+                }
+            } catch (error) {
+                authStatus.innerHTML = `<div class="test-result error">✗ Auth check failed: ${error.message}</div>`;
+            }
+        }
+
+        async function testMealDuplicatePrevention() {
+            const resultsDiv = document.getElementById('meal-test-results');
+            resultsDiv.innerHTML = '<div class="test-result info">Running meal duplicate prevention tests...</div>';
+            
+            const mealName = document.getElementById('meal-name').value;
+            const mealDescription = document.getElementById('meal-description').value;
+            const cuisineType = document.getElementById('meal-cuisine').value;
+            
+            const testMeal = {
+                name: mealName,
+                description: mealDescription,
+                image_url: null,
+                is_ethiopian: cuisineType === 'ethiopian',
+                ingredients: ['Test ingredient 1', 'Test ingredient 2'],
+                preparation: 'Test preparation instructions',
+                nutritional_info: { calories: 100, protein: 10, carbs: 15, fat: 5 },
+                category: 'lunch',
+                cuisine_type: cuisineType,
+                difficulty_level: 'easy',
+                prep_time: 15,
+                cook_time: 30,
+                servings: 2,
+                tags: ['test'],
+                created_by: currentUser?.id,
+                status: 'active'
+            };
+
+            let results = [];
+
+            try {
+                // Test 1: Create first meal (should succeed)
+                const { data: meal1, error: error1 } = await supabase
+                    .from('meals')
+                    .insert([testMeal])
+                    .select()
+                    .single();
+
+                if (error1) {
+                    results.push(`<div class="test-result error">✗ First meal creation failed: ${error1.message}</div>`);
+                } else {
+                    results.push(`<div class="test-result success">✓ First meal created successfully: ${meal1.id}</div>`);
+                    
+                    // Test 2: Try to create duplicate meal (should fail)
+                    const { data: meal2, error: error2 } = await supabase
+                        .from('meals')
+                        .insert([testMeal])
+                        .select()
+                        .single();
+
+                    if (error2) {
+                        if (error2.code === '23505') {
+                            results.push(`<div class="test-result success">✓ Duplicate meal correctly prevented: ${error2.message}</div>`);
+                        } else {
+                            results.push(`<div class="test-result error">✗ Unexpected error: ${error2.message}</div>`);
+                        }
+                    } else {
+                        results.push(`<div class="test-result error">✗ Duplicate meal was incorrectly allowed!</div>`);
+                    }
+
+                    // Clean up: Delete the test meal
+                    await supabase.from('meals').delete().eq('id', meal1.id);
+                    results.push(`<div class="test-result info">ℹ Test meal cleaned up</div>`);
+                }
+            } catch (error) {
+                results.push(`<div class="test-result error">✗ Test failed with error: ${error.message}</div>`);
+            }
+
+            resultsDiv.innerHTML = results.join('');
+            testResults.push({ test: 'Meal Duplicate Prevention', results: results.length });
+        }
+
+        async function testFitnessPlanDuplicatePrevention() {
+            const resultsDiv = document.getElementById('fitness-test-results');
+            resultsDiv.innerHTML = '<div class="test-result info">Running fitness plan duplicate prevention tests...</div>';
+            
+            const planTitle = document.getElementById('plan-title').value;
+            const planDescription = document.getElementById('plan-description').value;
+            const category = document.getElementById('plan-category').value;
+            const level = document.getElementById('plan-level').value;
+            
+            const testPlan = {
+                title: planTitle,
+                description: planDescription,
+                category: category,
+                level: level,
+                duration: 30,
+                weekly_workouts: 3,
+                difficulty: 1,
+                prerequisites: [],
+                equipment: [],
+                goals: [],
+                schedule: [],
+                status: 'published',
+                tags: ['test'],
+                featured: false,
+                muscle_groups: [],
+                equipment_required: [],
+                time_of_day: 'any',
+                location: 'home',
+                intensity: 'low',
+                user_id: currentUser?.id
+            };
+
+            let results = [];
+
+            try {
+                // Test 1: Create first plan (should succeed)
+                const { data: plan1, error: error1 } = await supabase
+                    .from('fitness_plans')
+                    .insert([testPlan])
+                    .select()
+                    .single();
+
+                if (error1) {
+                    results.push(`<div class="test-result error">✗ First plan creation failed: ${error1.message}</div>`);
+                } else {
+                    results.push(`<div class="test-result success">✓ First plan created successfully: ${plan1.id}</div>`);
+                    
+                    // Test 2: Try to create duplicate plan (should fail)
+                    const { data: plan2, error: error2 } = await supabase
+                        .from('fitness_plans')
+                        .insert([testPlan])
+                        .select()
+                        .single();
+
+                    if (error2) {
+                        if (error2.code === '23505') {
+                            results.push(`<div class="test-result success">✓ Duplicate plan correctly prevented: ${error2.message}</div>`);
+                        } else {
+                            results.push(`<div class="test-result error">✗ Unexpected error: ${error2.message}</div>`);
+                        }
+                    } else {
+                        results.push(`<div class="test-result error">✗ Duplicate plan was incorrectly allowed!</div>`);
+                    }
+
+                    // Clean up: Delete the test plan
+                    await supabase.from('fitness_plans').delete().eq('id', plan1.id);
+                    results.push(`<div class="test-result info">ℹ Test plan cleaned up</div>`);
+                }
+            } catch (error) {
+                results.push(`<div class="test-result error">✗ Test failed with error: ${error.message}</div>`);
+            }
+
+            resultsDiv.innerHTML = results.join('');
+            testResults.push({ test: 'Fitness Plan Duplicate Prevention', results: results.length });
+        }
+
+        async function testDatabaseConstraints() {
+            const resultsDiv = document.getElementById('constraint-test-results');
+            resultsDiv.innerHTML = '<div class="test-result info">Testing database constraints...</div>';
+            
+            let results = [];
+
+            try {
+                // Test meal constraints
+                const testMeal = {
+                    name: 'Constraint Test Meal',
+                    description: 'Testing constraints',
+                    ingredients: ['test'],
+                    preparation: 'test prep',
+                    nutritional_info: { calories: 100, protein: 10, carbs: 15, fat: 5 },
+                    cuisine_type: 'international',
+                    status: 'active'
+                };
+
+                // Create meal
+                const { data: meal, error: mealError } = await supabase
+                    .from('meals')
+                    .insert([testMeal])
+                    .select()
+                    .single();
+
+                if (!mealError) {
+                    // Try to create duplicate
+                    const { error: duplicateError } = await supabase
+                        .from('meals')
+                        .insert([testMeal]);
+
+                    if (duplicateError && duplicateError.code === '23505') {
+                        results.push(`<div class="test-result success">✓ Meal constraint working correctly</div>`);
+                    } else {
+                        results.push(`<div class="test-result error">✗ Meal constraint not working</div>`);
+                    }
+
+                    // Clean up
+                    await supabase.from('meals').delete().eq('id', meal.id);
+                }
+
+                // Test fitness plan constraints
+                const testPlan = {
+                    title: 'Constraint Test Plan',
+                    description: 'Testing constraints',
+                    category: 'weight-loss',
+                    level: 'beginner',
+                    duration: 30,
+                    weekly_workouts: 3,
+                    difficulty: 1,
+                    status: 'published'
+                };
+
+                // Create plan
+                const { data: plan, error: planError } = await supabase
+                    .from('fitness_plans')
+                    .insert([testPlan])
+                    .select()
+                    .single();
+
+                if (!planError) {
+                    // Try to create duplicate
+                    const { error: duplicateError } = await supabase
+                        .from('fitness_plans')
+                        .insert([testPlan]);
+
+                    if (duplicateError && duplicateError.code === '23505') {
+                        results.push(`<div class="test-result success">✓ Fitness plan constraint working correctly</div>`);
+                    } else {
+                        results.push(`<div class="test-result error">✗ Fitness plan constraint not working</div>`);
+                    }
+
+                    // Clean up
+                    await supabase.from('fitness_plans').delete().eq('id', plan.id);
+                }
+
+            } catch (error) {
+                results.push(`<div class="test-result error">✗ Constraint test failed: ${error.message}</div>`);
+            }
+
+            resultsDiv.innerHTML = results.join('');
+            testResults.push({ test: 'Database Constraints', results: results.length });
+            
+            // Update summary
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summaryDiv = document.getElementById('summary-results');
+            if (testResults.length > 0) {
+                const summary = testResults.map(test => 
+                    `<div class="test-result info">${test.test}: ${test.results} test steps completed</div>`
+                ).join('');
+                summaryDiv.innerHTML = `<h4>Test Summary:</h4>${summary}`;
+            }
+        }
+
+        // Initialize
+        window.onload = function() {
+            checkAuth();
+        };
+    </script>
+</body>
+</html>

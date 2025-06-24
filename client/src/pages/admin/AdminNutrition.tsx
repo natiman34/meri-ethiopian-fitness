@@ -237,9 +237,11 @@ const AdminNutrition = () => {
           }
         );
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating nutrition plan:', error);
-      setError('Failed to create nutrition plan');
+      // Show specific error message for duplicates or general error
+      const errorMessage = error.message || 'Failed to create nutrition plan';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

@@ -74,81 +74,81 @@ const Contact: React.FC = () => {
   }
 
   return (
-    <div className="pt-24 pb-16">
-      <div className="container mx-auto px-4">
+    <div className="pt-20 sm:pt-24 pb-12 sm:pb-16">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <h1 className="text-4xl font-bold text-gray-900 mb-6 text-center">Contact Us</h1>
-          <p className="text-lg text-gray-700 mb-12 text-center max-w-3xl mx-auto">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">Contact Us</h1>
+          <p className="text-base sm:text-lg text-gray-700 mb-8 sm:mb-12 text-center max-w-3xl mx-auto px-4">
             Have questions about our services or need personalized advice? Reach out to our team and we'll get back to
             you as soon as possible.
           </p>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Contact Information */}
-            <div className="lg:col-span-1">
-              <Card>
-                <Card.Body>
-                  <h2 className="text-xl font-semibold text-gray-800 mb-6">Contact Information</h2>
+            <div className="lg:col-span-1 order-2 lg:order-1">
+              <Card className="h-full">
+                <Card.Body className="p-4 sm:p-6">
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 sm:mb-6">Contact Information</h2>
 
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     <div className="flex items-start">
-                      <MapPin className="w-5 h-5 text-green-600 mt-1 mr-3" />
+                      <MapPin className="w-5 h-5 text-green-600 mt-1 mr-3 flex-shrink-0" />
                       <div>
-                        <h3 className="font-medium text-gray-800"></h3>
-                        <p className="text-gray-600 mt-1"></p>
+                        <h3 className="font-medium text-gray-800">Visit Us</h3>
+                        <p className="text-gray-600 mt-1 text-sm sm:text-base">Addis Ababa, Ethiopia</p>
                       </div>
                     </div>
 
                     <div className="flex items-start">
-                      <Phone className="w-5 h-5 text-green-600 mt-1 mr-3" />
+                      <Phone className="w-5 h-5 text-green-600 mt-1 mr-3 flex-shrink-0" />
                       <div>
-                        <h3 className="font-medium text-gray-800"></h3>
-                        <p className="text-gray-600 mt-1"></p>
+                        <h3 className="font-medium text-gray-800">Call Us</h3>
+                        <p className="text-gray-600 mt-1 text-sm sm:text-base">+251 911 123 456</p>
                       </div>
                     </div>
 
                     <div className="flex items-start">
-                      <Mail className="w-5 h-5 text-green-600 mt-1 mr-3" />
+                      <Mail className="w-5 h-5 text-green-600 mt-1 mr-3 flex-shrink-0" />
                       <div>
-                        <h3 className="font-medium text-gray-800"></h3>
-                        <p className="text-gray-600 mt-1"></p>
+                        <h3 className="font-medium text-gray-800">Email Us</h3>
+                        <p className="text-gray-600 mt-1 text-sm sm:text-base">support@merifitness.com</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-8 pt-6 border-t border-gray-200">
-                    <h3 className="font-medium text-gray-800 mb-3"></h3>
-                    <p className="text-gray-600"></p>
-                    <p className="text-gray-600"></p>
-                    <p className="text-gray-600"></p>
+                  <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
+                    <h3 className="font-medium text-gray-800 mb-3">Business Hours</h3>
+                    <p className="text-gray-600 text-sm sm:text-base">Monday - Friday: 8:00 AM - 6:00 PM</p>
+                    <p className="text-gray-600 text-sm sm:text-base">Saturday: 9:00 AM - 4:00 PM</p>
+                    <p className="text-gray-600 text-sm sm:text-base">Sunday: Closed</p>
                   </div>
                 </Card.Body>
               </Card>
             </div>
 
             {/* Contact Form */}
-            <div className="lg:col-span-2">
-              <Card>
-                <Card.Body>
-                  <h2 className="text-xl font-semibold text-gray-800 mb-6">Send Us a Message</h2>
+            <div className="lg:col-span-2 order-1 lg:order-2">
+              <Card className="h-full">
+                <Card.Body className="p-4 sm:p-6">
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 sm:mb-6">Send Us a Message</h2>
 
                   {submitSuccess && (
-                    <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-md">
+                    <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 text-green-700 rounded-md text-sm sm:text-base">
                       Thank you for your message! We'll get back to you soon.
                     </div>
                   )}
 
                   {submitError && (
-                    <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-md">
+                    <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 text-red-700 rounded-md text-sm sm:text-base">
                       {submitError}
                     </div>
                   )}
 
-                  <form onSubmit={handleSubmit}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                       <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                          Your Name
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                          Your Name *
                         </label>
                         <input
                           type="text"
@@ -157,13 +157,14 @@ const Contact: React.FC = () => {
                           value={formData.name}
                           onChange={handleChange}
                           required
-                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          className="w-full px-3 sm:px-4 py-3 sm:py-2 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                          placeholder="Enter your full name"
                         />
                       </div>
 
                       <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                          Your Email
+                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                          Your Email *
                         </label>
                         <input
                           type="email"
@@ -172,14 +173,15 @@ const Contact: React.FC = () => {
                           value={formData.email}
                           onChange={handleChange}
                           required
-                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          className="w-full px-3 sm:px-4 py-3 sm:py-2 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                          placeholder="Enter your email address"
                         />
                       </div>
                     </div>
 
-                    <div className="mb-6">
-                      <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
-                        Subject
+                    <div>
+                      <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                        Subject *
                       </label>
                       <input
                         type="text"
@@ -188,13 +190,14 @@ const Contact: React.FC = () => {
                         value={formData.subject}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        className="w-full px-3 sm:px-4 py-3 sm:py-2 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                        placeholder="What is this about?"
                       />
                     </div>
 
-                    <div className="mb-6">
-                      <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
-                        Message
+                    <div>
+                      <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                        Message *
                       </label>
                       <textarea
                         id="message"
@@ -202,14 +205,24 @@ const Contact: React.FC = () => {
                         value={formData.message}
                         onChange={handleChange}
                         required
-                        rows={6}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        rows={5}
+                        className="w-full px-3 sm:px-4 py-3 sm:py-2 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors resize-none"
+                        placeholder="Tell us how we can help you..."
                       ></textarea>
+                      <p className="text-xs text-gray-500 mt-1">Please provide as much detail as possible</p>
                     </div>
 
-                    <Button type="submit" variant="primary" isLoading={isSubmitting} rightIcon={<Send size={16} />}>
-                      Send Message
-                    </Button>
+                    <div className="pt-2">
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        isLoading={isSubmitting}
+                        rightIcon={<Send size={16} />}
+                        className="w-full sm:w-auto min-h-[48px] px-6 py-3 text-base font-medium"
+                      >
+                        {isSubmitting ? 'Sending...' : 'Send Message'}
+                      </Button>
+                    </div>
                   </form>
                 </Card.Body>
               </Card>

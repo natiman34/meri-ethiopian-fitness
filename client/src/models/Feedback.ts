@@ -13,6 +13,7 @@ export class Feedback {
   private _resolved: boolean
   private _replyMessage: string | null // Added replyMessage
   private _resolvedAt: Date | null // Added resolvedAt
+  private _updatedAt: Date // Added updatedAt
 
   constructor(
     id: string,
@@ -25,6 +26,7 @@ export class Feedback {
     resolved = false,
     replyMessage: string | null = null,
     resolvedAt: Date | null = null,
+    updatedAt: Date = new Date(),
   ) {
     this._id = id
     this._userId = userId
@@ -36,6 +38,7 @@ export class Feedback {
     this._resolved = resolved
     this._replyMessage = replyMessage
     this._resolvedAt = resolvedAt
+    this._updatedAt = updatedAt
   }
 
   // Getters
@@ -79,6 +82,10 @@ export class Feedback {
     return this._resolvedAt
   }
 
+  get updatedAt(): Date {
+    return this._updatedAt
+  }
+
   // Setters
   set content(content: string) {
     this._content = content
@@ -100,6 +107,10 @@ export class Feedback {
     this._resolvedAt = resolvedAt
   }
 
+  set updatedAt(updatedAt: Date) {
+    this._updatedAt = updatedAt
+  }
+
   // Methods
   markAsResolved(): void {
     this._resolved = true
@@ -119,6 +130,7 @@ export class Feedback {
       is_resolved: this._resolved,
       reply_message: this._replyMessage,
       resolved_at: this._resolvedAt?.toISOString(),
+      updated_at: this._updatedAt.toISOString(),
     }
   }
 
@@ -135,6 +147,7 @@ export class Feedback {
       obj.is_resolved,
       obj.reply_message,
       obj.resolved_at ? new Date(obj.resolved_at) : null,
+      obj.updated_at ? new Date(obj.updated_at) : new Date(),
     )
   }
 }

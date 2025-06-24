@@ -214,17 +214,23 @@ const AdminFitnessPlans = () => {
       } else {
         // Create new plan - try database first, fallback to local
         try {
+          // Check for duplicates first
+          const exists = await fitnessPlanService.checkFitnessPlanExists(
+            currentPlan.title?.trim() || '',
+            currentPlan.category,
+            currentPlan.level
+          );
+
+          if (exists) {
+            throw new Error(`A fitness plan with the title "${currentPlan.title}" already exists in ${currentPlan.category} category at ${currentPlan.level} level. Please choose a different title.`);
+          }
+
           await fitnessPlanService.createFitnessPlanInDatabase(currentPlan)
           setSuccess("Fitness plan created successfully in database!")
-        } catch (dbError) {
-          console.warn("Database create failed, using local create:", dbError)
-          const newPlanInstance = new FitnessPlan({
-            ...currentPlan,
-            user_id: user?.id || null,
-            created_at: new Date().toISOString(),
-          })
-          await fitnessPlanService.createFitnessPlan(newPlanInstance)
-          setSuccess("Fitness plan created successfully locally!")
+        } catch (dbError: any) {
+          console.warn("Database create failed:", dbError)
+          setError(dbError.message || "Failed to create fitness plan")
+          return
         }
       }
 

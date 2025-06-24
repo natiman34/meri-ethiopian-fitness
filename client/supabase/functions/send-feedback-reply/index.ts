@@ -15,12 +15,27 @@ serve(async (req) => {
   try {
     const { feedbackId, userEmail, userName, feedbackContent, adminReply } = await req.json()
 
-    // Initialize Resend with your API key
-    const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
+    // Validate required parameters
+    if (!userEmail || !userName || !feedbackContent || !adminReply) {
+      throw new Error('Missing required parameters: userEmail, userName, feedbackContent, or adminReply')
+    }
 
-    // Send the email
+    // Check if RESEND_API_KEY is configured
+    const resendApiKey = Deno.env.get('RESEND_API_KEY')
+    if (!resendApiKey) {
+      throw new Error('RESEND_API_KEY environment variable is not configured')
+    }
+
+    console.log('Sending email to:', userEmail)
+    console.log('From user:', userName)
+    console.log('Feedback ID:', feedbackId)
+
+    // Initialize Resend with your API key
+    const resend = new Resend(resendApiKey)
+
+    // Send the email with a verified domain or use onboarding@resend.dev for testing
     const { data, error } = await resend.emails.send({
-      from: 'FitTrack Support <support@fittrack.com>',
+      from: 'FitTrack Support <onboarding@resend.dev>', // Use Resend's test domain
       to: userEmail,
       subject: 'Reply to your feedback - FitTrack',
       html: `
@@ -50,23 +65,37 @@ serve(async (req) => {
     })
 
     if (error) {
-      throw error
+      console.error('Resend API error:', error)
+      throw new Error(`Email sending failed: ${error.message || 'Unknown error'}`)
     }
 
+    console.log('Email sent successfully:', data)
+
     return new Response(
-      JSON.stringify({ success: true, data }),
+      JSON.stringify({
+        success: true,
+        data,
+        message: 'Email sent successfully',
+        emailId: data?.id
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       },
     )
   } catch (error) {
+    console.error('Email function error:', error)
+
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({
+        error: error.message || 'Unknown error occurred',
+        details: error.toString(),
+        timestamp: new Date().toISOString()
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
       },
     )
   }
-}) 
+})

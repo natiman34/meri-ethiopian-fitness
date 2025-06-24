@@ -234,6 +234,24 @@ const EnhancedFitnessDashboard = () => {
 
       console.log('Creating plan with data:', planToInsert)
 
+      // Check for duplicates first
+      const { data: existingPlans, error: checkError } = await supabase
+        .from('fitness_plans')
+        .select('id')
+        .eq('status', 'published')
+        .ilike('title', currentPlan.title?.trim() || '')
+        .eq('category', currentPlan.category || 'weight-loss')
+        .eq('level', currentPlan.level || 'beginner');
+
+      if (checkError) {
+        console.error('Error checking for duplicates:', checkError);
+        throw checkError;
+      }
+
+      if (existingPlans && existingPlans.length > 0) {
+        throw new Error(`A fitness plan with the title "${currentPlan.title}" already exists in ${currentPlan.category} category at ${currentPlan.level} level. Please choose a different title.`);
+      }
+
       // Try insert without select first (more reliable)
       const { error: insertError } = await supabase
         .from('fitness_plans')
@@ -241,6 +259,15 @@ const EnhancedFitnessDashboard = () => {
 
       if (insertError) {
         console.error('Supabase insert error:', insertError)
+        // Handle database constraint violations
+        if (insertError.code === '23505') { // Unique constraint violation
+          if (insertError.message.includes('unique_fitness_plan_title')) {
+            throw new Error(`A fitness plan with the title "${currentPlan.title}" already exists. Please choose a different title.`);
+          }
+          if (insertError.message.includes('unique_fitness_plan_title_category_level')) {
+            throw new Error(`A fitness plan with the title "${currentPlan.title}" already exists in ${currentPlan.category} category at ${currentPlan.level} level. Please choose a different title.`);
+          }
+        }
         throw insertError
       }
 

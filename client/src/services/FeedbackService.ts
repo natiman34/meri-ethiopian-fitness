@@ -1,5 +1,7 @@
 import { Feedback } from "../models/Feedback"
 import { supabase } from "../lib/supabase"
+import { EmailService } from "./EmailService"
+import { DirectEmailService } from "./DirectEmailService"
 
 /**
  * FeedbackService class for handling feedback operations
@@ -62,7 +64,7 @@ export class FeedbackService {
     try {
       const { data, error } = await supabase
         .from('feedback')
-        .select('id, user_id, full_name, email, content, rating, created_at, is_resolved, reply_message, resolved_at')
+        .select('id, user_id, full_name, email, content, rating, created_at, is_resolved, reply_message, resolved_at, updated_at')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -81,7 +83,7 @@ export class FeedbackService {
     try {
       const { data, error } = await supabase
         .from('feedback')
-        .select('id, user_id, full_name, email, content, rating, created_at, is_resolved, reply_message, resolved_at')
+        .select('id, user_id, full_name, email, content, rating, created_at, is_resolved, reply_message, resolved_at, updated_at')
         .eq('id', feedbackId)
         .single();
 
@@ -103,7 +105,7 @@ export class FeedbackService {
         .from('feedback')
         .update({ is_resolved: true, resolved_at: new Date().toISOString() })
         .eq('id', feedbackId)
-        .select()
+        .select('id, user_id, full_name, email, content, rating, created_at, is_resolved, reply_message, resolved_at')
         .single();
 
       if (error) {
@@ -122,7 +124,7 @@ export class FeedbackService {
     try {
       const { data, error } = await supabase
         .from('feedback')
-        .select('id, user_id, full_name, email, content, rating, created_at, is_resolved, reply_message, resolved_at')
+        .select('id, user_id, full_name, email, content, rating, created_at, is_resolved, reply_message, resolved_at, updated_at')
         .eq('is_resolved', false)
         .order('created_at', { ascending: false });
 
@@ -133,6 +135,193 @@ export class FeedbackService {
       return data.map((item: any) => Feedback.fromObject(item));
     } catch (error) {
       console.error("Get unresolved feedback error:", error);
+      throw error;
+    }
+  }
+
+  // Mark feedback as unresolved (admin only)
+  public async markFeedbackAsUnresolved(feedbackId: string): Promise<Feedback> {
+    try {
+      const { data, error } = await supabase
+        .from('feedback')
+        .update({ is_resolved: false, resolved_at: null })
+        .eq('id', feedbackId)
+        .select('id, user_id, full_name, email, content, rating, created_at, is_resolved, reply_message, resolved_at')
+        .single();
+
+      if (error) {
+        throw new Error(error.message || "Failed to mark feedback as unresolved in Supabase");
+      }
+
+      return Feedback.fromObject(data);
+    } catch (error) {
+      console.error("Mark feedback as unresolved error:", error);
+      throw error;
+    }
+  }
+
+  // Send email reply to feedback (admin only)
+  public async sendFeedbackReply(feedbackId: string, replyMessage: string): Promise<Feedback> {
+    try {
+      // First, get the feedback details
+      const feedback = await this.getFeedbackById(feedbackId);
+
+      // Update the feedback with reply message
+      const { data, error } = await supabase
+        .from('feedback')
+        .update({
+          reply_message: replyMessage,
+          is_resolved: true,
+          resolved_at: new Date().toISOString()
+        })
+        .eq('id', feedbackId)
+        .select('id, user_id, full_name, email, content, rating, created_at, is_resolved, reply_message, resolved_at')
+        .single();
+
+      if (error) {
+        throw new Error(error.message || "Failed to update feedback with reply in Supabase");
+      }
+
+      // Send email via the bulletproof Supabase Edge Function
+      try {
+        console.log("📧 SENDING EMAIL NOTIFICATION");
+        console.log("📬 Recipient:", feedback.email);
+        console.log("👤 User:", feedback.name);
+        console.log("📝 Feedback ID:", feedbackId);
+
+        const emailStartTime = Date.now();
+
+        // Send email to actual user (universal email function handles restrictions)
+        const { data: emailData, error: emailError } = await supabase.functions.invoke('sendgrid-email', {
+          body: {
+            feedbackId: feedbackId,
+            userEmail: feedback.email, // Send to actual user email
+            userName: feedback.name,
+            feedbackContent: feedback.content,
+            adminReply: replyMessage
+          }
+        });
+
+        const emailDuration = Date.now() - emailStartTime;
+        console.log(`⏱️ Email function call took ${emailDuration}ms`);
+
+        if (emailError) {
+          console.error("❌ EMAIL FUNCTION ERROR!");
+          console.error("Error type:", typeof emailError);
+          console.error("Error details:", JSON.stringify(emailError, null, 2));
+          alert(`⚠️ Reply saved but email function failed!\nError: ${emailError.message || 'Unknown error'}\nCheck console for details.`);
+        } else if (emailData?.success === true) {
+          if (emailData.data?.status === 'sent') {
+            console.log("🎉 EMAIL SENT SUCCESSFULLY!");
+            console.log("📧 Email ID:", emailData.emailId);
+            console.log("📬 Delivered to:", feedback.email);
+            console.log("⏱️ Send duration:", emailData.data.duration + 'ms');
+            console.log("🕐 Timestamp:", emailData.data.timestamp);
+
+            // Show success message to admin
+            const recipient = emailData.data.to;
+            const emailId = emailData.emailId;
+            const method = emailData.data.method || 'standard';
+            const attempt = emailData.data.attempt || 1;
+
+            alert(`🎉 Email sent successfully to ANY USER!\n📧 Email ID: ${emailId}\n📬 Sent to: ${recipient}\n🚀 Method: ${method} (attempt ${attempt})\n\n✅ User will receive email notification!`);
+          } else if (emailData.data?.status === 'failed') {
+            console.error("❌ EMAIL SENDING FAILED!");
+            console.error("Error:", emailData.error);
+            console.error("Data:", emailData.data);
+            alert(`❌ Reply saved but email failed to send!\nError: ${emailData.error}\nStatus: ${emailData.data?.status}`);
+          } else {
+            console.warn("⚠️ UNEXPECTED EMAIL STATUS:", emailData.data?.status);
+            console.warn("Full response:", emailData);
+            alert(`⚠️ Reply saved but email status unclear!\nStatus: ${emailData.data?.status}\nCheck console for details.`);
+          }
+        } else if (emailData?.success === false) {
+          console.error("❌ EMAIL FUNCTION RETURNED FAILURE!");
+          console.error("Error:", emailData.error);
+          console.error("Data:", emailData.data);
+          alert(`❌ Reply saved but email failed!\nError: ${emailData.error}\nCheck console for details.`);
+        } else {
+          console.error("⚠️ UNEXPECTED EMAIL RESPONSE!");
+          console.error("Response:", emailData);
+          alert(`⚠️ Reply saved but unexpected email response!\nCheck console for details.`);
+        }
+      } catch (emailException) {
+        console.error("💥 EMAIL FUNCTION EXCEPTION!");
+        console.error("Exception type:", emailException.constructor.name);
+        console.error("Exception message:", emailException.message);
+        console.error("Exception stack:", emailException.stack);
+
+        // Try direct email service as fallback
+        console.log("🔄 TRYING DIRECT EMAIL SERVICE AS FALLBACK...");
+        try {
+          const directEmailService = DirectEmailService.getInstance();
+          const directResult = await directEmailService.sendFeedbackReply(
+            feedback.email,
+            feedback.name,
+            feedback.content,
+            replyMessage
+          );
+
+          if (directResult.success) {
+            console.log("✅ DIRECT EMAIL FALLBACK SUCCESSFUL!");
+            console.log("📧 Email ID:", directResult.emailId);
+            alert(`✅ Email sent successfully via backup system!\n📧 Email ID: ${directResult.emailId}\n📬 Sent to: ${feedback.email}\n\n✅ User will receive email notification!`);
+          } else {
+            console.error("❌ DIRECT EMAIL FALLBACK FAILED!");
+            console.error("Error:", directResult.error);
+            alert(`❌ Reply saved but both email systems failed!\nPrimary: ${emailException.message}\nBackup: ${directResult.error}`);
+          }
+        } catch (directException) {
+          console.error("💥 DIRECT EMAIL FALLBACK EXCEPTION!");
+          console.error("Direct exception:", directException);
+          alert(`💥 Reply saved but all email systems failed!\nPrimary: ${emailException.message}\nBackup: ${directException.message}`);
+        }
+      }
+
+      return Feedback.fromObject(data);
+    } catch (error) {
+      console.error("Send feedback reply error:", error);
+      throw error;
+    }
+  }
+
+  // Update feedback reply message without sending email (admin only)
+  public async updateFeedbackReply(feedbackId: string, replyMessage: string): Promise<Feedback> {
+    try {
+      const { data, error } = await supabase
+        .from('feedback')
+        .update({ reply_message: replyMessage })
+        .eq('id', feedbackId)
+        .select('id, user_id, full_name, email, content, rating, created_at, is_resolved, reply_message, resolved_at')
+        .single();
+
+      if (error) {
+        throw new Error(error.message || "Failed to update feedback reply in Supabase");
+      }
+
+      return Feedback.fromObject(data);
+    } catch (error) {
+      console.error("Update feedback reply error:", error);
+      throw error;
+    }
+  }
+
+  // Get resolved feedback (admin only)
+  public async getResolvedFeedback(): Promise<Feedback[]> {
+    try {
+      const { data, error } = await supabase
+        .from('feedback')
+        .select('id, user_id, full_name, email, content, rating, created_at, is_resolved, reply_message, resolved_at, updated_at')
+        .eq('is_resolved', true)
+        .order('resolved_at', { ascending: false });
+
+      if (error) {
+        throw new Error(error.message || "Failed to get resolved feedback from Supabase");
+      }
+
+      return data.map((item: any) => Feedback.fromObject(item));
+    } catch (error) {
+      console.error("Get resolved feedback error:", error);
       throw error;
     }
   }
