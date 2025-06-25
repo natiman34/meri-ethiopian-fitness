@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react"
 import Card from "../../components/ui/Card"
 import Button from "../../components/ui/Button"
-import { Search, CheckCircle, XCircle, Reply, Clock, RefreshCw } from "lucide-react"
+import { Search, CheckCircle, XCircle, Clock, RefreshCw } from "lucide-react"
 import { FeedbackService } from '../../services/FeedbackService'
-import FeedbackReplyModal from '../../components/admin/FeedbackReplyModal'
 import useMobileFeatures from '../../hooks/useMobileFeatures'
 import '../../styles/mobile-feedback.css'
 
@@ -29,10 +28,7 @@ const AdminFeedback = () => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'resolved' | 'unresolved'>('all')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [replyModal, setReplyModal] = useState<{
-    isOpen: boolean;
-    feedback: FeedbackItem | null;
-  }>({ isOpen: false, feedback: null })
+
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   const feedbackService = FeedbackService.getInstance()
@@ -105,34 +101,7 @@ const AdminFeedback = () => {
     }
   }
 
-  const handleSendReply = async (feedbackId: string, replyMessage: string) => {
-    try {
-      console.log("🚀 Sending feedback reply...");
-      await feedbackService.sendFeedbackReply(feedbackId, replyMessage)
-      console.log("✅ Reply sent successfully");
-      await fetchFeedback() // Refresh the list
 
-      // Show success message
-      alert("✅ Reply sent successfully! The user will receive an email notification.");
-    } catch (err: any) {
-      console.error("❌ Failed to send reply:", err);
-      throw new Error('Failed to send reply: ' + err.message)
-    }
-  }
-
-  const openReplyModal = (feedbackItem: FeedbackItem) => {
-    setReplyModal({
-      isOpen: true,
-      feedback: feedbackItem
-    })
-  }
-
-  const closeReplyModal = () => {
-    setReplyModal({
-      isOpen: false,
-      feedback: null
-    })
-  }
 
   // Filter feedback based on search term and status
   const filteredFeedback = feedback.filter((item) => {
@@ -335,7 +304,6 @@ const AdminFeedback = () => {
                   {item.reply_message && (
                     <div className="p-3 bg-blue-50 border-l-4 border-blue-400 rounded">
                       <div className="flex items-center mb-2">
-                        <Reply size={16} className="text-blue-600 mr-2" />
                         <span className="text-sm font-medium text-blue-800">Admin Reply</span>
                         {item.resolved_at && (
                           <span className="text-xs text-blue-600 ml-2">
@@ -349,15 +317,6 @@ const AdminFeedback = () => {
 
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end space-y-2 sm:space-y-0 sm:space-x-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => openReplyModal(item)}
-                      className="flex items-center justify-center min-h-[44px] px-4 py-2"
-                    >
-                      <Reply size={14} className="mr-2" />
-                      {item.reply_message ? 'Update Reply' : 'Reply'}
-                    </Button>
 
                     {item.is_resolved ? (
                       <Button
@@ -406,13 +365,7 @@ const AdminFeedback = () => {
         )}
       </div>
 
-      {/* Reply Modal */}
-      <FeedbackReplyModal
-        isOpen={replyModal.isOpen}
-        onClose={closeReplyModal}
-        feedback={replyModal.feedback}
-        onSendReply={handleSendReply}
-      />
+
     </div>
   )
 }
