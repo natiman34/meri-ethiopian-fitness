@@ -60,9 +60,9 @@ const ServicesOverview: React.FC = () => {
                 {service.description}
               </p>
               <Link to={service.link} className="mt-auto">
-                <Button variant="link" className="text-green-600 hover:text-green-800 flex items-center">
-                  Learn More
-                  <ChevronRight className="ml-1 h-4 w-4" />
+                <Button variant="primary" size="lg" className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                  Learn More & Explore
+                  <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
             </Card>

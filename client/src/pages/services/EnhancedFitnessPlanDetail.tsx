@@ -22,7 +22,8 @@ import {
   Pause,
   Volume2,
   VolumeX,
-
+  Download,
+  Bookmark,
   Share2,
   ChevronLeft,
   ChevronRight,
@@ -250,7 +251,10 @@ const EnhancedFitnessPlanDetail: React.FC = () => {
                     <Play className="h-5 w-5" />
                     Start Plan
                   </Button>
-
+                  <Button variant="outline" size="lg" className="flex items-center gap-2 bg-white/10 text-white border-white/20 hover:bg-white/20">
+                    <Bookmark className="h-5 w-5" />
+                    Save Plan
+                  </Button>
                   <Button variant="outline" size="lg" className="flex items-center gap-2 bg-white/10 text-white border-white/20 hover:bg-white/20">
                     <Share2 className="h-5 w-5" />
                     Share
@@ -343,15 +347,6 @@ const EnhancedFitnessPlanDetail: React.FC = () => {
                   <p className="mt-4 text-sm text-gray-500">
                     Already have an account? <Link to="/login" className="text-green-600">Log in</Link>
                   </p>
-                </Card.Body>
-              </Card>
-            ) : (
-              <Card>
-                <Card.Body>
-                  <h3 className="font-semibold text-lg mb-4">Plan Actions</h3>
-                  <div className="space-y-3">
-                    {/* Action buttons removed as requested */}
-                  </div>
                 </Card.Body>
               </Card>
             )}

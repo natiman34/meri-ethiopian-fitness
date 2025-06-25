@@ -313,7 +313,7 @@ const FitnessPlanDetail: React.FC = () => {
       {!hideActions && (
         <div>
           <div className="space-y-6">
-            {!user ? (
+            {!user && (
               <Card>
                 <Card.Body className="text-center">
                   <h3 className="font-semibold text-lg mb-2">Want to save this plan?</h3>
@@ -328,15 +328,6 @@ const FitnessPlanDetail: React.FC = () => {
                   <p className="mt-4 text-sm text-gray-500">
                     Already have an account? <Link to="/login" className="text-green-600">Log in</Link>
                   </p>
-                </Card.Body>
-              </Card>
-            ) : (
-              <Card>
-                <Card.Body>
-                  <h3 className="font-semibold text-lg mb-4">Plan Actions</h3>
-                  <div className="space-y-3">
-                    {/* Action buttons removed as requested */}
-                  </div>
                 </Card.Body>
               </Card>
             )}
