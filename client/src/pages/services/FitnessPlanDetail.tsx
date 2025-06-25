@@ -335,12 +335,7 @@ const FitnessPlanDetail: React.FC = () => {
                 <Card.Body>
                   <h3 className="font-semibold text-lg mb-4">Plan Actions</h3>
                   <div className="space-y-3">
-                    <Button variant="primary" fullWidth>
-                      Save to My Plans
-                    </Button>
-                    <Button variant="outline" fullWidth>
-                      Download PDF
-                    </Button>
+                    {/* Action buttons removed as requested */}
                   </div>
                 </Card.Body>
               </Card>
