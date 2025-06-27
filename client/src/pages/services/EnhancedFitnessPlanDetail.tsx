@@ -58,7 +58,8 @@ const EnhancedFitnessPlanDetail: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const fetchedPlan = await FitnessPlanService.getFitnessPlanById(id);
+        const fitnessPlanService = FitnessPlanService.getInstance();
+        const fetchedPlan = await fitnessPlanService.getFitnessPlanById(id);
         if (fetchedPlan) {
           setPlan(fetchedPlan);
           if (fetchedPlan.schedule.length > 0) {
@@ -272,85 +273,85 @@ const EnhancedFitnessPlanDetail: React.FC = () => {
           {/* Left Sidebar - Plan Info */}
           {!hideActions && (
             <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-semibold mb-4 flex items-center">
-                <Target className="h-5 w-5 mr-2 text-green-600" />
-                Plan Overview
-              </h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Target Audience</h3>
-                  <p className="text-gray-600">{plan.target_audience}</p>
-                </div>
-
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Prerequisites</h3>
-                  <ul className="space-y-1">
-                    {plan.prerequisites.map((prereq, index) => (
-                      <li key={index} className="flex items-start">
-                        <CheckCircle className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-600">{prereq}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Required Equipment</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {plan.equipment.map((item, index) => (
-                      <span key={index} className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Goals</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {plan.goals.map((goal, index) => (
-                      <span key={index} className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
-                        {goal}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {plan.rating && (
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center">
+                  <Target className="h-5 w-5 mr-2 text-green-600" />
+                  Plan Overview
+                </h2>
+                
+                <div className="space-y-4">
                   <div>
-                    <h3 className="font-medium text-gray-900 mb-2">Rating</h3>
-                    <div className="flex items-center">
-                      <div className="flex mr-2">{getDifficultyStars(plan.rating)}</div>
-                      <span className="text-gray-600">({plan.reviewCount || 0} reviews)</span>
+                    <h3 className="font-medium text-gray-900 mb-2">Target Audience</h3>
+                    <p className="text-gray-600">{plan.target_audience}</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-2">Prerequisites</h3>
+                    <ul className="space-y-1">
+                      {plan.prerequisites.map((prereq, index) => (
+                        <li key={index} className="flex items-start">
+                          <CheckCircle className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-600">{prereq}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-2">Required Equipment</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {plan.equipment.map((item, index) => (
+                        <span key={index} className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
+                          {item}
+                        </span>
+                      ))}
                     </div>
                   </div>
-                )}
-              </div>
-            </div>
 
-            {/* User Actions */}
-            {!user ? (
-              <Card>
-                <Card.Body className="text-center">
-                  <Heart className="h-12 w-12 text-green-600 mx-auto mb-4" />
-                  <h3 className="font-semibold text-lg mb-2">Want to save this plan?</h3>
-                  <p className="text-gray-600 mb-4">
-                    Create an account to save this plan to your profile and track your progress.
-                  </p>
-                  <Link to="/register">
-                    <Button variant="primary" fullWidth>
-                      Sign Up Now
-                    </Button>
-                  </Link>
-                  <p className="mt-4 text-sm text-gray-500">
-                    Already have an account? <Link to="/login" className="text-green-600">Log in</Link>
-                  </p>
-                </Card.Body>
-              </Card>
-            )}
-          </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-2">Goals</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {plan.goals.map((goal, index) => (
+                        <span key={index} className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                          {goal}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {plan.rating && (
+                    <div>
+                      <h3 className="font-medium text-gray-900 mb-2">Rating</h3>
+                      <div className="flex items-center">
+                        <div className="flex mr-2">{getDifficultyStars(plan.rating)}</div>
+                        <span className="text-gray-600">({plan.reviewCount || 0} reviews)</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* User Actions */}
+              {!user ? (
+                <Card>
+                  <Card.Body className="text-center">
+                    <Heart className="h-12 w-12 text-green-600 mx-auto mb-4" />
+                    <h3 className="font-semibold text-lg mb-2">Want to save this plan?</h3>
+                    <p className="text-gray-600 mb-4">
+                      Create an account to save this plan to your profile and track your progress.
+                    </p>
+                    <Link to="/register">
+                      <Button variant="primary" fullWidth>
+                        Sign Up Now
+                      </Button>
+                    </Link>
+                    <p className="mt-4 text-sm text-gray-500">
+                      Already have an account? <Link to="/login" className="text-green-600">Log in</Link>
+                    </p>
+                  </Card.Body>
+                </Card>
+              ) : null}
+            </div>
           )}
 
           {/* Main Content - Workout Schedule */}
