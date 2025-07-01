@@ -39,8 +39,8 @@ export class ActivityLogService {
         type: type.toLowerCase(),
         title,
         description,
-        user_id: userId || null,
-        admin_id: adminId || null,
+        user_id: userId || undefined,
+        admin_id: adminId || undefined,
         timestamp: new Date().toISOString()
       }
 

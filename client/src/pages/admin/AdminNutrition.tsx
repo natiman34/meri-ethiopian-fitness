@@ -113,7 +113,7 @@ const AdminNutrition = () => {
           isEthiopian: false,
           ingredients: meal.ingredients || [],
           preparation: meal.preparation || '',
-          nutritionInfo: meal.nutritionalInfo || { calories: 0, protein: 0, carbs: 0, fat: 0 }
+          nutritionalInfo: meal.nutritionalInfo || { calories: 0, protein: 0, carbs: 0, fat: 0 }
         })) || [],
         status: dbPlan.status || 'draft',
         tags: [],
@@ -163,7 +163,7 @@ const AdminNutrition = () => {
             name: meal.name,
             ingredients: meal.ingredients || [],
             preparation: meal.preparation || '',
-            nutritionalInfo: meal.nutritionInfo || { calories: 0, protein: 0, carbs: 0, fat: 0 }
+            nutritionalInfo: meal.nutritionalInfo || { calories: 0, protein: 0, carbs: 0, fat: 0 }
           }))
         },
         status: 'published' // Auto-publish nutrition plans so they appear in public section
@@ -193,7 +193,7 @@ const AdminNutrition = () => {
             isEthiopian: false,
             ingredients: meal.ingredients || [],
             preparation: meal.preparation || '',
-            nutritionInfo: meal.nutritionalInfo || { calories: 0, protein: 0, carbs: 0, fat: 0 }
+            nutritionalInfo: meal.nutritionalInfo || { calories: 0, protein: 0, carbs: 0, fat: 0 }
           })) || [],
           status: data.status || 'draft',
           tags: [],
@@ -279,7 +279,7 @@ const AdminNutrition = () => {
             name: meal.name,
             ingredients: meal.ingredients || [],
             preparation: meal.preparation || '',
-            nutritionalInfo: meal.nutritionInfo || { calories: 0, protein: 0, carbs: 0, fat: 0 }
+            nutritionalInfo: meal.nutritionalInfo || { calories: 0, protein: 0, carbs: 0, fat: 0 }
           }))
         },
         status: plan.status,
@@ -374,7 +374,7 @@ const AdminNutrition = () => {
       isEthiopian: false,
       ingredients: [],
       preparation: '',
-      nutritionInfo: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+      nutritionalInfo: { calories: 0, protein: 0, carbs: 0, fat: 0 },
     };
     if (planType === 'new') {
       setNewPlan(prev => ({
@@ -429,7 +429,7 @@ const AdminNutrition = () => {
         ...prev,
         meals: (prev.meals || []).map((meal, i) =>
           i === mealIndex
-            ? { ...meal, nutritionInfo: { ...(meal.nutritionInfo || {}), [field]: value } }
+            ? { ...meal, nutritionalInfo: { ...(meal.nutritionalInfo || {}), [field]: value } }
             : meal
         )
       }));
@@ -438,7 +438,7 @@ const AdminNutrition = () => {
         ...(prev as NutritionPlan),
         meals: ((prev as NutritionPlan).meals || []).map((meal, i) =>
           i === mealIndex
-            ? { ...meal, nutritionInfo: { ...(meal.nutritionInfo || {}), [field]: value } }
+            ? { ...meal, nutritionalInfo: { ...(meal.nutritionalInfo || {}), [field]: value } }
             : meal
         )
       }));
@@ -642,8 +642,6 @@ const AdminNutrition = () => {
                     <option value="maintenance">Maintenance</option>
                     <option value="weight-loss">Weight Loss</option>
                     <option value="weight-gain">Weight Gain</option>
-                    <option value="performance">Performance</option>
-                    <option value="health">Health</option>
                   </select>
                   {formErrors.category && <p className="mt-1 text-sm text-red-600">{formErrors.category}</p>}
                 </div>
@@ -748,7 +746,7 @@ const AdminNutrition = () => {
                           <label className="block text-sm font-medium text-gray-700">Calories</label>
                           <input
                             type="number"
-                            value={meal.nutritionInfo?.calories || 0}
+                            value={meal.nutritionalInfo?.calories || 0}
                             onChange={(e) => handleNutritionalInfoChange('new', mealIndex, 'calories', parseInt(e.target.value) || 0)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                           />
@@ -757,7 +755,7 @@ const AdminNutrition = () => {
                           <label className="block text-sm font-medium text-gray-700">Protein (g)</label>
                           <input
                             type="number"
-                            value={meal.nutritionInfo?.protein || 0}
+                            value={meal.nutritionalInfo?.protein || 0}
                             onChange={(e) => handleNutritionalInfoChange('new', mealIndex, 'protein', parseInt(e.target.value) || 0)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                           />
@@ -766,7 +764,7 @@ const AdminNutrition = () => {
                           <label className="block text-sm font-medium text-gray-700">Carbs (g)</label>
                           <input
                             type="number"
-                            value={meal.nutritionInfo?.carbs || 0}
+                            value={meal.nutritionalInfo?.carbs || 0}
                             onChange={(e) => handleNutritionalInfoChange('new', mealIndex, 'carbs', parseInt(e.target.value) || 0)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                           />
@@ -775,7 +773,7 @@ const AdminNutrition = () => {
                           <label className="block text-sm font-medium text-gray-700">Fat (g)</label>
                           <input
                             type="number"
-                            value={meal.nutritionInfo?.fat || 0}
+                            value={meal.nutritionalInfo?.fat || 0}
                             onChange={(e) => handleNutritionalInfoChange('new', mealIndex, 'fat', parseInt(e.target.value) || 0)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                           />
@@ -881,8 +879,6 @@ const AdminNutrition = () => {
                       <option value="maintenance">Maintenance</option>
                       <option value="weight-loss">Weight Loss</option>
                       <option value="weight-gain">Weight Gain</option>
-                      <option value="performance">Performance</option>
-                      <option value="health">Health</option>
                     </select>
                     {formErrors.category && <p className="mt-1 text-sm text-red-600">{formErrors.category}</p>}
                   </div>
@@ -1002,7 +998,7 @@ const AdminNutrition = () => {
                           <label className="block text-sm font-medium text-gray-700">Calories</label>
                           <input
                             type="number"
-                            value={meal.nutritionInfo?.calories || 0}
+                            value={meal.nutritionalInfo?.calories || 0}
                             onChange={(e) => handleNutritionalInfoChange('edit', mealIndex, 'calories', parseInt(e.target.value) || 0)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                           />
@@ -1011,7 +1007,7 @@ const AdminNutrition = () => {
                           <label className="block text-sm font-medium text-gray-700">Protein (g)</label>
                           <input
                             type="number"
-                            value={meal.nutritionInfo?.protein || 0}
+                            value={meal.nutritionalInfo?.protein || 0}
                             onChange={(e) => handleNutritionalInfoChange('edit', mealIndex, 'protein', parseInt(e.target.value) || 0)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                           />
@@ -1020,7 +1016,7 @@ const AdminNutrition = () => {
                           <label className="block text-sm font-medium text-gray-700">Carbs (g)</label>
                           <input
                             type="number"
-                            value={meal.nutritionInfo?.carbs || 0}
+                            value={meal.nutritionalInfo?.carbs || 0}
                             onChange={(e) => handleNutritionalInfoChange('edit', mealIndex, 'carbs', parseInt(e.target.value) || 0)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                           />
@@ -1029,7 +1025,7 @@ const AdminNutrition = () => {
                           <label className="block text-sm font-medium text-gray-700">Fat (g)</label>
                           <input
                             type="number"
-                            value={meal.nutritionInfo?.fat || 0}
+                            value={meal.nutritionalInfo?.fat || 0}
                             onChange={(e) => handleNutritionalInfoChange('edit', mealIndex, 'fat', parseInt(e.target.value) || 0)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                           />
@@ -1137,8 +1133,6 @@ const AdminNutrition = () => {
                 <option value="maintenance">Maintenance</option>
                 <option value="weight-loss">Weight Loss</option>
                 <option value="weight-gain">Weight Gain</option>
-                <option value="performance">Performance</option>
-                <option value="health">Health</option>
               </select>
             </div>
 
@@ -1220,9 +1214,7 @@ const AdminNutrition = () => {
                             ? "bg-green-100 text-green-800"
                             : plan.category === "weight-gain"
                               ? "bg-purple-100 text-purple-800"
-                            : plan.category === "performance"
-                              ? "bg-yellow-100 text-yellow-800"
-                                : "bg-gray-100 text-gray-800"
+                              : "bg-gray-100 text-gray-800"
                       }`}
                     >
                       {plan.category.charAt(0).toUpperCase() + plan.category.slice(1)}

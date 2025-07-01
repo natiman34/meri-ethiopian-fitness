@@ -1,18 +1,19 @@
 import React, { useMemo } from 'react'
-import { useRouter } from 'next/router'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { Link, Button } from '@/components/ui/button'
+import Button from '../../components/ui/Button'
 import { ChevronDown, Users, MessageSquare, Dumbbell, UtensilsCrossed, Settings, LogOut, UserCircle } from 'lucide-react'
 import { Routes, Route } from 'react-router-dom'
-import AdminDashboard from '../components/AdminDashboard'
-import AdminUsers from '../components/AdminUsers'
-import AdminFeedback from '../components/AdminFeedback'
-import AdminSettings from '../components/AdminSettings'
-import AdminFitnessPlans from '../components/AdminFitnessPlans'
+import AdminDashboard from '../pages/admin/Dashboard'
+import AdminUsers from '../pages/admin/AdminUsers'
+import AdminFeedback from '../pages/admin/AdminFeedback'
+import AdminSettings from '../pages/admin/AdminSettings'
+import AdminFitnessPlans from '../pages/admin/AdminFitnessPlans'
 
 const AdminRoutes = () => {
-  const router = useRouter()
-  const { user, session, isLoading, role } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { user, session, isLoading } = useAuth()
 
   const superAdminNavItems = [
     {
@@ -79,23 +80,25 @@ const AdminRoutes = () => {
   ]
 
   const currentNavItems = useMemo(() => {
-    if (role === "admin_super") {
+    if (user?.role === "admin_super") {
       return superAdminNavItems;
-    } else if (role === "admin_fitness") {
+    } else if (user?.role === "admin_fitness") {
       return adminFitnessNavItems;
-    } else if (role === "admin_nutritionist") {
+    } else if (user?.role === "admin_nutritionist") {
       return adminNutritionNavItems;
     }
     return [];
-  }, [role]);
+  }, [user?.role]);
+
+  const role = user?.role || ''
 
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
   if (!session || !user || !role || !currentNavItems.length) {
-    router.push("/auth/login");
-    return null;
+    navigate('/auth/login')
+    return null
   }
 
   const AdminLayout = ({ children }: { children: React.ReactNode }) => (
@@ -108,9 +111,9 @@ const AdminRoutes = () => {
           {currentNavItems.map((item) => (
             <Link
               key={item.href}
-              href={item.href}
+              to={item.href}
               className={`flex items-center p-3 rounded-md transition-colors
-                ${router.pathname === item.href ? "bg-green-600" : "hover:bg-gray-700"}
+                ${location.pathname === item.href ? "bg-green-600" : "hover:bg-gray-700"}
               `}
             >
               {item.icon}
@@ -120,7 +123,7 @@ const AdminRoutes = () => {
         </nav>
         <div className="p-4 border-t border-gray-700">
           <Link
-            href="/logout"
+            to="/logout"
             className="flex items-center p-3 rounded-md hover:bg-gray-700 transition-colors"
           >
             <LogOut size={20} className="mr-3" />
@@ -136,7 +139,7 @@ const AdminRoutes = () => {
           </h1>
           <div className="flex items-center space-x-4">
             <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-              {role.replace("admin_", "").replace(/\b\w/g, (char) => char.toUpperCase())} Admin
+              {role.replace("admin_", "").replace(/\b\w/g, (char: string) => char.toUpperCase())} Admin
             </span>
             <div className="relative">
               <Button

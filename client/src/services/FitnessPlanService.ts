@@ -410,4 +410,14 @@ export class FitnessPlanService {
       throw new Error('Failed to search fitness plans');
     }
   }
+
+  // Add stubs for uploadImage and uploadGif to prevent errors if called
+  public async uploadImage(file: File, planId: string): Promise<string> {
+    // Stub: In production, implement actual upload logic
+    return Promise.resolve('https://dummyimage.com/' + planId)
+  }
+  public async uploadGif(file: File, planId: string, type: string): Promise<string> {
+    // Stub: In production, implement actual upload logic
+    return Promise.resolve('https://dummygif.com/' + planId + '/' + type)
+  }
 }

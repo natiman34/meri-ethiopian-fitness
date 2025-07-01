@@ -13,6 +13,13 @@ import { FitnessPlan, FitnessCategory, FitnessLevel, Exercise, DaySchedule } fro
 import { useAuth } from "../../contexts/AuthContext"
 import { supabase } from "../../lib/supabase"
 
+const FITNESS_CATEGORIES = [
+  'weight-loss', 'weight-gain', 'maintenance', 'strength', 'flexibility', 'endurance',
+  'muscle-building', 'powerlifting', 'bodybuilding', 'functional', 'beginner', 'home',
+  'gym', 'men', 'women', 'fat-burning', 'leg',
+];
+const FITNESS_LEVELS = ['beginner', 'intermediate', 'advanced'];
+
 const AdminFitnessPlans = () => {
   const [plans, setPlans] = useState<FitnessPlan[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -42,7 +49,7 @@ const AdminFitnessPlans = () => {
     try {
       // Try to fetch from Supabase database first
       try {
-        const databasePlans = await fitnessPlanService.getFitnessPlansFromDatabase()
+        const databasePlans = await fitnessPlanService.getFitnessPlans()
         setPlans(databasePlans)
       } catch (dbError) {
         console.warn("Database fetch failed, using local data:", dbError)
@@ -204,8 +211,9 @@ const AdminFitnessPlans = () => {
       if ('id' in currentPlan && currentPlan.id) {
         // Update existing plan - try database first, fallback to local
         try {
-          await fitnessPlanService.updateFitnessPlanInDatabase(currentPlan.id as string, currentPlan)
-          setSuccess("Fitness plan updated successfully in database!")
+          const { id, ...planData } = currentPlan;
+          await fitnessPlanService.updateFitnessPlan(id as string, planData)
+          setSuccess("Fitness plan updated successfully!")
         } catch (dbError) {
           console.warn("Database update failed, using local update:", dbError)
           await fitnessPlanService.updateFitnessPlan(currentPlan.id as string, currentPlan)
@@ -225,8 +233,8 @@ const AdminFitnessPlans = () => {
             throw new Error(`A fitness plan with the title "${currentPlan.title}" already exists in ${currentPlan.category} category at ${currentPlan.level} level. Please choose a different title.`);
           }
 
-          await fitnessPlanService.createFitnessPlanInDatabase(currentPlan)
-          setSuccess("Fitness plan created successfully in database!")
+          await fitnessPlanService.createFitnessPlan(currentPlan)
+          setSuccess("Fitness plan created successfully!")
         } catch (dbError: any) {
           console.warn("Database create failed:", dbError)
           setError(dbError.message || "Failed to create fitness plan")
@@ -256,8 +264,8 @@ const AdminFitnessPlans = () => {
     try {
       // Try database delete first, fallback to local
       try {
-        await fitnessPlanService.deleteFitnessPlanFromDatabase(planId)
-        setSuccess("Fitness plan deleted successfully from database!")
+        await fitnessPlanService.deleteFitnessPlan(planId)
+        setSuccess("Fitness plan deleted successfully!")
       } catch (dbError) {
         console.warn("Database delete failed, using local delete:", dbError)
         await fitnessPlanService.deleteFitnessPlan(planId)
@@ -383,7 +391,7 @@ const AdminFitnessPlans = () => {
                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                     required
                   >
-                    {Object.values(FitnessCategory).map((cat) => (
+                    {FITNESS_CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
                         {cat.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                       </option>
@@ -403,7 +411,7 @@ const AdminFitnessPlans = () => {
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                   required
                 >
-                  {Object.values(FitnessLevel).map((lvl) => (
+                  {FITNESS_LEVELS.map((lvl) => (
                     <option key={lvl} value={lvl}>
                       {lvl.charAt(0).toUpperCase() + lvl.slice(1)}
                     </option>
