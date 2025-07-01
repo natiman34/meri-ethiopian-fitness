@@ -9,6 +9,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { Dialog } from '@headlessui/react'
 import MealManager from '../../components/admin/MealManager'
 import { ActivityLogService } from '../../services/ActivityLogService'
+import type { NutritionStatus } from '../../types/content'
 
 
 
@@ -372,14 +373,15 @@ const AdminNutrition = () => {
       description: '',
       image: '',
       isEthiopian: false,
+      nutritionInfo: { calories: 0, protein: 0, carbs: 0, fat: 0 },
       ingredients: [],
       preparation: '',
-      nutritionalInfo: { calories: 0, protein: 0, carbs: 0, fat: 0 },
     };
+    const newDayMeal = mealToDayMeal(newMeal, (planType === 'new' ? (newPlan?.meals?.length ?? 0) : (editingPlan?.meals?.length ?? 0)) + 1);
     if (planType === 'new') {
       setNewPlan(prev => ({
         ...prev,
-        meals: [...(prev.meals || []), newMeal],
+        meals: [...(prev.meals || []), newDayMeal],
         calorieRange: prev.calorieRange || {min: 0, max: 0},
         createdAt: prev.createdAt || new Date().toISOString(),
         updatedAt: prev.updatedAt || new Date().toISOString(),
@@ -387,7 +389,7 @@ const AdminNutrition = () => {
     } else if (planType === 'edit' && editingPlan) {
       setEditingPlan(prev => ({
         ...(prev as NutritionPlan),
-        meals: [...((prev as NutritionPlan).meals || []), newMeal]
+        meals: [...((prev as NutritionPlan).meals || []), newDayMeal]
       }));
     }
   };
@@ -514,37 +516,33 @@ const AdminNutrition = () => {
   // Handle meal selection from database
   const handleMealSelect = (selectedMeal: Meal) => {
     if (!mealSelectionMode) return;
-
     const { planType, mealIndex } = mealSelectionMode;
-
+    const newDayMeal = mealToDayMeal(selectedMeal, (planType === 'new' ? (newPlan?.meals?.length ?? 0) : (editingPlan?.meals?.length ?? 0)) + 1);
     if (mealIndex !== undefined) {
-      // Replace existing meal
       if (planType === 'new') {
         setNewPlan(prev => ({
           ...prev,
-          meals: (prev.meals || []).map((meal, i) => i === mealIndex ? selectedMeal : meal)
+          meals: (prev.meals || []).map((meal, i) => i === mealIndex ? newDayMeal : meal)
         }));
       } else if (planType === 'edit' && editingPlan) {
         setEditingPlan(prev => ({
           ...(prev as NutritionPlan),
-          meals: (prev.meals || []).map((meal, i) => i === mealIndex ? selectedMeal : meal)
+          meals: (prev.meals || []).map((meal, i) => i === mealIndex ? newDayMeal : meal)
         }));
       }
     } else {
-      // Add new meal
       if (planType === 'new') {
         setNewPlan(prev => ({
           ...prev,
-          meals: [...(prev.meals || []), selectedMeal]
+          meals: [...(prev.meals || []), newDayMeal]
         }));
       } else if (planType === 'edit' && editingPlan) {
         setEditingPlan(prev => ({
           ...(prev as NutritionPlan),
-          meals: [...(prev.meals || []), selectedMeal]
+          meals: [...(prev.meals || []), newDayMeal]
         }));
       }
     }
-
     setIsMealManagerOpen(false);
     setMealSelectionMode(null);
   };
@@ -554,6 +552,16 @@ const AdminNutrition = () => {
     setIsMealManagerOpen(true);
   };
 
+  // Helper to convert a Meal to a DayMeal
+  const mealToDayMeal = (meal: Meal, day: number): DayMeal => ({
+    day,
+    breakfast: [meal],
+    lunch: [],
+    dinner: [],
+    snacks: [],
+    totalCalories: meal.nutritionInfo.calories,
+    nutritionalInfo: meal.nutritionInfo,
+  });
 
   return (
     <div className="space-y-6">

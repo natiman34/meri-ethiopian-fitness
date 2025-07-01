@@ -7,6 +7,7 @@ import { FitnessPlan, FitnessCategory, FitnessLevel, DaySchedule, Exercise } fro
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { Dialog } from '@headlessui/react'
+import { FitnessPlanService } from '../../services/FitnessPlanService'
 
 const AdminFitness = () => {
   const [plans, setPlans] = useState<FitnessPlan[]>([])
@@ -152,7 +153,7 @@ const AdminFitness = () => {
       };
 
       // Check for duplicates first
-      const exists = await fitnessPlanService.checkFitnessPlanExists(
+      const exists = await FitnessPlanService.getInstance().checkFitnessPlanExists(
         newPlan.title?.trim() || '',
         newPlan.category,
         newPlan.level

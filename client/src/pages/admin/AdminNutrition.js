@@ -325,14 +325,15 @@ const AdminNutrition = () => {
             description: '',
             image: '',
             isEthiopian: false,
+            nutritionInfo: { calories: 0, protein: 0, carbs: 0, fat: 0 },
             ingredients: [],
             preparation: '',
-            nutritionalInfo: { calories: 0, protein: 0, carbs: 0, fat: 0 },
         };
+        const newDayMeal = mealToDayMeal(newMeal, (planType === 'new' ? (newPlan?.meals?.length ?? 0) : (editingPlan?.meals?.length ?? 0)) + 1);
         if (planType === 'new') {
             setNewPlan(prev => ({
                 ...prev,
-                meals: [...(prev.meals || []), newMeal],
+                meals: [...(prev.meals || []), newDayMeal],
                 calorieRange: prev.calorieRange || { min: 0, max: 0 },
                 createdAt: prev.createdAt || new Date().toISOString(),
                 updatedAt: prev.updatedAt || new Date().toISOString(),
@@ -341,7 +342,7 @@ const AdminNutrition = () => {
         else if (planType === 'edit' && editingPlan) {
             setEditingPlan(prev => ({
                 ...prev,
-                meals: [...(prev.meals || []), newMeal]
+                meals: [...(prev.meals || []), newDayMeal]
             }));
         }
     };
@@ -453,33 +454,32 @@ const AdminNutrition = () => {
         if (!mealSelectionMode)
             return;
         const { planType, mealIndex } = mealSelectionMode;
+        const newDayMeal = mealToDayMeal(selectedMeal, (planType === 'new' ? (newPlan?.meals?.length ?? 0) : (editingPlan?.meals?.length ?? 0)) + 1);
         if (mealIndex !== undefined) {
-            // Replace existing meal
             if (planType === 'new') {
                 setNewPlan(prev => ({
                     ...prev,
-                    meals: (prev.meals || []).map((meal, i) => i === mealIndex ? selectedMeal : meal)
+                    meals: (prev.meals || []).map((meal, i) => i === mealIndex ? newDayMeal : meal)
                 }));
             }
             else if (planType === 'edit' && editingPlan) {
                 setEditingPlan(prev => ({
                     ...prev,
-                    meals: (prev.meals || []).map((meal, i) => i === mealIndex ? selectedMeal : meal)
+                    meals: (prev.meals || []).map((meal, i) => i === mealIndex ? newDayMeal : meal)
                 }));
             }
         }
         else {
-            // Add new meal
             if (planType === 'new') {
                 setNewPlan(prev => ({
                     ...prev,
-                    meals: [...(prev.meals || []), selectedMeal]
+                    meals: [...(prev.meals || []), newDayMeal]
                 }));
             }
             else if (planType === 'edit' && editingPlan) {
                 setEditingPlan(prev => ({
                     ...prev,
-                    meals: [...(prev.meals || []), selectedMeal]
+                    meals: [...(prev.meals || []), newDayMeal]
                 }));
             }
         }
@@ -490,6 +490,16 @@ const AdminNutrition = () => {
         setMealSelectionMode({ planType, mealIndex });
         setIsMealManagerOpen(true);
     };
+    // Helper to convert a Meal to a DayMeal
+    const mealToDayMeal = (meal, day) => ({
+        day,
+        breakfast: [meal],
+        lunch: [],
+        dinner: [],
+        snacks: [],
+        totalCalories: meal.nutritionInfo.calories,
+        nutritionalInfo: meal.nutritionInfo,
+    });
     return (_jsxs("div", { className: "space-y-6", children: [_jsxs(Dialog, { open: isDeleteModalOpen, onClose: () => setIsDeleteModalOpen(false), className: "relative z-50", children: [_jsx("div", { className: "fixed inset-0 bg-black/30", "aria-hidden": "true" }), _jsx("div", { className: "fixed inset-0 flex items-center justify-center p-4", children: _jsxs(Dialog.Panel, { className: "w-full max-w-sm rounded bg-white p-6", children: [_jsx(Dialog.Title, { className: "text-lg font-medium", children: "Delete Nutrition Plan" }), _jsx(Dialog.Description, { className: "mt-2", children: "Are you sure you want to delete this nutrition plan? This action cannot be undone." }), _jsxs("div", { className: "mt-4 flex justify-end space-x-2", children: [_jsx("button", { className: "px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900", onClick: () => setIsDeleteModalOpen(false), children: "Cancel" }), _jsx("button", { className: "px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md", onClick: () => {
                                                 if (planToDelete) {
                                                     handleDeletePlan(planToDelete);

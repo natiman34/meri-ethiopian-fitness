@@ -7,6 +7,7 @@ import { FitnessPlan } from '../../types/content';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { Dialog } from '@headlessui/react';
+import { FitnessPlanService } from '../../services/FitnessPlanService';
 const AdminFitness = () => {
     const [plans, setPlans] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -148,7 +149,7 @@ const AdminFitness = () => {
                 user_id: user?.id || null,
             };
             // Check for duplicates first
-            const exists = await fitnessPlanService.checkFitnessPlanExists(newPlan.title?.trim() || '', newPlan.category, newPlan.level);
+            const exists = await FitnessPlanService.getInstance().checkFitnessPlanExists(newPlan.title?.trim() || '', newPlan.category, newPlan.level);
             if (exists) {
                 throw new Error(`A fitness plan with the title "${newPlan.title}" already exists in ${newPlan.category} category at ${newPlan.level} level. Please choose a different title.`);
             }

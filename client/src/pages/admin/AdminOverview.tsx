@@ -61,7 +61,14 @@ const AdminOverview = () => {
 
         // Fetch recent activity using the new service
         const activityData = await ActivityLogService.getRecentActivityLogs(4)
-        setRecentActivity(activityData)
+        const mappedActivityData = activityData.map(activity => ({
+          id: activity.id,
+          type: activity.type,
+          title: activity.title,
+          description: activity.description,
+          timestamp: activity.timestamp
+        }))
+        setRecentActivity(mappedActivityData)
 
       } catch (err) {
         console.error('Error fetching dashboard data:', err)

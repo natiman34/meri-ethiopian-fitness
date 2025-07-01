@@ -209,37 +209,20 @@ const AdminFitnessPlans = () => {
 
     try {
       if ('id' in currentPlan && currentPlan.id) {
-        // Update existing plan - try database first, fallback to local
-        try {
-          const { id, ...planData } = currentPlan;
-          await fitnessPlanService.updateFitnessPlan(id as string, planData)
-          setSuccess("Fitness plan updated successfully!")
-        } catch (dbError) {
-          console.warn("Database update failed, using local update:", dbError)
-          await fitnessPlanService.updateFitnessPlan(currentPlan.id as string, currentPlan)
-          setSuccess("Fitness plan updated successfully locally!")
-        }
+        const { id, ...planData } = currentPlan;
+        await fitnessPlanService.updateFitnessPlan(id as string, planData);
+        setSuccess("Fitness plan updated successfully!");
       } else {
-        // Create new plan - try database first, fallback to local
-        try {
-          // Check for duplicates first
-          const exists = await fitnessPlanService.checkFitnessPlanExists(
-            currentPlan.title?.trim() || '',
-            currentPlan.category,
-            currentPlan.level
-          );
-
-          if (exists) {
-            throw new Error(`A fitness plan with the title "${currentPlan.title}" already exists in ${currentPlan.category} category at ${currentPlan.level} level. Please choose a different title.`);
-          }
-
-          await fitnessPlanService.createFitnessPlan(currentPlan)
-          setSuccess("Fitness plan created successfully!")
-        } catch (dbError: any) {
-          console.warn("Database create failed:", dbError)
-          setError(dbError.message || "Failed to create fitness plan")
-          return
+        const exists = await fitnessPlanService.checkFitnessPlanExists(
+          currentPlan.title?.trim() || '',
+          currentPlan.category,
+          currentPlan.level
+        );
+        if (exists) {
+          throw new Error(`A fitness plan with the title "${currentPlan.title}" already exists in ${currentPlan.category} category at ${currentPlan.level} level. Please choose a different title.`);
         }
+        await fitnessPlanService.createFitnessPlan(currentPlan as Omit<FitnessPlan, 'id' | 'created_at'>);
+        setSuccess("Fitness plan created successfully!");
       }
 
       setShowAddForm(false)

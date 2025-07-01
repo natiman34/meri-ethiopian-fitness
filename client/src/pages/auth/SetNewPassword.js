@@ -275,7 +275,6 @@ const SetNewPassword = () => {
                     message: sessionError.message,
                     status: sessionError.status,
                     name: sessionError.name,
-                    __isAuthError: sessionError.__isAuthError
                 });
                 // Handle specific error cases with more detailed logging
                 if (sessionError.message?.includes("expired") || sessionError.message?.includes("JWT expired")) {
@@ -317,7 +316,6 @@ const SetNewPassword = () => {
                     message: updateError.message,
                     status: updateError.status,
                     name: updateError.name,
-                    __isAuthError: updateError.__isAuthError
                 });
                 // Handle specific password update errors
                 if (updateError.message?.includes("weak") || updateError.message?.includes("password")) {

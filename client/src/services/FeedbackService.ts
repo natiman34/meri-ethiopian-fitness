@@ -251,30 +251,39 @@ export class FeedbackService {
         console.error("Exception message:", emailException.message);
         console.error("Exception stack:", emailException.stack);
 
-        // Try direct email service as fallback
-        console.log("🔄 TRYING DIRECT EMAIL SERVICE AS FALLBACK...");
-        try {
-          const directEmailService = DirectEmailService.getInstance();
-          const directResult = await directEmailService.sendFeedbackReply(
-            feedback.email,
-            feedback.name,
-            feedback.content,
-            replyMessage
-          );
+        // Use type guards or cast to Error before accessing properties of emailException
+        if (emailException instanceof Error) {
+          // Try direct email service as fallback
+          console.log("🔄 TRYING DIRECT EMAIL SERVICE AS FALLBACK...");
+          try {
+            const directEmailService = DirectEmailService.getInstance();
+            const directResult = await directEmailService.sendFeedbackReply(
+              feedback.email,
+              feedback.name,
+              feedback.content,
+              replyMessage
+            );
 
-          if (directResult.success) {
-            console.log("✅ DIRECT EMAIL FALLBACK SUCCESSFUL!");
-            console.log("📧 Email ID:", directResult.emailId);
-            alert(`✅ Email sent successfully via backup system!\n📧 Email ID: ${directResult.emailId}\n📬 Sent to: ${feedback.email}\n\n✅ User will receive email notification!`);
-          } else {
-            console.error("❌ DIRECT EMAIL FALLBACK FAILED!");
-            console.error("Error:", directResult.error);
-            alert(`❌ Reply saved but both email systems failed!\nPrimary: ${emailException.message}\nBackup: ${directResult.error}`);
+            if (directResult.success) {
+              console.log("✅ DIRECT EMAIL FALLBACK SUCCESSFUL!");
+              console.log("📧 Email ID:", directResult.emailId);
+              alert(`✅ Email sent successfully via backup system!\n📧 Email ID: ${directResult.emailId}\n📬 Sent to: ${feedback.email}\n\n✅ User will receive email notification!`);
+            } else {
+              console.error("❌ DIRECT EMAIL FALLBACK FAILED!");
+              console.error("Error:", directResult.error);
+              alert(`❌ Reply saved but both email systems failed!\nPrimary: ${emailException.message}\nBackup: ${directResult.error}`);
+            }
+          } catch (directException) {
+            console.error("💥 DIRECT EMAIL FALLBACK EXCEPTION!");
+            console.error("Direct exception:", directException);
+            alert(`💥 Reply saved but all email systems failed!\nPrimary: ${emailException.message}\nBackup: ${directException.message}`);
           }
-        } catch (directException) {
-          console.error("💥 DIRECT EMAIL FALLBACK EXCEPTION!");
-          console.error("Direct exception:", directException);
-          alert(`💥 Reply saved but all email systems failed!\nPrimary: ${emailException.message}\nBackup: ${directException.message}`);
+        } else {
+          console.error("💥 UNEXPECTED EMAIL EXCEPTION!");
+          console.error("Exception type:", typeof emailException);
+          console.error("Exception message:", emailException.message);
+          console.error("Exception stack:", emailException.stack);
+          alert(`💥 Reply saved but email system failed!\nError: ${emailException.message}`);
         }
       }
 

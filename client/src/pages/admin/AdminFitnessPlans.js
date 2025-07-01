@@ -188,7 +188,6 @@ const AdminFitnessPlans = () => {
         setSuccess(null);
         try {
             if ('id' in currentPlan && currentPlan.id) {
-                // Update existing plan - try database first, fallback to local
                 try {
                     const { id, ...planData } = currentPlan;
                     await fitnessPlanService.updateFitnessPlan(id, planData);
@@ -196,19 +195,19 @@ const AdminFitnessPlans = () => {
                 }
                 catch (dbError) {
                     console.warn("Database update failed, using local update:", dbError);
-                    await fitnessPlanService.updateFitnessPlan(currentPlan.id, currentPlan);
+                    const { id, ...planData } = currentPlan;
+                    await fitnessPlanService.updateFitnessPlan(id, planData);
                     setSuccess("Fitness plan updated successfully locally!");
                 }
             }
             else {
-                // Create new plan - try database first, fallback to local
                 try {
-                    // Check for duplicates first
                     const exists = await fitnessPlanService.checkFitnessPlanExists(currentPlan.title?.trim() || '', currentPlan.category, currentPlan.level);
                     if (exists) {
                         throw new Error(`A fitness plan with the title "${currentPlan.title}" already exists in ${currentPlan.category} category at ${currentPlan.level} level. Please choose a different title.`);
                     }
-                    await fitnessPlanService.createFitnessPlan(currentPlan);
+                    const { id, ...planData } = currentPlan;
+                    await fitnessPlanService.createFitnessPlan(planData);
                     setSuccess("Fitness plan created successfully!");
                 }
                 catch (dbError) {

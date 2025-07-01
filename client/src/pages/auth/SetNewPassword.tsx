@@ -314,7 +314,6 @@ const SetNewPassword: React.FC = () => {
           message: sessionError.message,
           status: sessionError.status,
           name: sessionError.name,
-          __isAuthError: sessionError.__isAuthError
         });
 
         // Handle specific error cases with more detailed logging
@@ -357,7 +356,6 @@ const SetNewPassword: React.FC = () => {
           message: updateError.message,
           status: updateError.status,
           name: updateError.name,
-          __isAuthError: updateError.__isAuthError
         });
 
         // Handle specific password update errors
@@ -583,8 +581,6 @@ const SetNewPassword: React.FC = () => {
                 </div>
               </div>
             )}
-
-
 
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
